@@ -1,0 +1,10 @@
+head -n 20 .gitignore > .dockerignore
+echo "node_modules" >> .dockerignore
+echo "apps/backend/node_modules" >> .dockerignore
+echo "apps/web/node_modules" >> .dockerignore
+echo "packages/*/node_modules" >> .dockerignore
+echo ".git" >> .dockerignore
+echo "dist" >> .dockerignore
+echo "coverage" >> .dockerignore
+echo "uploads" >> .dockerignore
+echo "tmp" >> .dockerignore

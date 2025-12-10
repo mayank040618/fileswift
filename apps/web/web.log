@@ -1,0 +1,15 @@
+
+> web@0.0.0 dev
+> next dev
+
+   ▲ Next.js 14.1.0
+   - Local:        http://localhost:3000
+   - Environments: .env.local
+
+ ✓ Ready in 2.6s
+ ○ Compiling / ...
+ ✓ Compiled / in 1977ms (1396 modules)
+ ✓ Compiled in 105ms (701 modules)
+ ✓ Compiled /tools/[toolId] in 253ms (1433 modules)
+
+ ⚠ metadata.metadataBase is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
