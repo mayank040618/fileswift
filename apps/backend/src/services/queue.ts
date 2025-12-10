@@ -1,9 +1,27 @@
 import { Queue } from 'bullmq';
 
-const connection = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
+const getConnectionConfig = () => {
+    if (process.env.REDIS_URL) {
+        try {
+            const url = new URL(process.env.REDIS_URL);
+            return {
+                host: url.hostname,
+                port: parseInt(url.port || '6379'),
+                username: url.username,
+                password: url.password,
+                ...(url.protocol === 'rediss:' ? { tls: { rejectUnauthorized: false } } : {})
+            };
+        } catch (e) {
+            console.error('Invalid REDIS_URL', e);
+        }
+    }
+    return {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+    };
 };
+
+const connection = getConnectionConfig();
 
 // Simple in-memory mock for development without Redis
 const mockJobStore = new Map<string, any>();
