@@ -18,7 +18,7 @@ const start = async () => {
     try {
         // Plugins
         await server.register(cors, {
-            origin: ['http://localhost:3000'],
+            origin: '*',
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             credentials: true
         });
