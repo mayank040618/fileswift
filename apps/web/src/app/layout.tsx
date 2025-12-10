@@ -21,6 +21,15 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
+            <head>
+                {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
+                    <script
+                        async
+                        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-${process.env.NEXT_PUBLIC_ADSENSE_CLIENT.replace(/^ca-pub-/, '')}`}
+                        crossOrigin="anonymous"
+                    ></script>
+                )}
+            </head>
             <body className={inter.className}>
                 <Providers>
                     {children}
@@ -30,17 +39,6 @@ export default function RootLayout({
                     </div>
                 </Providers>
                 <ConsentBanner />
-
-                {/* Google AdSense (Verified Injection) */}
-                {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
-                    <Script
-                        id="adsense-init"
-                        async
-                        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-${process.env.NEXT_PUBLIC_ADSENSE_CLIENT.replace(/^ca-pub-/, '')}`}
-                        crossOrigin="anonymous"
-                        strategy="afterInteractive"
-                    />
-                )}
 
                 {/* Google Analytics 4 */}
                 <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`}></script>
