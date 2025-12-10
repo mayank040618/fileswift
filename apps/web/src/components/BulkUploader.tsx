@@ -3,7 +3,7 @@
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, X, File as FileIcon, Image as ImageIcon } from 'lucide-react';
-import { Icons } from '@/components/Icons';
+
 
 interface BulkUploaderProps {
     files: File[];
