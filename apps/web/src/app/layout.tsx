@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 
 import { Providers } from './providers';
 import { AdFooter } from '@/components/ads/AdFooter';
+import { GoogleAdsense } from '@/components/ads/GoogleAdsense';
 
 export default function RootLayout({
     children,
@@ -27,8 +28,7 @@ export default function RootLayout({
                         <AdFooter />
                     </div>
                 </Providers>
-                {/* Google AdSense Script */}
-                <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`} crossOrigin="anonymous"></script>
+                <GoogleAdsense pId={process.env.NEXT_PUBLIC_ADSENSE_CLIENT || ''} />
                 {/* Google Analytics 4 */}
                 <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`}></script>
                 <script

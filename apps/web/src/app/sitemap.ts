@@ -1,15 +1,7 @@
 import { MetadataRoute } from 'next';
-import { TOOLS } from '@/config/tools';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fileswift.com';
-
-    const toolUrls = TOOLS.map((tool) => ({
-        url: `${baseUrl}${tool.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.8,
-    }));
+    const baseUrl = 'https://fileswift-app.vercel.app';
 
     return [
         {
@@ -18,6 +10,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: 'daily',
             priority: 1,
         },
-        ...toolUrls,
+        {
+            url: `${baseUrl}/compress-pdf`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: `${baseUrl}/image-compressor`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: `${baseUrl}/image-to-pdf`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
     ];
 }
