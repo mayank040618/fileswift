@@ -11,7 +11,7 @@ import { healthRoutes } from './routes/health';
 import { downloadRoutes } from './routes/download';
 
 import uploadRoutes from './routes/upload';
-import toolRoutes from './routes/tools';
+
 import toolRoutes from './routes/tools';
 import waitlistRoutes from './routes/waitlist';
 
