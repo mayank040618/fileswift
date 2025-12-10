@@ -14,6 +14,9 @@ export function Header() {
                     <Link href="/#tools" className="text-sm font-medium text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">
                         Tools
                     </Link>
+                    <Link href="/privacy-policy" className="text-sm font-medium text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">
+                        Privacy
+                    </Link>
                     <ThemeToggle />
                 </nav>
             </div>
