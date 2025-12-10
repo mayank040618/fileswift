@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,17 @@ export default function RootLayout({
                     </div>
                 </Providers>
                 <ConsentBanner />
+
+                {/* Google AdSense (Verified Injection) */}
+                {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
+                    <Script
+                        id="adsense-init"
+                        async
+                        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-${process.env.NEXT_PUBLIC_ADSENSE_CLIENT.replace(/^ca-pub-/, '')}`}
+                        crossOrigin="anonymous"
+                        strategy="afterInteractive"
+                    />
+                )}
 
                 {/* Google Analytics 4 */}
                 <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`}></script>
