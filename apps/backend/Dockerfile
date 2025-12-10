@@ -19,7 +19,9 @@ RUN npm install -g pnpm
 # Copy package files (monorepo structure awareness)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/backend/package.json ./apps/backend/
+COPY apps/web/package.json ./apps/web/
 COPY packages/utils/package.json ./packages/utils/
+COPY packages/ui/package.json ./packages/ui/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
