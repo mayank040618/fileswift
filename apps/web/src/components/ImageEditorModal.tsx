@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import Cropper from 'react-easy-crop';
+import React, { useState, useRef, useEffect } from 'react';
+import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from '@/utils/canvasUtils';
-import { X, Check, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Check, RotateCw } from 'lucide-react';
 
 interface ImageEditorModalProps {
     imageSrc: string;
@@ -10,28 +11,69 @@ interface ImageEditorModalProps {
     onSave: (croppedImageBlob: Blob) => void;
 }
 
-export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, isOpen, onClose, onSave }) => {
-    const [crop, setCrop] = useState({ x: 0, y: 0 });
-    const [rotation, setRotation] = useState(0);
-    const [zoom, setZoom] = useState(1);
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null); // eslint-disable-line
+// Helper to center the crop initially
+function centerAspectCrop(
+    mediaWidth: number,
+    mediaHeight: number,
+    aspect?: number,
+) {
+    return centerCrop(
+        makeAspectCrop(
+            {
+                unit: '%',
+                width: 90,
+            },
+            aspect || 16 / 9,
+            mediaWidth,
+            mediaHeight,
+        ),
+        mediaWidth,
+        mediaHeight,
+    )
+}
 
-    const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => { // eslint-disable-line
-        setCroppedAreaPixels(croppedAreaPixels);
-    }, []);
+export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, isOpen, onClose, onSave }) => {
+    const [crop, setCrop] = useState<Crop>();
+    const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+    const [rotation, setRotation] = useState(0);
+    const imgRef = useRef<HTMLImageElement>(null);
+
+    // Initial Crop when image loads
+    function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+        const { width, height } = e.currentTarget;
+        setCrop(centerAspectCrop(width, height));
+    }
 
     const handleSave = async () => {
-        try {
-            const croppedImage = await getCroppedImg(
-                imageSrc,
-                croppedAreaPixels,
-                rotation
-            );
-            if (croppedImage) {
-                onSave(croppedImage);
+        if (completedCrop && imgRef.current) {
+            try {
+                // We need to account for the image scaling (displayed vs natural)
+                const image = imgRef.current;
+                const scaleX = image.naturalWidth / image.width;
+                const scaleY = image.naturalHeight / image.height;
+
+                const pixelCrop = {
+                    x: completedCrop.x * scaleX,
+                    y: completedCrop.y * scaleY,
+                    width: completedCrop.width * scaleX,
+                    height: completedCrop.height * scaleY,
+                };
+
+                const croppedImage = await getCroppedImg(
+                    imageSrc,
+                    pixelCrop,
+                    rotation
+                );
+                if (croppedImage) {
+                    onSave(croppedImage);
+                }
+            } catch (e) {
+                console.error(e);
             }
-        } catch (e) {
-            console.error(e);
+        } else {
+            // If no crop, just save original (maybe rotated?)
+            // For now, require crop or just save original
+            onClose();
         }
     };
 
@@ -39,7 +81,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-2xl h-[80vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl animate-in zoom-in duration-200">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-2xl h-[85vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl animate-in zoom-in duration-200">
                 {/* Header */}
                 <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 z-10">
                     <h3 className="font-bold text-lg dark:text-white">Edit Image</h3>
@@ -49,50 +91,37 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
                 </div>
 
                 {/* Cropper Area */}
-                <div className="relative flex-1 bg-slate-100 dark:bg-black/50 overflow-hidden">
-                    <Cropper
-                        image={imageSrc}
+                <div className="relative flex-1 bg-slate-100 dark:bg-black/50 overflow-auto flex items-center justify-center p-4">
+                    <ReactCrop
                         crop={crop}
-                        rotation={rotation}
-                        zoom={zoom}
-                        aspect={undefined} // Free crop
-                        onCropChange={setCrop}
-                        onRotationChange={setRotation}
-                        onCropComplete={onCropComplete}
-                        onZoomChange={setZoom}
-                        classes={{
-                            containerClassName: "bg-transparent",
-                            mediaClassName: "",
-                        }}
-                    />
+                        onChange={(_, percentCrop) => setCrop(percentCrop)}
+                        onComplete={(c) => setCompletedCrop(c)}
+                        className="max-h-full"
+                    >
+                        <img
+                            ref={imgRef}
+                            src={imageSrc}
+                            alt="Edit"
+                            onLoad={onImageLoad}
+                            style={{
+                                transform: `rotate(${rotation}deg)`,
+                                maxHeight: '60vh',
+                                maxWidth: '100%',
+                                objectFit: 'contain'
+                            }}
+                        />
+                    </ReactCrop>
                 </div>
 
                 {/* Controls */}
                 <div className="p-4 bg-white dark:bg-slate-900 space-y-4 border-t border-slate-200 dark:border-slate-800 z-10">
 
-                    {/* Zoom & Rotation Controls */}
-                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-                        {/* Zoom */}
-                        <div className="flex items-center gap-2 w-full sm:w-1/2">
-                            <ZoomOut size={16} className="text-slate-400" />
-                            <input
-                                type="range"
-                                value={zoom}
-                                min={1}
-                                max={3}
-                                step={0.1}
-                                aria-labelledby="Zoom"
-                                onChange={(e) => setZoom(Number(e.target.value))}
-                                className="w-full accent-blue-600 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                            />
-                            <ZoomIn size={16} className="text-slate-400" />
-                        </div>
-
-                        {/* Rotate */}
-                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {/* Rotation Controls */}
+                    <div className="flex justify-center">
+                        <div className="flex items-center gap-2">
                             <span className="text-xs text-slate-500 w-12 text-right">{rotation}°</span>
                             <button
-                                onClick={() => setRotation((r) => r + 90)}
+                                onClick={() => setRotation((r) => (r + 90) % 360)}
                                 className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                             >
                                 <RotateCw size={16} />
