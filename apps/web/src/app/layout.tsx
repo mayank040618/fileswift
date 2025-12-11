@@ -11,6 +11,7 @@ export const metadata: Metadata = {
     description: "Compress PDF, Convert to Word, Remove Backgrounds and more.",
 };
 
+import { Analytics } from "@vercel/analytics/react";
 import { Providers } from './providers';
 import { AdFooter } from '@/components/AdSense/AdFooter';
 import { ConsentBanner } from '@/components/ConsentBanner';
@@ -40,6 +41,7 @@ export default function RootLayout({
                     </div>
                 </Providers>
                 <ConsentBanner />
+                <Analytics />
 
                 {/* Google Analytics 4 */}
                 <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`}></script>
