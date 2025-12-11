@@ -15,6 +15,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Providers } from './providers';
 import { AdFooter } from '@/components/AdSense/AdFooter';
 import { ConsentBanner } from '@/components/ConsentBanner';
+import { SplashScreen } from '@/components/SplashScreen';
 
 export default function RootLayout({
     children,
@@ -42,6 +43,7 @@ export default function RootLayout({
                 </Providers>
                 <ConsentBanner />
                 <Analytics />
+                <SplashScreen />
 
                 {/* Google Analytics 4 */}
                 <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`}></script>
