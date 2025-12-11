@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { TOOLS } from '@/config/tools';
-import ToolClient from './ToolClient';
+import dynamic from 'next/dynamic';
+const ToolClient = dynamic(() => import('./ToolClient'), { ssr: false });
 
 export async function generateMetadata({ params }: { params: { toolId: string } }): Promise<Metadata> {
     const tool = TOOLS.find(t => t.id === params.toolId);
