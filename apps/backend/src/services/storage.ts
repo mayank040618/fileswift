@@ -45,7 +45,8 @@ export const getDownloadUrl = async (key: string) => {
         return await getSignedUrl(s3, command, { expiresIn: 3600 });
     } else {
         // Return a mock local URL or just empty if handled internally
-        return `${process.env.API_URL || 'http://localhost:8080'}/uploads/${key}`;
+        const apiUrl = (process.env.PUBLIC_API_URL || process.env.API_URL || 'http://localhost:8080').replace(/\/$/, '');
+        return `${apiUrl}/uploads/${key}`;
     }
 };
 

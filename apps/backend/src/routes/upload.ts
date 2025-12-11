@@ -116,7 +116,8 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                             downloadUrl = result.resultKey;
                         } else {
                             // Fallback for legacy
-                            downloadUrl = `http://localhost:8080/api/download/${result.resultKey}`;
+                            const apiUrl = (process.env.PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
+                            downloadUrl = `${apiUrl}/api/download/${result.resultKey}`;
                         }
                     }
                     if (result.resultKey) fileName = result.resultKey;
