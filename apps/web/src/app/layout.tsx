@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     description: "Compress PDF, Convert to Word, Remove Backgrounds and more.",
 };
 
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { Providers } from './providers';
 import { AdFooter } from '@/components/AdSense/AdFooter';
 import { ConsentBanner } from '@/components/ConsentBanner';
