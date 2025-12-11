@@ -21,5 +21,15 @@ export default function manifest(): MetadataRoute.Manifest {
                 type: 'image/png',
             },
         ],
+        categories: ['productivity', 'utilities'],
+        orientation: 'any',
+        screenshots: [
+            {
+                src: '/og-image.png', // Fallback to OG image for install preview
+                sizes: '1200x630',
+                type: 'image/png',
+                label: 'FileSwift Dashboard',
+            }
+        ],
     }
 }
