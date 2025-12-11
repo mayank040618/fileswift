@@ -188,7 +188,7 @@ export function BulkUploader({ files, onFilesChange, accept, maxFiles = 100, max
                                     </p>
                                 </div>
 
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-1">
                                     {/* Edit Button (Images Only) */}
                                     {isImageMode && file.type.startsWith('image/') && (
                                         <button
