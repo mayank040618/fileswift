@@ -8,7 +8,30 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: "FileSwift - AI Powered File Tools",
-    description: "Compress PDF, Convert to Word, Remove Backgrounds and more.",
+    description: "Compress PDF, Convert to Word, Remove Backgrounds and more. Free online AI file tools.",
+    keywords: ["pdf compressor", "pdf to word", "remove background", "ai file tools", "image to pdf"],
+    authors: [{ name: "FileSwift" }],
+    openGraph: {
+        title: "FileSwift - AI Powered File Tools",
+        description: "Compress PDF, Convert to Word, Remove Backgrounds and more.",
+        url: 'https://fileswift-web.vercel.app',
+        siteName: 'FileSwift',
+        images: [
+            {
+                url: 'https://fileswift-web.vercel.app/og-image.png', // We will need to create this later or use a default
+                width: 1200,
+                height: 630,
+            },
+        ],
+        locale: 'en_US',
+        type: 'website',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: "FileSwift - AI Powered File Tools",
+        description: "Compress, convert, and edit files with AI precision.",
+        images: ['https://fileswift-web.vercel.app/og-image.png'],
+    },
     verification: {
         google: '3ggtYRuYG-jw7bzTSY5fUFvBcv-af5rTa3tIR1dXs0A',
     },
@@ -58,6 +81,28 @@ export default function RootLayout({
                         gtag('js', new Date());
                         gtag('config', '${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}');
                         `
+                    }}
+                />
+
+                {/* JSON-LD Structured Data for SEO */}
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "WebApplication",
+                            "name": "FileSwift",
+                            "url": "https://fileswift-web.vercel.app",
+                            "applicationCategory": "ProductivityApplication",
+                            "operatingSystem": "Any",
+                            "offers": {
+                                "@type": "Offer",
+                                "price": "0",
+                                "priceCurrency": "USD"
+                            },
+                            "featureList": "PDF Compression, Image Resizing, Format Conversion",
+                            "screenshot": "https://fileswift-web.vercel.app/og-image.png"
+                        })
                     }}
                 />
             </body>
