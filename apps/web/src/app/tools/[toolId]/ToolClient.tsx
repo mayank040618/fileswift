@@ -23,7 +23,7 @@ export default function ToolClient() {
     const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'completed' | 'failed'>('idle');
     const [uploadProgress, setUploadProgress] = useState(0);
     const [result, setResult] = useState<any>(null); // eslint-disable-line
-    const [quality, setQuality] = useState(75); // Percentage for compression slider
+    const [compressionQuality, setCompressionQuality] = useState(75);
 
     // Chat State
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai', content: string }[]>([]);
@@ -219,14 +219,16 @@ export default function ToolClient() {
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                                             <div className="flex justify-between items-center mb-3">
                                                 <h3 className="font-semibold dark:text-white">Compression Level</h3>
-                                                <span className="text-sm font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded">{quality}%</span>
+                                                <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-md">
+                                                    {compressionQuality}%
+                                                </span>
                                             </div>
                                             <input
                                                 type="range"
                                                 min="5"
                                                 max="95"
-                                                value={quality}
-                                                onChange={(e) => setQuality(parseInt(e.target.value))}
+                                                value={compressionQuality}
+                                                onChange={(e) => setCompressionQuality(parseInt(e.target.value))}
                                                 id="compress-q"
                                                 className="w-full accent-blue-600"
                                             />
