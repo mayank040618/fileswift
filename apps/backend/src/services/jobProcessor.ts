@@ -158,7 +158,8 @@ export const executeJob = async (job: IJob) => {
                     // Same upload logic
                     // ... for brevity reusing existing flow or simplifying
                     // For now, let's assume if R2 fails we just use local serving
-                    const downloadUrl = `http://localhost:8080/api/download/${job.id}/${exp.fileName}`;
+                    const apiUrl = (process.env.PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
+                    const downloadUrl = `${apiUrl}/api/download/${job.id}/${exp.fileName}`;
                     finalExports[format] = {
                         fileName: exp.fileName,
                         downloadUrl
@@ -176,9 +177,10 @@ export const executeJob = async (job: IJob) => {
         // If finalKey is a URL, use it. If it's a filename, assume local serving via jobID
         // IMPORTANT: For local serving, we must use result.resultKey (the file in /tmp) 
         // because finalKey (from uploadToR2) might have an extra timestamp prepended.
+        const apiUrl = (process.env.PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
         const primaryDownloadUrl = finalKey.startsWith('http')
             ? finalKey
-            : `http://localhost:8080/api/download/${job.id}/${path.basename(result.resultKey)}`;
+            : `${apiUrl}/api/download/${job.id}/${path.basename(result.resultKey)}`;
 
         console.log(JSON.stringify({
             event: 'JOB_FINISHED',
