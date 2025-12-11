@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { X, ExternalLink, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
+import Link from 'next/link';
 
 export function AdFooter() {
     const [isVisible, setIsVisible] = useState(true);
