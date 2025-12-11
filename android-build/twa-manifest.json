@@ -10,7 +10,7 @@
   "navigationColorDark": "#000000",
   "navigationDividerColor": "#000000",
   "navigationDividerColorDark": "#000000",
-  "backgroundColor": "#2563EB",
+  "backgroundColor": "#0F172A",
   "enableNotifications": true,
   "startUrl": "/",
   "iconUrl": "https://fileswift-web.vercel.app/icons/icon-512x512.png",
@@ -21,7 +21,7 @@
     "alias": "android"
   },
   "appVersionName": "1.0.2",
-  "appVersionCode": 8,
+  "appVersionCode": 9,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://fileswift-web.vercel.app/manifest.webmanifest",

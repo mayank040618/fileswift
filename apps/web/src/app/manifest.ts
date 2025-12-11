@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
         description: 'Compress PDF, Convert to Word, Remove Backgrounds and more.',
         start_url: '/',
         display: 'standalone',
-        background_color: '#2563EB',
+        background_color: '#0f172a',
         theme_color: '#0f172a',
         icons: [
             {
