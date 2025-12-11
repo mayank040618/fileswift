@@ -32,18 +32,20 @@ export const SplashScreen = () => {
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5, ease: 'easeInOut' }}
-                    className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950"
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0F172A]"
                 >
                     <div className="flex flex-col items-center">
                         {/* Logo Animation */}
                         <motion.div
-                            initial={{ scale: 0.5, opacity: 0, rotate: -20 }}
-                            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                            initial={{ scale: 1, opacity: 1, rotate: 0 }}
+                            animate={{
+                                scale: [1, 1.1, 1],
+                                rotate: [0, -10, 10, 0]
+                            }}
                             transition={{
-                                duration: 0.8,
-                                type: "spring",
-                                stiffness: 200,
-                                damping: 20
+                                duration: 1.2,
+                                ease: "easeInOut",
+                                times: [0, 0.2, 1]
                             }}
                             className="bg-blue-600 p-6 rounded-3xl shadow-2xl shadow-blue-500/30 mb-6"
                         >
