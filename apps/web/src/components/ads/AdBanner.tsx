@@ -1,4 +1,5 @@
 'use client';
+// AdSense Configured ✅
 
 import React, { useEffect } from 'react';
 
