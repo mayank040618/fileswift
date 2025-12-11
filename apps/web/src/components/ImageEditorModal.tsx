@@ -12,10 +12,7 @@ interface ImageEditorModalProps {
 }
 
 // Helper to get full initial crop
-function fullCrop(
-    mediaWidth: number,
-    mediaHeight: number
-) {
+function fullCrop() {
     return {
         unit: '%',
         x: 0,
@@ -33,8 +30,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
 
     // Initial Crop when image loads
     function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-        const { width, height } = e.currentTarget;
-        setCrop(fullCrop(width, height));
+        setCrop(fullCrop());
     }
 
     const handleSave = async () => {
