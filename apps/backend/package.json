@@ -19,6 +19,7 @@
         "@fileswift/utils": "workspace:*",
         "@types/fs-extra": "^11.0.4",
         "@types/pdf-parse": "^1.1.5",
+        "archiver": "^7.0.1",
         "axios": "^1.13.2",
         "bullmq": "^5.0.0",
         "docx": "^9.5.1",
