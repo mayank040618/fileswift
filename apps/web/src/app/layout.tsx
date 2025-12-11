@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "FileSwift - AI Powered File Tools",
     description: "Compress PDF, Convert to Word, Remove Backgrounds and more.",
+    verification: {
+        google: '3ggtYRuYG-jw7bzTSY5fUFvBcv-af5rTa3tIR1dXs0A',
+    },
 };
 
 import { Analytics } from "@vercel/analytics/next";
