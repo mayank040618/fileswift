@@ -28,7 +28,7 @@ export default function manifest(): MetadataRoute.Manifest {
                 src: '/og-image.png', // Fallback to OG image for install preview
                 sizes: '1200x630',
                 type: 'image/png',
-                label: 'FileSwift Dashboard',
+
             }
         ],
     }
