@@ -7,8 +7,33 @@ export function Hero() {
     return (
         <section className="relative overflow-hidden py-24 sm:py-32 lg:pb-40">
             {/* Background Gradients */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -z-10 w-[1000px] h-[500px] bg-blue-400/20 rounded-full blur-[100px] opacity-50 animate-pulse-slow"></div>
-            <div className="absolute top-20 right-0 -z-10 w-[800px] h-[600px] bg-cyan-400/10 rounded-full blur-[80px]"></div>
+            {/* Background Gradients */}
+            <motion.div
+                animate={{
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 90, 0],
+                    opacity: [0.3, 0.5, 0.3]
+                }}
+                transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                }}
+                className="absolute top-0 left-1/2 -translate-x-1/2 -z-10 w-[1000px] h-[500px] bg-blue-400/20 rounded-full blur-[100px]"
+            />
+            <motion.div
+                animate={{
+                    scale: [1, 1.5, 1],
+                    x: [0, 100, 0],
+                    opacity: [0.2, 0.4, 0.2]
+                }}
+                transition={{
+                    duration: 15,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                }}
+                className="absolute top-20 right-0 -z-10 w-[800px] h-[600px] bg-cyan-400/10 rounded-full blur-[80px]"
+            />
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
                 <div className="text-center max-w-3xl mx-auto">

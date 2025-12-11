@@ -6,6 +6,23 @@ import { ToolCard } from '@/components/ToolCard';
 import { Hero } from '@/components/Hero';
 import { ComingSoonModal } from '@/components/ComingSoonModal';
 
+import { motion } from 'framer-motion';
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
+
 export default function Home() {
   const activeTools = TOOLS.filter(t => !t.comingSoon);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
@@ -23,13 +40,22 @@ export default function Home() {
           <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800 ml-6"></div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {activeTools.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} />
+            <motion.div key={tool.id} variants={item}>
+              <ToolCard tool={tool} />
+            </motion.div>
           ))}
 
           {/* Coming Soon / Waitlist Card */}
-          <div
+          <motion.div
+            variants={item}
             onClick={() => setIsWaitlistOpen(true)}
             className="group relative flex flex-col h-full bg-white dark:bg-slate-850 p-6 rounded-2xl border border-amber-200 dark:border-amber-900/30 shadow-sm hover:shadow-xl hover:shadow-amber-500/10 hover:border-amber-500/30 transition-all cursor-pointer overflow-hidden"
           >
@@ -52,8 +78,8 @@ export default function Home() {
             <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center text-amber-600 text-sm font-semibold">
               Join Waitlist <span className="ml-1">→</span>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </main>
   );
