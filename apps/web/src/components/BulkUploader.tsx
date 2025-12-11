@@ -2,7 +2,7 @@
 
 import React, { useCallback, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, X, File as FileIcon, Image as ImageIcon, Camera, Pencil } from 'lucide-react';
+import { UploadCloud, X, File as FileIcon, Camera, Pencil } from 'lucide-react';
 import { ImageEditorModal } from './ImageEditorModal';
 
 interface BulkUploaderProps {

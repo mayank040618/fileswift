@@ -16,7 +16,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null); // eslint-disable-line
 
-    const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => { // eslint-disable-line
+    const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => { // eslint-disable-line
         setCroppedAreaPixels(croppedAreaPixels);
     }, []);
 
