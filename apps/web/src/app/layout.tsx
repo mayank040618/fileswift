@@ -35,6 +35,16 @@ export const metadata: Metadata = {
     verification: {
         google: '3ggtYRuYG-jw7bzTSY5fUFvBcv-af5rTa3tIR1dXs0A',
     },
+    appleWebApp: {
+        capable: true,
+        title: "FileSwift",
+        statusBarStyle: "black-translucent",
+    },
+    icons: {
+        icon: '/icons/icon-192x192.png',
+        shortcut: '/icons/icon-192x192.png',
+        apple: '/icons/icon-512x512.png',
+    },
 };
 
 import { Analytics } from "@vercel/analytics/next";
