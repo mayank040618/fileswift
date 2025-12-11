@@ -1,3 +1,4 @@
+import './polyfills';
 import { Worker } from 'bullmq';
 import { config } from 'dotenv';
 
