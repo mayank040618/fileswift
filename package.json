@@ -10,6 +10,7 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "@bubblewrap/cli": "^1.24.1",
     "eslint": "^8.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0"

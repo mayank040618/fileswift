@@ -11,25 +11,18 @@ interface ImageEditorModalProps {
     onSave: (croppedImageBlob: Blob) => void;
 }
 
-// Helper to center the crop initially
-function centerAspectCrop(
+// Helper to get full initial crop
+function fullCrop(
     mediaWidth: number,
-    mediaHeight: number,
-    aspect?: number,
+    mediaHeight: number
 ) {
-    return centerCrop(
-        makeAspectCrop(
-            {
-                unit: '%',
-                width: 90,
-            },
-            aspect || 16 / 9,
-            mediaWidth,
-            mediaHeight,
-        ),
-        mediaWidth,
-        mediaHeight,
-    )
+    return {
+        unit: '%',
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100
+    } as Crop;
 }
 
 export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, isOpen, onClose, onSave }) => {
@@ -41,7 +34,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
     // Initial Crop when image loads
     function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
         const { width, height } = e.currentTarget;
-        setCrop(centerAspectCrop(width, height));
+        setCrop(fullCrop(width, height));
     }
 
     const handleSave = async () => {

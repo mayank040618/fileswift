@@ -22,7 +22,7 @@ export default function manifest(): MetadataRoute.Manifest {
             },
         ],
         categories: ['productivity', 'utilities'],
-        orientation: 'any',
+        orientation: 'portrait',
         screenshots: [
             {
                 src: '/og-image.png', // Fallback to OG image for install preview

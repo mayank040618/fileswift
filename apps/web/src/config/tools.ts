@@ -21,47 +21,7 @@ export const TOOLS: Tool[] = [
         slug: '/tools/compress-pdf',
         type: 'file'
     },
-    // 2. PDF to Word
-    {
-        id: 'pdf-to-word',
-        title: 'PDF to Word',
-        description: 'Convert PDF to editable Docx.',
-        icon: 'FileType2',
-        color: 'bg-blue-600',
-        slug: '/tools/pdf-to-word',
-        type: 'file'
-    },
-    // 3. Merge PDFs
-    {
-        id: 'merge-pdf',
-        title: 'Merge PDFs',
-        description: 'Combine multiple PDFs into one.',
-        icon: 'Combine',
-        color: 'bg-orange-500',
-        slug: '/tools/merge-pdf',
-        type: 'file'
-    },
-    // 4. Rotate PDF
-    {
-        id: 'rotate-pdf',
-        title: 'Rotate PDF',
-        description: 'Rotate pages permanently.',
-        icon: 'RotateCw',
-        color: 'bg-lime-600',
-        slug: '/tools/rotate-pdf',
-        type: 'file'
-    },
-    // 5. Image Resizer (NEW)
-    {
-        id: 'image-resizer',
-        title: 'Image Resizer',
-        description: 'Resize images by pixel or percentage.',
-        icon: 'Scaling',
-        color: 'bg-purple-500',
-        slug: '/tools/image-resizer',
-        type: 'image'
-    },
-    // 6. Image Compressor (NEW)
+    // 2. Image Compressor (Moved Up)
     {
         id: 'image-compressor',
         title: 'Image Compressor',
@@ -71,17 +31,7 @@ export const TOOLS: Tool[] = [
         slug: '/tools/image-compressor',
         type: 'image'
     },
-    // 7. Bulk Image Resizer (NEW)
-    {
-        id: 'bulk-image-resizer',
-        title: 'Bulk Image Resizer',
-        description: 'Resize multiple images at once.',
-        icon: 'Images', // Lucide 'Images' or similar, falling back to 'Copy' or 'Layers' if unavailable, will check Icons.tsx
-        color: 'bg-indigo-500',
-        slug: '/tools/bulk-image-resizer',
-        type: 'image'
-    },
-    // 8. Image -> PDF (NEW)
+    // 3. Image -> PDF (Moved Up)
     {
         id: 'image-to-pdf',
         title: 'Image to PDF',
@@ -91,7 +41,57 @@ export const TOOLS: Tool[] = [
         slug: '/tools/image-to-pdf',
         type: 'image'
     },
-    // 9. PDF -> Image (NEW)
+    // 4. PDF to Word
+    {
+        id: 'pdf-to-word',
+        title: 'PDF to Word',
+        description: 'Convert PDF to editable Docx.',
+        icon: 'FileType2',
+        color: 'bg-blue-600',
+        slug: '/tools/pdf-to-word',
+        type: 'file'
+    },
+    // 5. Merge PDFs
+    {
+        id: 'merge-pdf',
+        title: 'Merge PDFs',
+        description: 'Combine multiple PDFs into one.',
+        icon: 'Combine',
+        color: 'bg-orange-500',
+        slug: '/tools/merge-pdf',
+        type: 'file'
+    },
+    // 6. Rotate PDF
+    {
+        id: 'rotate-pdf',
+        title: 'Rotate PDF',
+        description: 'Rotate pages permanently.',
+        icon: 'RotateCw',
+        color: 'bg-lime-600',
+        slug: '/tools/rotate-pdf',
+        type: 'file'
+    },
+    // 7. Image Resizer
+    {
+        id: 'image-resizer',
+        title: 'Image Resizer',
+        description: 'Resize images by pixel or percentage.',
+        icon: 'Scaling',
+        color: 'bg-purple-500',
+        slug: '/tools/image-resizer',
+        type: 'image'
+    },
+    // 8. Bulk Image Resizer
+    {
+        id: 'bulk-image-resizer',
+        title: 'Bulk Image Resizer',
+        description: 'Resize multiple images at once.',
+        icon: 'Images',
+        color: 'bg-indigo-500',
+        slug: '/tools/bulk-image-resizer',
+        type: 'image'
+    },
+    // 9. PDF -> Image
     {
         id: 'pdf-to-image',
         title: 'PDF to Image',

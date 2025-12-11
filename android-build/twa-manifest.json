@@ -21,7 +21,7 @@
     "alias": "android"
   },
   "appVersionName": "1.0.2",
-  "appVersionCode": 9,
+  "appVersionCode": 10,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://fileswift-web.vercel.app/manifest.webmanifest",
