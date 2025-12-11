@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://fileswift-app.vercel.app';
+    const baseUrl = 'https://fileswift-web.vercel.app';
 
     return [
         {
