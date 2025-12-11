@@ -29,7 +29,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
     const imgRef = useRef<HTMLImageElement>(null);
 
     // Initial Crop when image loads
-    function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    function onImageLoad() {
         setCrop(fullCrop());
     }
 
