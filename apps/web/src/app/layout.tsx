@@ -123,6 +123,10 @@ export default function RootLayout({
                         })
                     }}
                 />
+                <script
+                    type="text/javascript"
+                    src="https://pl28245074.effectivegatecpm.com/10/5e/5a/105e5ace5fcbfe09f20fcbf0e6ceee6d.js"
+                ></script>
             </body>
         </html>
     );
