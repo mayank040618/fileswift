@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
-import { Icons } from './Icons';
 
 export function Header() {
     return (
@@ -18,15 +17,6 @@ export function Header() {
                     <Link href="/privacy-policy" className="text-sm font-medium text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">
                         Privacy
                     </Link>
-                    <a
-                        href="https://buymeacoffee.com/yourusername"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors"
-                    >
-                        <Icons.Coffee size={14} />
-                        Donate
-                    </a>
                     <ThemeToggle />
                 </nav>
             </div>

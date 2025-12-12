@@ -1,7 +1,7 @@
 import {
     Bot, FileText, ListChecks, Notebook, PenTool, Languages,
     ImageMinus, Scaling, Wand2, Palette, Minimize2, FileType2,
-    Combine, RotateCw, Upload, Sun, Moon, File, Loader2, ArrowRight, Download, Check, X, Coffee
+    Combine, RotateCw, Upload, Sun, Moon, File, Loader2, ArrowRight, Download, Check, X
 } from 'lucide-react';
 
 export const Icons = {
@@ -32,6 +32,5 @@ export const Icons = {
     Compress: Minimize2,
     PdfToWord: FileType2,
     RemoveBg: ImageMinus,
-    Merge: Combine,
-    Coffee
+    Merge: Combine
 };
