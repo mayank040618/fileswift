@@ -1,5 +1,5 @@
 import '../../polyfills/domMatrix';
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -45,6 +45,14 @@ export const metadata: Metadata = {
         shortcut: '/icons/icon-192x192.png',
         apple: '/icons/icon-512x512.png',
     },
+};
+
+export const viewport: Viewport = {
+    themeColor: "#0f172a",
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
 };
 
 import { Analytics } from "@vercel/analytics/next";
