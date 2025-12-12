@@ -124,10 +124,11 @@ export default function RootLayout({
                         })
                     }}
                 />
-                <Script
-                    src="https://pl28245074.effectivegatecpm.com/10/5e/5a/105e5ace5fcbfe09f20fcbf0e6ceee6d.js"
-                    strategy="afterInteractive"
-                />
+                <div dangerouslySetInnerHTML={{
+                    __html: `
+                        <script type="text/javascript" src="https://pl28245074.effectivegatecpm.com/10/5e/5a/105e5ace5fcbfe09f20fcbf0e6ceee6d.js"></script>
+                    `
+                }} />
             </body>
         </html>
     );
