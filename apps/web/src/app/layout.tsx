@@ -5,7 +5,7 @@ import "./globals.css";
 
 
 const inter = Inter({ subsets: ["latin"] });
-import Script from 'next/script';
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: "FileSwift - AI Powered File Tools",
