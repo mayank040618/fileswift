@@ -39,8 +39,8 @@ export const ConsentBanner = () => {
                 We value your privacy
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-                We use cookies and third-party ads (Google AdSense) to provide free tools.
-                Do you consent to personalized ads?
+                We use cookies and third-party ads (like Adsterra) to keep our tools free.
+                Do you consent to the use of cookies for personalized advertising?
             </p>
 
             <div className="space-y-3">

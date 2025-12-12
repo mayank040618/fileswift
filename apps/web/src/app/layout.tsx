@@ -59,6 +59,7 @@ export const viewport: Viewport = {
 import { Analytics } from "@vercel/analytics/next";
 import { Providers } from './providers';
 import { AdFooter } from '@/components/AdSense/AdFooter';
+import { Footer } from '@/components/Footer';
 import { ConsentBanner } from '@/components/ConsentBanner';
 import { SplashScreen } from '@/components/SplashScreen';
 
@@ -85,6 +86,7 @@ export default function RootLayout({
                     <div className="hidden md:block">
                         <AdFooter />
                     </div>
+                    <Footer />
                 </Providers>
                 <ConsentBanner />
                 <Analytics />
