@@ -5,7 +5,6 @@ import { TOOLS } from '@/config/tools';
 import { ToolCard } from '@/components/ToolCard';
 import { Hero } from '@/components/Hero';
 import { ComingSoonModal } from '@/components/ComingSoonModal';
-import { SEOContent } from '@/components/SEOContent';
 
 import { motion } from 'framer-motion';
 
@@ -82,8 +81,6 @@ export default function Home() {
           </motion.div>
         </motion.div>
       </div>
-
-      <SEOContent />
-    </main >
+    </main>
   );
 }
