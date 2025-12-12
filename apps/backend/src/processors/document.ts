@@ -6,6 +6,7 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdf = require('pdf-parse');
 import path from 'path';
+import { spawnWithTimeout } from '../utils/spawnWithTimeout';
 
 // Mock OpenAI if key missing or AI disabled
 const enableAI = process.env.ENABLE_AI !== 'false';
@@ -338,6 +339,51 @@ const pdfToWordProcessor: ToolProcessor = {
     }
 };
 
+const docToPdfProcessor: ToolProcessor = {
+    id: 'doc-to-pdf',
+    process: async ({ job, localPath, outputDir }) => {
+        // Use LibreOffice to convert to PDF
+        // Command: libreoffice --headless --convert-to pdf --outdir <outputDir> <localPath>
+
+        // Determine Command
+        let command = 'libreoffice';
+        if (process.platform === 'darwin') {
+            const macPath = '/Applications/LibreOffice.app/Contents/MacOS/soffice';
+            if (await fs.pathExists(macPath)) {
+                command = macPath;
+            }
+        }
+
+        // Ensure outputDir exists
+        await fs.ensureDir(outputDir);
+
+        const result = await spawnWithTimeout(
+            command,
+            ['--headless', '--convert-to', 'pdf', '--outdir', outputDir, localPath],
+            {},
+            60000 // 60s timeout for heavy docs
+        );
+
+        if (result.code !== 0) {
+            throw new Error(`LibreOffice conversion failed: ${result.stderr || result.stdout}`);
+        }
+
+        // LibreOffice creates a file with the same basename but .pdf extension in outputDir
+        const originalName = path.basename(localPath);
+        const nameWithoutExt = path.parse(originalName).name;
+        const expectedOutputFilename = `${nameWithoutExt}.pdf`;
+
+        const generatedPdfPath = path.join(outputDir, expectedOutputFilename);
+
+        // Verify it exists
+        if (!await fs.pathExists(generatedPdfPath)) {
+            throw new Error("PDF file was not created by LibreOffice");
+        }
+
+        return { resultKey: expectedOutputFilename, metadata: { type: 'pdf' } };
+    }
+};
+
 export const documentProcessors = [
     rotatePdfProcessor,
     compressPdfProcessor,
@@ -346,5 +392,6 @@ export const documentProcessors = [
     summarizeProcessor,
     notesProcessor,
     rewriteProcessor,
-    translateProcessor
+    translateProcessor,
+    docToPdfProcessor
 ];

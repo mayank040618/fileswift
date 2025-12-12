@@ -24,6 +24,14 @@ async function generateAssets() {
     // Image (1x1 pixel PNG)
     const pngBuffer = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
     fs.writeFileSync(TEST_IMG, pngBuffer);
+
+    // DOCX
+    const { Document, Packer, Paragraph } = require('docx');
+    const doc = new Document({
+        sections: [{ children: [new Paragraph("Smoke Test DOCX Content")] }]
+    });
+    const docBuffer = await Packer.toBuffer(doc);
+    fs.writeFileSync(path.join(TMP_DIR, 'test.docx'), docBuffer);
 }
 
 async function runTest(toolId: string, filePath: string) {
@@ -31,10 +39,13 @@ async function runTest(toolId: string, filePath: string) {
     try {
         // Upload
         const form = new FormData();
-        form.append('file', fs.createReadStream(filePath));
+        form.append('files', fs.createReadStream(filePath)); // Field name 'files' for generic upload (based on Frontend ToolClient)
+        // Actually upload.ts checks for part.type === 'file' and pushes to uploadedFiles. Field name for file doesn't matter much but Frontend uses 'files'.
+        // upload.ts also checks part.fieldname === 'toolId'.
+        form.append('toolId', toolId);
 
         // Some tools might need options, but defaults should work for smoke
-        const uploadRes = await axios.post(`${API_URL}/api/tools/${toolId}/upload`, form, {
+        const uploadRes = await axios.post(`${API_URL}/upload`, form, {
             headers: { ...form.getHeaders() }
         });
 
@@ -49,7 +60,7 @@ async function runTest(toolId: string, filePath: string) {
 
         while (status !== 'completed' && status !== 'failed' && attempts < 30) {
             await new Promise(r => setTimeout(r, 1000));
-            const jobRes = await axios.get(`${API_URL}/api/jobs/${jobId}`);
+            const jobRes = await axios.get(`${API_URL}/api/jobs/${jobId}/status`);
             status = jobRes.data.status;
             result = jobRes.data;
             process.stdout.write('.');
@@ -87,6 +98,7 @@ async function main() {
     await runTest('pdf-to-word', TEST_PDF);
     await runTest('compress-pdf', TEST_PDF);
     await runTest('rotate-pdf', TEST_PDF);
+    await runTest('doc-to-pdf', path.join(TMP_DIR, 'test.docx'));
     await runTest('ai-summary', TEST_PDF); // Might return OCR warning if mocked PDF has no text extractable by pdf-parse? PDFLib added text should be extractable.
 
     // Image Tools

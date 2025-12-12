@@ -23,7 +23,9 @@ export function spawnWithTimeout(
     timeoutMs: number = DEFAULT_TIMEOUT
 ): Promise<SpawnResult> {
     return new Promise((resolve, reject) => {
+        console.log(`[spawn] Starting: ${command} ${args.join(' ')}`);
         const child = spawn(command, args, { ...options, shell: false }); // shell: false for safety
+        console.log(`[spawn] PID: ${child.pid}`);
 
         let stdout = '';
         let stderr = '';

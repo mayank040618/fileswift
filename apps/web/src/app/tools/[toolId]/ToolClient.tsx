@@ -191,7 +191,12 @@ export default function ToolClient() {
                                 onFilesChange={setFiles}
                                 accept={tool.type === 'image' || tool.id === 'image-to-pdf'
                                     ? { 'image/*': ['.png', '.jpg', '.jpeg', '.webp'] }
-                                    : { 'application/pdf': ['.pdf'] }
+                                    : tool.id === 'doc-to-pdf'
+                                        ? {
+                                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+                                            'application/msword': ['.doc']
+                                        }
+                                        : { 'application/pdf': ['.pdf'] }
                                 }
                                 maxFiles={maxFiles}
                             />
