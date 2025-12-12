@@ -4,7 +4,12 @@ import fs from 'fs-extra';
 // @ts-ignore
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const pdf = require('pdf-parse');
+
+let pdf = require('pdf-parse');
+// Handle ESM/CJS interop where require might return { default: fn }
+if (typeof pdf !== 'function' && (pdf as any).default) {
+    pdf = (pdf as any).default;
+}
 import path from 'path';
 import { spawnWithTimeout } from '../utils/spawnWithTimeout';
 
@@ -341,7 +346,7 @@ const pdfToWordProcessor: ToolProcessor = {
 
 const docToPdfProcessor: ToolProcessor = {
     id: 'doc-to-pdf',
-    process: async ({ job, localPath, outputDir }) => {
+    process: async ({ localPath, outputDir }) => {
         // Use LibreOffice to convert to PDF
         // Command: libreoffice --headless --convert-to pdf --outdir <outputDir> <localPath>
 
