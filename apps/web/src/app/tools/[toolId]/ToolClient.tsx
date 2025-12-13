@@ -69,12 +69,33 @@ export default function ToolClient() {
             // Simulated Progress: Smoothly increment to 95%
             setProcessingProgress(prev => {
                 if (prev >= 95) return 95;
-                // Add varied increment (0.5% to 2%) for realism
-                const increment = Math.random() * 1.5 + 0.5;
+
+                // Adaptive increment based on current progress
+                let minInc = 0.5;
+                let maxInc = 1.5;
+
+                // Fast start (0-30%)
+                if (prev < 30) {
+                    minInc = 2;
+                    maxInc = 5;
+                }
+                // Medium speed (30-70%)
+                else if (prev < 70) {
+                    minInc = 1;
+                    maxInc = 3;
+                }
+                // Slow finish (>70%) to avoid getting stuck at 99 too early
+                else {
+                    minInc = 0.2;
+                    maxInc = 0.8;
+                }
+
+                // Add varied increment
+                const increment = Math.random() * (maxInc - minInc) + minInc;
                 return Math.min(prev + increment, 95);
             });
         }
-    }, status === 'processing' ? 1000 : null);
+    }, status === 'processing' ? 200 : null);
 
     const handleUpload = async () => {
         if (files.length === 0) return;
@@ -323,7 +344,7 @@ export default function ToolClient() {
                                 <ProgressBar
                                     status={status}
                                     progress={status === 'uploading' ? uploadProgress : processingProgress}
-                                    timeRemaining={status === 'uploading' ? timeRemaining : undefined}
+                                    timeRemaining={timeRemaining}
                                 />
                             )}
 
