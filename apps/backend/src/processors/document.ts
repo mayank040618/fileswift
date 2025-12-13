@@ -323,7 +323,22 @@ const compressPdfProcessor: ToolProcessor = {
         const finalOutputPath = path.join(outputDir, baseOutputFilename);
 
         // Importing logger here to avoid top-level cyclic deps if any, or just standard import
-        const { logCompressionJob } = await import('../utils/compression-logger');
+        const { logCompressionEvent } = await import('../monitoring/compression-logger');
+
+        // Adapter for compatibility
+        const logCompressionJob = async (details: any) => {
+            await logCompressionEvent({
+                jobId: details.jobId,
+                tool: details.engineUsed || 'unknown',
+                inputSize: details.inputSize,
+                outputSize: details.outputSize,
+                durationMs: details.durationMs,
+                success: details.success,
+                errorDetails: details.error || undefined,
+                timestamp: new Date().toISOString(),
+                meta: { quality: details.quality }
+            });
+        };
         const { spawnWithTimeout } = await import('../utils/spawnWithTimeout');
 
         // Helper to validate PDF
