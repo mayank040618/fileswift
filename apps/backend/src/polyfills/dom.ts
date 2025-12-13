@@ -17,7 +17,7 @@ if (typeof global.DOMMatrix === 'undefined') {
             }
         }
         // Basic identity method often called
-        multiply(other: any) { return this; }
+        multiply(_other: any) { return this; }
         transformPoint(point: any) { return point; }
         toString() { return `matrix(${this.a}, ${this.b}, ${this.c}, ${this.d}, ${this.e}, ${this.f})`; }
     };

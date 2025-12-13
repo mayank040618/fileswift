@@ -93,7 +93,8 @@ const compressPdfProcessor: ToolProcessor = {
 
             // If we still can't get page count, we can't safely parallelize.
             // But we can still single-pass compress.
-            let activeTool = 'none';
+            // If we still can't get page count, we can't safely parallelize.
+            // But we can still single-pass compress.
             let errorDetails = '';
             // Unique Temp Dir for this file processing to ensure isolation
             const workId = Math.random().toString(36).substring(7);
@@ -127,7 +128,6 @@ const compressPdfProcessor: ToolProcessor = {
                         // Size Sanity Check: Must not be > 5% larger (Inflation Check)
                         if (tempSize > 0 && tempSize <= inputSize * 1.05) {
                             await fs.move(gsOutput, finalOutputPath, { overwrite: true });
-                            activeTool = 'ghostscript';
 
                             // Log Success & Return immediately
                             await logCompressionEvent({
@@ -157,6 +157,7 @@ const compressPdfProcessor: ToolProcessor = {
                         '--linearize',
                         '--object-streams=generate',
                         '--compress-streams=y',
+                        '--compress-streams=y',
                         input,
                         qpdfOutput
                     ];
@@ -170,7 +171,6 @@ const compressPdfProcessor: ToolProcessor = {
                         // Size Sanity Check
                         if (tempSize > 0 && tempSize <= inputSize * 1.05) {
                             await fs.move(qpdfOutput, finalOutputPath, { overwrite: true });
-                            activeTool = 'qpdf';
 
                             await logCompressionEvent({
                                 jobId: job.id || 'unknown',
@@ -192,7 +192,6 @@ const compressPdfProcessor: ToolProcessor = {
 
                 // --- TIER 3: FALLBACK TO ORIGINAL ---
                 // If we reached here, both engines failed or inflated the file.
-                activeTool = 'original';
                 console.log(`[compress-pdf] Job ${job.id} - Fallback to original. Errors: ${errorDetails}`);
                 await fs.copy(input, finalOutputPath, { overwrite: true });
 
