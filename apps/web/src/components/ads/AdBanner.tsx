@@ -3,7 +3,7 @@
 
 import React, { useEffect } from 'react';
 
-export function AdBanner({ dataAdSlot }: { dataAdSlot?: string }) {
+export const AdBanner = React.memo(function AdBanner({ dataAdSlot }: { dataAdSlot?: string }) {
 
     const [isDev, setIsDev] = React.useState(false);
 
@@ -29,7 +29,7 @@ export function AdBanner({ dataAdSlot }: { dataAdSlot?: string }) {
     }
 
     return (
-        <div className="mx-auto my-6 flex justify-center overflow-hidden">
+        <div className="mx-auto my-6 flex justify-center overflow-hidden min-h-[90px]">
             <ins className="adsbygoogle"
                 style={{ display: 'block', width: '100%', maxWidth: '728px', height: '90px' }}
                 data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-0000000000000000"}
@@ -38,4 +38,4 @@ export function AdBanner({ dataAdSlot }: { dataAdSlot?: string }) {
                 data-full-width-responsive="true"></ins>
         </div>
     );
-}
+});

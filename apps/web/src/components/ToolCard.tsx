@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Icons } from './Icons';
@@ -12,7 +13,7 @@ const getIcon = (iconName: string) => {
     return IconComponent;
 };
 
-export function ToolCard({ tool }: { tool: Tool }) {
+function ToolCardComponent({ tool }: { tool: Tool }) {
     const Icon = getIcon(tool.icon || 'Upload');
 
     const content = (
@@ -20,8 +21,8 @@ export function ToolCard({ tool }: { tool: Tool }) {
             whileHover={!tool.comingSoon ? { y: -5, scale: 1.01 } : {}}
             transition={{ duration: 0.2 }}
             className={`group relative flex flex-col h-full p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all overflow-hidden ${tool.comingSoon
-                    ? 'bg-slate-50 dark:bg-slate-900 opacity-75 cursor-not-allowed grayscale-[0.5]'
-                    : 'bg-white dark:bg-slate-850 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/30 dark:hover:border-blue-500/20 cursor-pointer'
+                ? 'bg-slate-50 dark:bg-slate-900 opacity-75 cursor-not-allowed grayscale-[0.5]'
+                : 'bg-white dark:bg-slate-850 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/30 dark:hover:border-blue-500/20 cursor-pointer'
                 }`}
         >
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-50 to-transparent dark:from-blue-900/10 dark:to-transparent rounded-bl-[50px] -z-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -64,3 +65,5 @@ export function ToolCard({ tool }: { tool: Tool }) {
         </Link>
     );
 }
+
+export const ToolCard = React.memo(ToolCardComponent);

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Icons } from '@/components/Icons';
 
-export function Feedback() {
+export const Feedback = React.memo(function Feedback() {
     const [status, setStatus] = useState<'idle' | 'submitted'>('idle');
     const [helpful, setHelpful] = useState<boolean | null>(null);
 
@@ -45,4 +45,4 @@ export function Feedback() {
             </div>
         </div>
     );
-}
+});
