@@ -362,6 +362,16 @@ export default function ToolClient() {
                     <Feedback />
                 </div>
 
+                {/* Related Tools */}
+                <div className="mt-20">
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">Related Tools</h2>
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {TOOLS.filter(t => t.type === tool.type && t.id !== tool.id).slice(0, 3).map(related => (
+                            <ToolCard key={related.id} tool={related} />
+                        ))}
+                    </div>
+                </div>
+
                 {/* SEO Content */}
                 {tool.content && (
                     <div className="mt-20 space-y-20">
@@ -442,16 +452,6 @@ export default function ToolClient() {
                         </section>
                     </div>
                 )}
-
-                {/* Related Tools */}
-                <div className="mt-20">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">Related Tools</h2>
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {TOOLS.filter(t => t.type === tool.type && t.id !== tool.id).slice(0, 3).map(related => (
-                            <ToolCard key={related.id} tool={related} />
-                        ))}
-                    </div>
-                </div>
             </div>
         </div>
     );
