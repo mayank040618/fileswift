@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from '@/utils/canvasUtils';
 import { X, Check, RotateCw } from 'lucide-react';
@@ -11,15 +11,25 @@ interface ImageEditorModalProps {
     onSave: (croppedImageBlob: Blob) => void;
 }
 
-// Helper to get full initial crop
-function fullCrop() {
-    return {
-        unit: '%',
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 100
-    } as Crop;
+// Helper to center the crop initially
+function centerAspectCrop(
+    mediaWidth: number,
+    mediaHeight: number,
+    aspect?: number,
+) {
+    return centerCrop(
+        makeAspectCrop(
+            {
+                unit: '%',
+                width: 90,
+            },
+            aspect || 16 / 9,
+            mediaWidth,
+            mediaHeight,
+        ),
+        mediaWidth,
+        mediaHeight,
+    )
 }
 
 export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, isOpen, onClose, onSave }) => {
@@ -29,8 +39,9 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
     const imgRef = useRef<HTMLImageElement>(null);
 
     // Initial Crop when image loads
-    function onImageLoad() {
-        setCrop(fullCrop());
+    function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+        const { width, height } = e.currentTarget;
+        setCrop(centerAspectCrop(width, height));
     }
 
     const handleSave = async () => {

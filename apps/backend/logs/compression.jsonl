@@ -28,3 +28,7 @@
 {"jobId":"local-job-1765397211065","tool":"copy_fallback","inputSize":18,"outputSize":18,"durationMs":29,"success":false,"timestamp":"2025-12-10T20:06:51.066Z","errorDetails":"GS Fail: GPL Ghostscript 10.06.0: Unrecoverable error, exit code 1\n; SIPS skipped (complex); "}
 {"jobId":"local-job-1765397214078","tool":"copy_fallback","inputSize":18,"outputSize":18,"durationMs":43,"success":false,"timestamp":"2025-12-10T20:06:54.080Z","errorDetails":"GS Fail: GPL Ghostscript 10.06.0: Unrecoverable error, exit code 1\n; SIPS skipped (complex); "}
 {"jobId":"local-job-1765397217089","tool":"copy_fallback","inputSize":18,"outputSize":18,"durationMs":51,"success":false,"timestamp":"2025-12-10T20:06:57.092Z","errorDetails":"GS Fail: GPL Ghostscript 10.06.0: Unrecoverable error, exit code 1\n; SIPS skipped (complex); "}
+{"jobId":"local-job-1765553182373","tool":"ghostscript","inputSize":889,"outputSize":2993,"durationMs":272,"success":true,"timestamp":"2025-12-12T15:26:22.471Z"}
+{"jobId":"local-job-1765553218392","tool":"ghostscript","inputSize":889,"outputSize":2993,"durationMs":190,"success":true,"timestamp":"2025-12-12T15:26:58.423Z"}
+{"jobId":"local-job-1765553459592","tool":"ghostscript","inputSize":889,"outputSize":2993,"durationMs":195,"success":true,"timestamp":"2025-12-12T15:30:59.628Z"}
+{"jobId":"local-job-1765553535532","tool":"ghostscript","inputSize":889,"outputSize":2993,"durationMs":181,"success":true,"timestamp":"2025-12-12T15:32:15.562Z"}

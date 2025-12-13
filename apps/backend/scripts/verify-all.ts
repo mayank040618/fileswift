@@ -69,6 +69,7 @@ async function runTest(toolId: string, filePath: string) {
         console.log('');
 
         if (status !== 'completed') {
+            console.error('Job Error:', result?.error);
             throw new Error(`Job failed or timed out. Status: ${status}`);
         }
 
@@ -99,11 +100,12 @@ async function main() {
     await runTest('compress-pdf', TEST_PDF);
     await runTest('rotate-pdf', TEST_PDF);
     await runTest('doc-to-pdf', path.join(TMP_DIR, 'test.docx'));
-    await runTest('ai-summary', TEST_PDF); // Might return OCR warning if mocked PDF has no text extractable by pdf-parse? PDFLib added text should be extractable.
+    await runTest('ai-summary', TEST_PDF);
 
     // Image Tools
-    await runTest('image-converter', TEST_IMG);
-    await runTest('compress-image', TEST_IMG);
+    // Fixed IDs:
+    await runTest('image-resizer', TEST_IMG);
+    await runTest('image-compressor', TEST_IMG);
 
     // Cleanup
     // fs.rmSync(TMP_DIR, { recursive: true, force: true });

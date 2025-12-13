@@ -1,0 +1,1 @@
+console.log('Test Spawn Start'); const cp = require('child_process'); const c = cp.spawn('gs', ['--version']); c.stdout.on('data', d => console.log(d.toString())); c.on('close', c => console.log('Exit:', c));

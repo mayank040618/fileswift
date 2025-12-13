@@ -5,7 +5,7 @@
 ✅ DOMMatrix Polyfill Loaded
 [Config] Loaded environment variables. USE_MOCK_QUEUE: true
 Worker skipped (Mock Queue enabled)
-{"level":30,"time":1765523344959,"pid":77576,"hostname":"Mayanks-MacBook-Air.local","msg":"Server listening at http://0.0.0.0:8080"}
+{"level":30,"time":1765523789787,"pid":79363,"hostname":"Mayanks-MacBook-Air.local","msg":"Server listening at http://0.0.0.0:8080"}
 Server listening on 8080
 /Users/mayankraj/Desktop/fileswift/apps/backend:
  ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  backend@0.0.0 dev: `tsx watch src/index.ts`
