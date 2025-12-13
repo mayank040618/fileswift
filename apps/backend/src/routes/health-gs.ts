@@ -32,7 +32,7 @@ export async function healthGsRoutes(fastify: FastifyInstance) {
         }
     });
 
-    fastify.get("/api/health/pdf-compress", async (req, reply) => {
+    fastify.get("/api/health/pdf-compress", async (_req, reply) => {
         return reply.redirect('/api/health/gs');
     });
 }

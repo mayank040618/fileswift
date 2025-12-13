@@ -13,7 +13,7 @@ import { checkTools } from '../utils/cli-checks';
 
 import { spawnWithTimeout } from '../utils/spawnWithTimeout';
 import { makeTempDir, removeDir } from '../utils/file';
-import { CompressionLogEntry, logCompressionEvent } from '../monitoring/compression-logger';
+import { logCompressionEvent } from '../monitoring/compression-logger';
 import { pMap } from '../utils/concurrency';
 import { isValidPdf } from '../utils/validation';
 
