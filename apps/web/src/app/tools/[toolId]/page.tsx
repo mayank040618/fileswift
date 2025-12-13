@@ -13,10 +13,14 @@ export async function generateMetadata({ params }: { params: { toolId: string } 
         };
     }
 
+    const keywordList = tool.keywords && tool.keywords.length > 0
+        ? [...tool.keywords, 'file tools', 'pdf tools', 'online tools']
+        : [`${tool.title} free`, `${tool.title} online`, 'file tools', 'pdf tools'];
+
     return {
         title: `${tool.title} | Free Online Tool - FileSwift`,
         description: tool.description,
-        keywords: [`${tool.title} free`, `${tool.title} online`, 'file tools', 'pdf tools'],
+        keywords: keywordList,
         openGraph: {
             title: `${tool.title} - FileSwift`,
             description: tool.description,

@@ -7,6 +7,7 @@ export interface Tool {
     slug: string;
     type: 'document' | 'image' | 'file';
     ai?: boolean;
+    keywords?: string[];
     content?: {
         features: string[];
         howTo: string[];
@@ -20,12 +21,13 @@ export const TOOLS: Tool[] = [
     // 1. Compress PDF
     {
         id: 'compress-pdf',
-        title: 'Compress PDF',
+        title: 'Compress PDF Online',
         description: 'Reduce file size efficiently.',
         icon: 'Minimize2',
         color: 'bg-red-500',
         slug: '/tools/compress-pdf',
         type: 'file',
+        keywords: ['compress pdf', 'reduce pdf size', 'shrink pdf', 'optimize pdf', 'pdf compressor online', 'compress pdf file', 'reduce pdf size online'],
         content: {
             features: [
                 'Smart Compression Algorithms: Reduce PDF file size significantly while maintaining high visual quality.',
@@ -59,12 +61,13 @@ export const TOOLS: Tool[] = [
     // 2. Image Compressor
     {
         id: 'image-compressor',
-        title: 'Image Compressor',
+        title: 'Image Compressor (JPG, PNG, WEBP)',
         description: 'Reduce image size without quality loss.',
         icon: 'Minimize2',
         color: 'bg-pink-500',
         slug: '/tools/image-compressor',
         type: 'image',
+        keywords: ['compress image', 'compress jpg', 'compress png', 'reduce image size', 'optimize images', 'image optimizer', 'compress photos'],
         content: {
             features: [
                 'Lossless & Lossy Options: Choose between maximum quality or maximum compression.',
@@ -88,12 +91,13 @@ export const TOOLS: Tool[] = [
     // 3. Image to PDF
     {
         id: 'image-to-pdf',
-        title: 'Image to PDF',
+        title: 'Image to PDF Converter (JPG, PNG)',
         description: 'Convert images to a single PDF.',
         icon: 'FileSymlink',
         color: 'bg-teal-500',
         slug: '/tools/image-to-pdf',
         type: 'image',
+        keywords: ['image to pdf', 'jpg to pdf', 'png to pdf', 'convert photo to pdf', 'combine images to pdf', 'jpeg to pdf', 'pictures to pdf'],
         content: {
             features: [
                 'Combined PDF: Merge multiple images into a single PDF file.',
@@ -117,12 +121,13 @@ export const TOOLS: Tool[] = [
     // 4. PDF to Word
     {
         id: 'pdf-to-word',
-        title: 'PDF to Word',
+        title: 'PDF to Word Converter (OCR)',
         description: 'Convert PDF to editable Docx.',
         icon: 'FileType2',
         color: 'bg-blue-600',
         slug: '/tools/pdf-to-word',
         type: 'file',
+        keywords: ['pdf to word', 'pdf to docx', 'convert pdf to word editable', 'pdf to text', 'pdf converter to word', 'edit pdf in word'],
         content: {
             features: [
                 'Accurate Conversion: Converts PDF to editable Word (DOCX) documents with high precision.',
@@ -146,12 +151,13 @@ export const TOOLS: Tool[] = [
     // 5. Merge PDFs
     {
         id: 'merge-pdf',
-        title: 'Merge PDFs',
+        title: 'Merge PDFs - Combine PDF Files',
         description: 'Combine multiple PDFs into one.',
         icon: 'Combine',
         color: 'bg-orange-500',
         slug: '/tools/merge-pdf',
         type: 'file',
+        keywords: ['merge pdf', 'combine pdf', 'join pdf', 'stitch pdf', 'bind pdf', 'merge pdf files online', 'combine multiple pdfs'],
         content: {
             features: [
                 'Combine Multiple Files: Merge unlimited PDF files into a single document.',
@@ -175,12 +181,13 @@ export const TOOLS: Tool[] = [
     // 6. Rotate PDF
     {
         id: 'rotate-pdf',
-        title: 'Rotate PDF',
+        title: 'Rotate PDF Pages',
         description: 'Rotate pages permanently.',
         icon: 'RotateCw',
         color: 'bg-lime-600',
         slug: '/tools/rotate-pdf',
         type: 'file',
+        keywords: ['rotate pdf', 'turn pdf', 'change pdf orientation', 'fix upside down pdf', 'rotate pdf pages online', 'save rotated pdf'],
         content: {
             features: [
                 'Permanent Rotation: Save the new orientation permanently, not just a view adjustment.',
@@ -204,12 +211,13 @@ export const TOOLS: Tool[] = [
     // 7. Image Resizer
     {
         id: 'image-resizer',
-        title: 'Image Resizer',
+        title: 'Image Resizer Online',
         description: 'Resize images by pixel or percentage.',
         icon: 'Scaling',
         color: 'bg-purple-500',
         slug: '/tools/image-resizer',
         type: 'image',
+        keywords: ['resize image', 'change image size', 'resize photo', 'scale image', 'resize jpg', 'resize png', 'image dimensions changer'],
         content: {
             features: [
                 'Custom Dimensions: Resize to specific Width and Height pixels.',
@@ -239,6 +247,7 @@ export const TOOLS: Tool[] = [
         color: 'bg-indigo-500',
         slug: '/tools/bulk-image-resizer',
         type: 'image',
+        keywords: ['bulk resize images', 'batch image resizer', 'resize multiple photos', 'mass image resizer', 'batch photo editor'],
         content: {
             features: [
                 'Batch Processing: Resize dozens of images in one go.',
@@ -262,12 +271,13 @@ export const TOOLS: Tool[] = [
     // 9. PDF to Image
     {
         id: 'pdf-to-image',
-        title: 'PDF to Image',
+        title: 'PDF to Image (PDF to JPG)',
         description: 'Convert PDF pages to JPG/PNG.',
         icon: 'Image',
         color: 'bg-cyan-500',
         slug: '/tools/pdf-to-image',
         type: 'file',
+        keywords: ['pdf to image', 'pdf to jpg', 'pdf to png', 'convert pdf pages to images', 'extract images from pdf'],
         content: {
             features: [
                 'Extract Pages: Convert every page of a PDF into a separate image.',
@@ -291,12 +301,13 @@ export const TOOLS: Tool[] = [
     // 10. Word to PDF
     {
         id: 'doc-to-pdf',
-        title: 'Word to PDF',
+        title: 'Word to PDF Converter',
         description: 'Convert DOCX/DOC to PDF.',
         icon: 'FileText',
         color: 'bg-indigo-600',
         slug: '/tools/doc-to-pdf',
         type: 'file',
+        keywords: ['word to pdf', 'docx to pdf', 'doc to pdf', 'convert word to pdf', 'ms word to pdf', 'save docx as pdf'],
         content: {
             features: [
                 'Universal Standard: Convert Word docs to the ISO-standard PDF format.',
