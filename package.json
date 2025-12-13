@@ -11,7 +11,10 @@
   },
   "devDependencies": {
     "@bubblewrap/cli": "^1.24.1",
+    "axios": "^1.13.2",
     "eslint": "^8.0.0",
+    "form-data": "^4.0.5",
+    "pdf-lib": "^1.17.1",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0"
   },
@@ -19,8 +22,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "axios": "^1.13.2",
-    "form-data": "^4.0.5",
     "pnpm": "^10.25.0"
   }
 }

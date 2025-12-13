@@ -52,3 +52,5 @@
 {"jobId":"local-job-1765656450275","tool":"ghostscript","inputSize":312,"outputSize":2619,"durationMs":53,"success":true,"timestamp":"2025-12-13T20:07:30.278Z","meta":{"quality":10,"targetDpi":50,"preset":"/screen"}}
 {"jobId":"local-job-1765656453290","tool":"ghostscript","inputSize":312,"outputSize":2619,"durationMs":44,"success":true,"timestamp":"2025-12-13T20:07:33.292Z","meta":{"quality":10,"targetDpi":50,"preset":"/screen"}}
 {"jobId":"local-job-1765656453290","tool":"ghostscript","inputSize":312,"outputSize":2619,"durationMs":44,"success":true,"timestamp":"2025-12-13T20:07:33.292Z","meta":{"quality":10,"targetDpi":50,"preset":"/screen"}}
+{"jobId":"local-job-1765657403099","tool":"ghostscript-parallel","inputSize":6319,"outputSize":13937,"durationMs":1040,"success":true,"timestamp":"2025-12-13T20:23:23.719Z","meta":{"quality":50,"targetDpi":150,"preset":"/ebook","pages":25,"parallel":true}}
+{"jobId":"local-job-1765657403099","tool":"ghostscript-parallel","inputSize":6319,"outputSize":13937,"durationMs":1041,"success":true,"timestamp":"2025-12-13T20:23:23.718Z","meta":{"quality":50,"targetDpi":150,"preset":"/ebook","pages":25,"parallel":true}}
