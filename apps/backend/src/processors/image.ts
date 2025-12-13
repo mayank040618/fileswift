@@ -4,15 +4,15 @@ import path from 'path';
 import sharp from 'sharp';
 import { PDFDocument } from 'pdf-lib';
 import { zipFiles } from '../utils/zipper';
+import { pMap } from '../utils/concurrency';
 
 const imageResizerProcessor: ToolProcessor = {
     id: 'image-resizer',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         const { width, height } = job.data.data || {};
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
-        const outputFiles: string[] = [];
 
-        for (const input of inputs) {
+        const outputFiles = await pMap(inputs, async (input) => {
             let pipeline = sharp(input);
 
             if (width || height) {
@@ -26,8 +26,8 @@ const imageResizerProcessor: ToolProcessor = {
             const outputFilename = `resized-${path.basename(input, path.extname(input))}.png`;
             const outputPath = path.join(outputDir, outputFilename);
             await pipeline.toFile(outputPath);
-            outputFiles.push(outputPath);
-        }
+            return outputPath;
+        }, 5); // Concurrency 5
 
         if (outputFiles.length === 1) {
             return { resultKey: path.basename(outputFiles[0]) };
@@ -58,10 +58,9 @@ const imageCompressorProcessor: ToolProcessor = {
             const q = quality ? parseInt(String(quality)) : 75;
 
             const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
-            const outputFiles: string[] = [];
-            const metadata: any[] = [];
+            // Safe concurrency for sharp (it uses threads internally too, so keep lower)
 
-            for (const input of inputs) {
+            const results = await pMap(inputs, async (input) => {
                 const inputBuffer = await fs.readFile(input);
                 const originalName = path.basename(input);
 
@@ -78,19 +77,24 @@ const imageCompressorProcessor: ToolProcessor = {
                 const outputPath = path.join(tmpOutDir, outputFilename);
 
                 await fs.writeFile(outputPath, result.buffer);
-                outputFiles.push(outputPath);
 
-                metadata.push({
-                    file: outputFilename,
-                    originalName: originalName,
-                    originalSize: result.originalSize,
-                    compressedSize: result.compressedSize,
-                    savedBytes: result.originalSize - result.compressedSize,
-                    savedPercent: result.originalSize > 0
-                        ? ((result.originalSize - result.compressedSize) / result.originalSize * 100).toFixed(1)
-                        : 0
-                });
-            }
+                return {
+                    path: outputPath,
+                    metadata: {
+                        file: outputFilename,
+                        originalName: originalName,
+                        originalSize: result.originalSize,
+                        compressedSize: result.compressedSize,
+                        savedBytes: result.originalSize - result.compressedSize,
+                        savedPercent: result.originalSize > 0
+                            ? ((result.originalSize - result.compressedSize) / result.originalSize * 100).toFixed(1)
+                            : 0
+                    }
+                };
+            }, 3);
+
+            const outputFiles = results.map(r => r.path);
+            const metadata = results.map(r => r.metadata);
 
             // Clean result handling
             // We need to move the final result(s) to the EXPECTED 'outputDir' so the job processor can find them 
@@ -103,9 +107,6 @@ const imageCompressorProcessor: ToolProcessor = {
                 const finalPath = path.join(outputDir, destName);
                 await fs.move(singleFile, finalPath, { overwrite: true });
 
-                // Note: We can't easily add Headers here as the processor just returns a key.
-                // The logical place for headers would be the download endpoint.
-                // For now, we return the simple file.
                 return { resultKey: destName };
             } else {
                 // Multi File: Zip + Metadata
@@ -114,7 +115,6 @@ const imageCompressorProcessor: ToolProcessor = {
                 outputFiles.push(metaPath);
 
                 const zipName = `compressed-images-${job.id}.zip`;
-                // const zipPath = path.join(outputDir, zipName); // unused
 
                 await zipFiles(outputFiles, outputDir, zipName);
                 return { resultKey: zipName };
@@ -131,17 +131,14 @@ const imageCompressorProcessor: ToolProcessor = {
 const bulkImageResizerProcessor: ToolProcessor = {
     id: 'bulk-image-resizer',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
-        // Same as image-resizer but force defaults? reused logic
-        // For MVP just reuse same logic
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
-        const outputFiles: string[] = [];
 
-        for (const input of inputs) {
+        const outputFiles = await pMap(inputs, async (input) => {
             const outputFilename = `bulk-resized-${path.basename(input, path.extname(input))}.png`;
             const outputPath = path.join(outputDir, outputFilename);
             await sharp(input).resize(800).toFile(outputPath);
-            outputFiles.push(outputPath);
-        }
+            return outputPath;
+        }, 5);
 
         if (outputFiles.length === 1) {
             return { resultKey: path.basename(outputFiles[0]) };

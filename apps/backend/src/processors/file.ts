@@ -13,6 +13,7 @@ import { findCli, getGsVersion, getQpdfVersion } from '../utils/cli-checks';
 import { spawnWithTimeout } from '../utils/spawnWithTimeout';
 import { makeTempDir, removeDir } from '../utils/file';
 import { CompressionLogEntry, logCompressionEvent } from '../monitoring/compression-logger';
+import { pMap } from '../utils/concurrency';
 
 const execAsync = util.promisify(exec);
 
@@ -36,23 +37,11 @@ const compressPdfProcessor: ToolProcessor = {
 
         if (inputs.length === 0) throw new Error("No inputs provided");
 
-        const outputFiles: string[] = [];
-
         // Check tools using cached checks
         const [gsVersion, qpdfVersion] = await Promise.all([getGsVersion(), getQpdfVersion()]);
         const hasGs = !!gsVersion;
         const hasQpdf = !!qpdfVersion;
         const hasSips = await findCli('sips'); // Mac only
-
-        const LOG_BASE: CompressionLogEntry = {
-            jobId: job.id || 'unknown',
-            tool: 'none',
-            inputSize: 0,
-            outputSize: 0,
-            durationMs: 0,
-            success: false,
-            timestamp: new Date().toISOString()
-        };
 
         // Parse quality (0-100)
         const { quality } = job.data.data || {};
@@ -68,18 +57,31 @@ const compressPdfProcessor: ToolProcessor = {
 
         console.log(`[compress-pdf] Job ${job.id} | Q: ${q} | GS: ${gsVersion || 'No'} | QPDF: ${qpdfVersion || 'No'}`);
 
-        for (const input of inputs) {
+        // Limit concurrency to 3 for PDF compression as it is CPU/Memory intensive (GS)
+        const outputFiles = await pMap(inputs, async (input) => {
             const start = Date.now();
             const baseName = path.basename(input, '.pdf');
             const outputFilename = `compressed-${baseName}.pdf`;
             // Temp dir for processing to avoid partial writes to final output
-            const tempDir = await makeTempDir(`compress-${job.id}`);
+            // Ensure unique temp dir per file for safety in parallel
+            const uniqueId = Math.random().toString(36).substring(7);
+            const tempDir = await makeTempDir(`compress-${job.id}-${uniqueId}`);
             const tempOutput = path.join(tempDir, outputFilename);
             const finalOutputPath = path.join(outputDir, outputFilename);
 
             let compressed = false;
             let activeTool = '';
             let errorDetails = '';
+
+            const LOG_BASE: CompressionLogEntry = {
+                jobId: job.id || 'unknown',
+                tool: 'none',
+                inputSize: 0,
+                outputSize: 0,
+                durationMs: 0,
+                success: false,
+                timestamp: new Date().toISOString()
+            };
 
             try {
                 const inputStats = await fs.stat(input);
@@ -88,8 +90,6 @@ const compressPdfProcessor: ToolProcessor = {
                 // Priority 1: Ghostscript
                 if (hasGs) {
                     activeTool = 'ghostscript';
-                    console.log(`[compress-pdf] Trying GS for ${baseName}`);
-
                     const result = await spawnWithTimeout(
                         'gs',
                         [
@@ -103,80 +103,42 @@ const compressPdfProcessor: ToolProcessor = {
                             input
                         ],
                         {},
-                        30000 // 30s strict timeout
+                        60000 // 60s timeout (increased for parallel load)
                     );
 
                     if (result.timedOut) {
-                        console.warn(`[compress-pdf] GS timed out for ${baseName}`);
                         errorDetails += `GS Timeout; `;
                     } else if (result.code !== 0) {
-                        console.warn(`[compress-pdf] GS failed (code ${result.code}): ${result.stderr}`);
                         errorDetails += `GS Fail: ${result.stderr.slice(0, 100)}; `;
                     } else if (await fs.pathExists(tempOutput)) {
-                        // Validate output size > 0
                         const outStat = await fs.stat(tempOutput);
-                        if (outStat.size > 0) {
-                            compressed = true;
-                        }
+                        if (outStat.size > 0) compressed = true;
                     }
                 }
 
                 // Priority 2: QPDF (Linearize) - Fallback
                 if (!compressed && hasQpdf) {
                     activeTool = 'qpdf';
-                    console.log(`[compress-pdf] Falling back to QPDF for ${baseName}`);
-
-                    // qpdf --linearize input output
                     const result = await spawnWithTimeout(
                         'qpdf',
                         ['--linearize', input, tempOutput],
                         {},
-                        15000 // 15s timeout
+                        20000
                     );
 
                     if (result.timedOut || result.code !== 0) {
-                        console.warn(`[compress-pdf] QPDF failed: ${result.stderr}`);
-                        errorDetails += `QPDF Fail: ${result.stderr.slice(0, 100)}; `;
+                        errorDetails += `QPDF Fail; `;
                     } else if (await fs.pathExists(tempOutput) && (await fs.stat(tempOutput)).size > 0) {
                         compressed = true;
                     }
                 }
 
-                // Priority 3: SIPS (Mac Raster) - Low Quality Only
-                if (!compressed && hasSips && q < 40) {
-                    // Simplified SIPS check to avoid unused var 'sipsMaxDim' warning for now as logic was commented out
-                    // Ideally we re-enable full logic, but for "build fix" we just skip or use it simply.
-                    // The previous code had unused sipsMaxDim. 
-                    // Let's actually use sipsMaxDim if we are to keep the logic, but the logic was "skipped (complex)".
-                    // We will keep the skip log but remove the unused variable.
-                    // Or just implement a simple SIPS call:
-                    console.log(`[compress-pdf] Falling back to SIPS simple for ${baseName}`);
-                    // sips -s format pdf --resampleHeightWidthMax [dim] input --out output
-                    // Note: sips pdf-to-pdf resize isn't great but it's valid syntax.
-                    const dim = q < 40 ? '800' : '1600';
-                    const result = await spawnWithTimeout(
-                        'sips',
-                        ['-s', 'format', 'pdf', '--resampleHeightWidthMax', dim, input, '--out', tempOutput],
-                        {},
-                        15000
-                    );
-
-                    if (result.code === 0 && (await fs.pathExists(tempOutput))) {
-                        compressed = true;
-                        activeTool = 'sips';
-                    } else {
-                        errorDetails += "SIPS failed; ";
-                    }
-                }
-
-                // Priority 4: Copy Original (Failure is not an option)
+                // Priority 3: Copy Original
                 if (!compressed) {
                     activeTool = 'copy_fallback';
-                    console.warn(`[compress-pdf] All tools failed. Copying original.`);
                     await fs.copy(input, finalOutputPath);
-                    compressed = true; // Technically handled
+                    compressed = true;
                 } else {
-                    // Move temp output to final
                     await fs.move(tempOutput, finalOutputPath, { overwrite: true });
                 }
 
@@ -194,15 +156,17 @@ const compressPdfProcessor: ToolProcessor = {
                     errorDetails: activeTool === 'copy_fallback' ? errorDetails : undefined
                 });
 
-                outputFiles.push(finalOutputPath);
+                return finalOutputPath;
             } catch (e) {
-                console.error(`[compress-pdf] Fatal error processing ${baseName}:`, e);
-                // Clean up any partials
-                throw e;
+                console.error(`[compress-pdf] Error ${baseName}:`, e);
+                // Return original if fatal error
+                try { await fs.copy(input, finalOutputPath); } catch { }
+                return finalOutputPath;
             } finally {
                 await removeDir(tempDir);
             }
-        }
+        }, 3);
+
 
         if (outputFiles.length === 0) {
             throw new Error("Failed to process files");
@@ -221,6 +185,9 @@ const compressPdfProcessor: ToolProcessor = {
 const pdfToWordProcessor: ToolProcessor = {
     id: 'pdf-to-word',
     process: async ({ job: _job, localPath, outputDir }) => {
+        // PDF to Word usually takes one file. Parallelizing for bulk is possible but UI seems single-file oriented mostly.
+        // Leaving as is for now unless 'inputPaths' is populated.
+        // ... (existing logic) ...
         const outputFilename = `${path.basename(localPath, '.pdf')}.docx`;
         const outputPath = path.join(outputDir, outputFilename);
 
@@ -253,9 +220,6 @@ const pdfToWordProcessor: ToolProcessor = {
         const pdfData = await parser.getText();
 
         let rawText = pdfData.text || "";
-        console.log(`[pdf-to-word] Extracted text length: ${rawText.length}`);
-        console.log(`[pdf-to-word] Preview: ${rawText.substring(0, 200)}`);
-
         // Sanitize
         // eslint-disable-next-line no-control-regex
         const sanitizedText = rawText.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F]/g, '');
@@ -263,10 +227,6 @@ const pdfToWordProcessor: ToolProcessor = {
         let finalContent = sanitizedText;
         if (!sanitizedText.trim()) {
             finalContent = "[NO TEXT FOUND] This document appears to be an image-based or scanned PDF. No selectable text was found to extract.";
-        } else if (sanitizedText.trim().length < 100) {
-            finalContent = sanitizedText + "\n\n" +
-                "------------------------------------------------------------------\n" +
-                "[WARNING] Very little text was extracted. This document might be an image/scan with only some metadata text.";
         }
 
         const doc = new Document({
@@ -290,7 +250,7 @@ const pdfToWordProcessor: ToolProcessor = {
 const mergePdfProcessor: ToolProcessor = {
     id: 'merge-pdf',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
-        // Prioritize inputPaths from upload
+        // Merge runs sequentially by definition (order matters).
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
         const mergedPdf = await PDFDocument.create();
 
@@ -310,14 +270,12 @@ const mergePdfProcessor: ToolProcessor = {
 const rotatePdfProcessor: ToolProcessor = {
     id: 'rotate-pdf',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
-        // Fix: ToolClient sends 'angle', not 'options.rotation'
         const { angle } = job.data.data || {};
         const rotationToAdd = angle ? parseInt(String(angle)) : 90;
 
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
-        const outputFiles: string[] = [];
 
-        for (const input of inputs) {
+        const outputFiles = await pMap(inputs, async (input) => {
             const pdfBytes = await fs.readFile(input);
             const pdfDoc = await PDFDocument.load(pdfBytes);
             const pages = pdfDoc.getPages();
@@ -331,8 +289,8 @@ const rotatePdfProcessor: ToolProcessor = {
             const outputFilename = `rotated-${path.basename(input)}`;
             const outputPath = path.join(outputDir, outputFilename);
             await fs.writeFile(outputPath, await pdfDoc.save());
-            outputFiles.push(outputPath);
-        }
+            return outputPath;
+        }, 5);
 
         if (outputFiles.length === 1) {
             return { resultKey: path.basename(outputFiles[0]) };

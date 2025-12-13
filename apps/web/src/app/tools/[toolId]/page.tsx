@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { TOOLS } from '@/config/tools';
 import dynamic from 'next/dynamic';
+import { Tool } from '@/config/tools';
+
 const ToolClient = dynamic(() => import('./ToolClient'), { ssr: false });
 
 export async function generateMetadata({ params }: { params: { toolId: string } }): Promise<Metadata> {
@@ -17,15 +19,45 @@ export async function generateMetadata({ params }: { params: { toolId: string } 
         ? [...tool.keywords, 'file tools', 'pdf tools', 'online tools']
         : [`${tool.title} free`, `${tool.title} online`, 'file tools', 'pdf tools'];
 
+    const typeLabel = tool.type === 'image' ? 'Image' : 'PDF';
+    const title = `${tool.title} | Free Online ${typeLabel} Tool - FileSwift`;
+
     return {
-        title: `${tool.title} | Free Online Tool - FileSwift`,
+        title: title,
         description: tool.description,
         keywords: keywordList,
+        alternates: {
+            canonical: `https://fileswift.in/tools/${params.toolId}`,
+        },
         openGraph: {
-            title: `${tool.title} - FileSwift`,
+            title: title,
             description: tool.description,
             type: 'website',
+            url: `https://fileswift.in/tools/${params.toolId}`,
+            siteName: 'FileSwift',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: title,
+            description: tool.description,
         }
+    };
+}
+
+function getJsonLd(tool: Tool) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: tool.title,
+        description: tool.description,
+        applicationCategory: 'ProductivityApplication',
+        operatingSystem: 'Any',
+        offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'USD',
+        },
+        featureList: tool.content?.features.join(', ') || 'PDF Compression, Image Resizing, Format Conversion',
     };
 }
 
@@ -52,5 +84,24 @@ export default function Page({ params }: { params: { toolId: string } }) {
         );
     }
 
-    return <ToolClient />;
+    if (!tool) {
+        return (
+            <div className="min-h-[40vh] flex flex-col items-center justify-center">
+                <h1 className="text-2xl font-bold mb-4">Tool Not Found</h1>
+                <a href="/" className="text-blue-600 hover:text-blue-500">← Return Home</a>
+            </div>
+        )
+    }
+
+    const jsonLd = getJsonLd(tool);
+
+    return (
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <ToolClient />
+        </>
+    );
 }

@@ -57,6 +57,7 @@ export const viewport: Viewport = {
 };
 
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Providers } from './providers';
 import { AdFooter } from '@/components/AdSense/AdFooter';
 import { Footer } from '@/components/Footer';
@@ -90,6 +91,7 @@ export default function RootLayout({
                 </Providers>
                 <ConsentBanner />
                 <Analytics />
+                <SpeedInsights />
                 <SplashScreen />
 
                 {/* Google Analytics 4 */}
