@@ -47,16 +47,20 @@ const compressPdfProcessor: ToolProcessor = {
         const { quality } = job.data.data || {};
         const q = quality !== undefined ? parseInt(String(quality)) : 75;
 
-        // Default to /screen (72dpi) for speed, as /ebook (150dpi) is too slow for free tier
-        let pdfSettings = '/screen';
+        // Calculate granular DPI based on quality (0-100)
+        // Range: 50dpi (low quality) to 300dpi (high quality)
+        // q=10 -> 50dpi
+        // q=25 -> 75dpi (~screen)
+        // q=50 -> 150dpi (~ebook)
+        // q=100 -> 300dpi (~printer)
+        const targetDpi = Math.floor(Math.max(q * 3, 50));
 
-        if (q >= 80) {
-            pdfSettings = '/ebook';
-        } else if (q >= 90) {
-            pdfSettings = '/printer';
-        }
+        // Base preset (override specifically for better control)
+        let basePreset = '/screen';
+        if (targetDpi >= 150) basePreset = '/ebook';
+        if (targetDpi >= 300) basePreset = '/printer';
 
-        console.log(`[compress-pdf] Job ${job.id} | Q: ${q} | Mode: ${pdfSettings} | GS: ${gsVersion || 'No'} | QPDF: ${qpdfVersion || 'No'}`);
+        console.log(`[compress-pdf] Job ${job.id} | Q: ${q} | TargetDPI: ${targetDpi} | Base: ${basePreset} | GS: ${gsVersion || 'No'} | QPDF: ${qpdfVersion || 'No'}`);
 
         // Limit concurrency to 2 for PDF compression (Ghostscript is heavy on free tier)
         const outputFiles = await pMap(inputs, async (input) => {
@@ -96,14 +100,22 @@ const compressPdfProcessor: ToolProcessor = {
                         [
                             '-sDEVICE=pdfwrite',
                             '-dCompatibilityLevel=1.4',
-                            `-dPDFSETTINGS=${pdfSettings}`,
+                            `-dPDFSETTINGS=${basePreset}`,
                             '-dNOPAUSE',
                             '-dQUIET',
                             '-dBATCH',
-                            '-sOutputFile=' + tempOutput,
+                            // Explicit Granular Resolution
+                            `-dColorImageResolution=${targetDpi}`,
+                            `-dGrayImageResolution=${targetDpi}`,
+                            `-dMonoImageResolution=${targetDpi}`,
+                            // Ensure images are actually downsampled if above target
+                            '-dDownsampleColorImages=true',
+                            '-dDownsampleGrayImages=true',
+                            '-dDownsampleMonoImages=true',
+                            `-sOutputFile=${tempOutput}`,
                             input
                         ],
-                        {},
+                        { cwd: tempDir },
                         60000 // 60s timeout (increased for parallel load)
                     );
 
