@@ -56,123 +56,7 @@ export const TOOLS: Tool[] = [
             ]
         }
     },
-    // 2. PDF to Word
-    {
-        id: 'pdf-to-word',
-        title: 'PDF to Word',
-        description: 'Convert PDF to editable Docx.',
-        icon: 'FileType2',
-        color: 'bg-blue-600',
-        slug: '/tools/pdf-to-word',
-        type: 'file',
-        content: {
-            features: [
-                'Accurate Conversion: Converts PDF to editable Word (DOCX) documents with high precision.',
-                'Preserves Layout: Maintains original fonts, paragraphs, and tables as much as possible.',
-                'OCR Technology: Extracts text from scanned PDFs (coming soon).',
-                'Batch Processing: Convert multiple PDFs to Word documents at once.'
-            ],
-            howTo: [
-                'Select the PDF file needed for conversion.',
-                'Click "Convert" to start the process.',
-                'The tool will automatically extract text and formatting.',
-                'Download ease-to-edit Word document.'
-            ],
-            benefits: [
-                'Edit locked PDF content easily in Microsoft Word.',
-                'Repurpose content without retyping manually.',
-                'Fix errors in finalized PDF documents.'
-            ]
-        }
-    },
-    // 3. Merge PDFs
-    {
-        id: 'merge-pdf',
-        title: 'Merge PDFs',
-        description: 'Combine multiple PDFs into one.',
-        icon: 'Combine',
-        color: 'bg-orange-500',
-        slug: '/tools/merge-pdf',
-        type: 'file',
-        content: {
-            features: [
-                'Combine Multiple Files: Merge unlimited PDF files into a single document.',
-                'Order Customization: Rearrange files locally before merging.',
-                'Universal Compatibility: Merged files work on any PDF viewer.',
-                '100% Free: No watermarks or page limits.'
-            ],
-            howTo: [
-                'Upload all the PDF files you want to combine.',
-                'Arrange them in the desired order.',
-                'Click "Merge PDFs" to stitch them together.',
-                'Download the single consolidated PDF file.'
-            ],
-            benefits: [
-                'Keep related documents together (e.g., invoices, receipts).',
-                'Create professional report portfolios from scattered files.',
-                'Simplify sharing by sending one file instead of many.'
-            ]
-        }
-    },
-    // 4. Rotate PDF
-    {
-        id: 'rotate-pdf',
-        title: 'Rotate PDF',
-        description: 'Rotate pages permanently.',
-        icon: 'RotateCw',
-        color: 'bg-lime-600',
-        slug: '/tools/rotate-pdf',
-        type: 'file',
-        content: {
-            features: [
-                'Permanent Rotation: Save the new orientation permanently, not just a view adjustment.',
-                'Specific Angles: Rotate 90 degrees clockwise, counter-clockwise, or 180 degrees.',
-                'Bulk Rotation: Rotate multiple files at the same time.',
-                'Instant Preview: See the results immediately after processing.'
-            ],
-            howTo: [
-                'Upload the PDF file that has the wrong orientation.',
-                'Select the rotation angle (90°, 180°, 270°).',
-                'Click "Process File" to apply the rotation.',
-                'Download the corrected PDF.'
-            ],
-            benefits: [
-                'Fix scanned documents that are upside down or sideways.',
-                'Correct page orientation for professional presentation.',
-                'Read documents comfortably on any device.'
-            ]
-        }
-    },
-    // 5. Image Resizer (NEW)
-    {
-        id: 'image-resizer',
-        title: 'Image Resizer',
-        description: 'Resize images by pixel or percentage.',
-        icon: 'Scaling',
-        color: 'bg-purple-500',
-        slug: '/tools/image-resizer',
-        type: 'image',
-        content: {
-            features: [
-                'Custom Dimensions: Resize to specific Width and Height pixels.',
-                'Aspect Ratio Maintenance: Option to preserve the original shape.',
-                'Multiple Formats: Supports JPG, PNG, WEBP, and more.',
-                'High Quality: Advanced resampling to prevent pixelation.'
-            ],
-            howTo: [
-                'Upload your image file (JPG, PNG, etc).',
-                'Enter your desired width or height in pixels.',
-                'Leave one field empty to maintain aspect ratio automatically.',
-                'Click "Process" and download your resized image.'
-            ],
-            benefits: [
-                'Prepare images for social media posts (Instagram, Twitter).',
-                'Optimize images for faster website loading.',
-                'Meet specific upload requirements for government portals.'
-            ]
-        }
-    },
-    // 6. Image Compressor (NEW)
+    // 2. Image Compressor
     {
         id: 'image-compressor',
         title: 'Image Compressor',
@@ -201,36 +85,7 @@ export const TOOLS: Tool[] = [
             ]
         }
     },
-    // 7. Bulk Image Resizer (NEW)
-    {
-        id: 'bulk-image-resizer',
-        title: 'Bulk Image Resizer',
-        description: 'Resize multiple images at once.',
-        icon: 'Images', // Lucide 'Images' or similar, falling back to 'Copy' or 'Layers' if unavailable, will check Icons.tsx
-        color: 'bg-indigo-500',
-        slug: '/tools/bulk-image-resizer',
-        type: 'image',
-        content: {
-            features: [
-                'Batch Processing: Resize dozens of images in one go.',
-                'Uniform Output: Ensure all images have the exact same dimensions.',
-                'Fast Processing: Powered by high-speed servers for rapid resizing.',
-                'Cross-Format Support: Handle mixed batches of JPGs and PNGs.'
-            ],
-            howTo: [
-                'Drag and drop common folders or select multiple images.',
-                'Set the target width and height for all images.',
-                'Start the batch process.',
-                'Download all resized images in a ZIP file.'
-            ],
-            benefits: [
-                'Save hours of manual work resizing photos one by one.',
-                'Standardize product photos for e-commerce stores.',
-                'Quickly prepare photo collections for digital albums.'
-            ]
-        }
-    },
-    // 8. Image -> PDF (NEW)
+    // 3. Image to PDF
     {
         id: 'image-to-pdf',
         title: 'Image to PDF',
@@ -259,7 +114,152 @@ export const TOOLS: Tool[] = [
             ]
         }
     },
-    // 9. PDF -> Image (NEW)
+    // 4. PDF to Word
+    {
+        id: 'pdf-to-word',
+        title: 'PDF to Word',
+        description: 'Convert PDF to editable Docx.',
+        icon: 'FileType2',
+        color: 'bg-blue-600',
+        slug: '/tools/pdf-to-word',
+        type: 'file',
+        content: {
+            features: [
+                'Accurate Conversion: Converts PDF to editable Word (DOCX) documents with high precision.',
+                'Preserves Layout: Maintains original fonts, paragraphs, and tables as much as possible.',
+                'OCR Technology: Extracts text from scanned PDFs (coming soon).',
+                'Batch Processing: Convert multiple PDFs to Word documents at once.'
+            ],
+            howTo: [
+                'Select the PDF file needed for conversion.',
+                'Click "Convert" to start the process.',
+                'The tool will automatically extract text and formatting.',
+                'Download ease-to-edit Word document.'
+            ],
+            benefits: [
+                'Edit locked PDF content easily in Microsoft Word.',
+                'Repurpose content without retyping manually.',
+                'Fix errors in finalized PDF documents.'
+            ]
+        }
+    },
+    // 5. Merge PDFs
+    {
+        id: 'merge-pdf',
+        title: 'Merge PDFs',
+        description: 'Combine multiple PDFs into one.',
+        icon: 'Combine',
+        color: 'bg-orange-500',
+        slug: '/tools/merge-pdf',
+        type: 'file',
+        content: {
+            features: [
+                'Combine Multiple Files: Merge unlimited PDF files into a single document.',
+                'Order Customization: Rearrange files locally before merging.',
+                'Universal Compatibility: Merged files work on any PDF viewer.',
+                '100% Free: No watermarks or page limits.'
+            ],
+            howTo: [
+                'Upload all the PDF files you want to combine.',
+                'Arrange them in the desired order.',
+                'Click "Merge PDFs" to stitch them together.',
+                'Download the single consolidated PDF file.'
+            ],
+            benefits: [
+                'Keep related documents together (e.g., invoices, receipts).',
+                'Create professional report portfolios from scattered files.',
+                'Simplify sharing by sending one file instead of many.'
+            ]
+        }
+    },
+    // 6. Rotate PDF
+    {
+        id: 'rotate-pdf',
+        title: 'Rotate PDF',
+        description: 'Rotate pages permanently.',
+        icon: 'RotateCw',
+        color: 'bg-lime-600',
+        slug: '/tools/rotate-pdf',
+        type: 'file',
+        content: {
+            features: [
+                'Permanent Rotation: Save the new orientation permanently, not just a view adjustment.',
+                'Specific Angles: Rotate 90 degrees clockwise, counter-clockwise, or 180 degrees.',
+                'Bulk Rotation: Rotate multiple files at the same time.',
+                'Instant Preview: See the results immediately after processing.'
+            ],
+            howTo: [
+                'Upload the PDF file that has the wrong orientation.',
+                'Select the rotation angle (90°, 180°, 270°).',
+                'Click "Process File" to apply the rotation.',
+                'Download the corrected PDF.'
+            ],
+            benefits: [
+                'Fix scanned documents that are upside down or sideways.',
+                'Correct page orientation for professional presentation.',
+                'Read documents comfortably on any device.'
+            ]
+        }
+    },
+    // 7. Image Resizer
+    {
+        id: 'image-resizer',
+        title: 'Image Resizer',
+        description: 'Resize images by pixel or percentage.',
+        icon: 'Scaling',
+        color: 'bg-purple-500',
+        slug: '/tools/image-resizer',
+        type: 'image',
+        content: {
+            features: [
+                'Custom Dimensions: Resize to specific Width and Height pixels.',
+                'Aspect Ratio Maintenance: Option to preserve the original shape.',
+                'Multiple Formats: Supports JPG, PNG, WEBP, and more.',
+                'High Quality: Advanced resampling to prevent pixelation.'
+            ],
+            howTo: [
+                'Upload your image file (JPG, PNG, etc).',
+                'Enter your desired width or height in pixels.',
+                'Leave one field empty to maintain aspect ratio automatically.',
+                'Click "Process" and download your resized image.'
+            ],
+            benefits: [
+                'Prepare images for social media posts (Instagram, Twitter).',
+                'Optimize images for faster website loading.',
+                'Meet specific upload requirements for government portals.'
+            ]
+        }
+    },
+    // 8. Bulk Image Resizer
+    {
+        id: 'bulk-image-resizer',
+        title: 'Bulk Image Resizer',
+        description: 'Resize multiple images at once.',
+        icon: 'Images', // Lucide 'Images' or similar, falling back to 'Copy' or 'Layers' if unavailable, will check Icons.tsx
+        color: 'bg-indigo-500',
+        slug: '/tools/bulk-image-resizer',
+        type: 'image',
+        content: {
+            features: [
+                'Batch Processing: Resize dozens of images in one go.',
+                'Uniform Output: Ensure all images have the exact same dimensions.',
+                'Fast Processing: Powered by high-speed servers for rapid resizing.',
+                'Cross-Format Support: Handle mixed batches of JPGs and PNGs.'
+            ],
+            howTo: [
+                'Drag and drop common folders or select multiple images.',
+                'Set the target width and height for all images.',
+                'Start the batch process.',
+                'Download all resized images in a ZIP file.'
+            ],
+            benefits: [
+                'Save hours of manual work resizing photos one by one.',
+                'Standardize product photos for e-commerce stores.',
+                'Quickly prepare photo collections for digital albums.'
+            ]
+        }
+    },
+    // 9. PDF to Image
     {
         id: 'pdf-to-image',
         title: 'PDF to Image',
@@ -288,7 +288,7 @@ export const TOOLS: Tool[] = [
             ]
         }
     },
-    // 10. Word -> PDF (NEW)
+    // 10. Word to PDF
     {
         id: 'doc-to-pdf',
         title: 'Word to PDF',
