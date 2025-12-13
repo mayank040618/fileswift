@@ -48,8 +48,10 @@ export async function pMap<T, R>(
         }
 
         const promise = task();
+        // Prevent UnhandledPromiseRejection warning/exit by attaching a dummy handler immediately
+        promise.catch(() => { });
         activeWorkers.add(promise);
-        promise.then(() => activeWorkers.delete(promise));
+        promise.finally(() => activeWorkers.delete(promise));
     }
 
     await Promise.all(activeWorkers);

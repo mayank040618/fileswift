@@ -255,7 +255,9 @@ const compressPdfProcessor: ToolProcessor = {
             return finalOutputPath;
         };
 
-        const outputFiles = await pMap(inputs, processFile, 2);
+        const outputFiles = (inputs.length === 1)
+            ? [await processFile(inputs[0])]
+            : await pMap(inputs, processFile, 2);
 
         if (outputFiles.length === 0) {
             throw new Error("Failed to process files");
