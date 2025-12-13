@@ -8,7 +8,7 @@ export interface SpawnResult {
     timedOut: boolean;
 }
 
-const DEFAULT_TIMEOUT = parseInt(process.env.PDF_COMPRESSION_TIMEOUT_MS || '30000');
+const DEFAULT_TIMEOUT = parseInt(process.env.PDF_COMPRESSION_TIMEOUT_MS || '60000');
 
 /**
  * Spawns a child process with a strict timeout.

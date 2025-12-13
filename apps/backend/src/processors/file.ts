@@ -57,7 +57,7 @@ const compressPdfProcessor: ToolProcessor = {
 
         console.log(`[compress-pdf] Job ${job.id} | Q: ${q} | GS: ${gsVersion || 'No'} | QPDF: ${qpdfVersion || 'No'}`);
 
-        // Limit concurrency to 3 for PDF compression as it is CPU/Memory intensive (GS)
+        // Limit concurrency to 2 for PDF compression (Ghostscript is heavy on free tier)
         const outputFiles = await pMap(inputs, async (input) => {
             const start = Date.now();
             const baseName = path.basename(input, '.pdf');
