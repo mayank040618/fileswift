@@ -5,9 +5,10 @@ import { motion } from 'framer-motion';
 interface ProgressBarProps {
     status: 'uploading' | 'processing' | 'optimizing' | 'completed' | 'failed';
     progress: number;
+    timeRemaining?: string;
 }
 
-export function ProgressBar({ status, progress }: ProgressBarProps) {
+export function ProgressBar({ status, progress, timeRemaining }: ProgressBarProps) {
     const getStatusText = () => {
         switch (status) {
             case 'uploading': return 'Uploading file securely...';
@@ -48,9 +49,9 @@ export function ProgressBar({ status, progress }: ProgressBarProps) {
                 </motion.div>
             </div>
 
-            {status === 'processing' && (
+            {(status === 'processing' || status === 'uploading') && (
                 <p className="text-xs text-center text-slate-400 dark:text-slate-500 animate-pulse">
-                    Estimating time remaining...
+                    {timeRemaining || (status === 'processing' ? "Estimating time remaining..." : "Calculating...")}
                 </p>
             )}
         </div>

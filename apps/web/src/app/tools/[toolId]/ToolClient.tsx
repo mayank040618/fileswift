@@ -22,6 +22,7 @@ export default function ToolClient() {
     const [jobId, setJobId] = useState<string | null>(null);
     const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'completed' | 'failed'>('idle');
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [timeRemaining, setTimeRemaining] = useState<string>('');
     const [result, setResult] = useState<any>(null); // eslint-disable-line
     const [compressionQuality, setCompressionQuality] = useState(75);
 
@@ -62,6 +63,8 @@ export default function ToolClient() {
     const handleUpload = async () => {
         if (files.length === 0) return;
         setStatus('uploading');
+        setTimeRemaining('Calculating...');
+        const startTime = Date.now();
 
         const formData = new FormData();
         formData.append('toolId', tool.id);
@@ -105,6 +108,20 @@ export default function ToolClient() {
                     if (event.lengthComputable) {
                         const percent = Math.round((event.loaded * 100) / event.total);
                         setUploadProgress(percent);
+
+                        // Calculate Speed & Time Remaining
+                        const elapsedSeconds = (Date.now() - startTime) / 1000;
+                        if (elapsedSeconds > 0.5) { // Wait a bit for stability
+                            const speedBytesPerSec = event.loaded / elapsedSeconds;
+                            const remainingBytes = event.total - event.loaded;
+                            const remainingSeconds = Math.ceil(remainingBytes / speedBytesPerSec);
+
+                            if (remainingSeconds < 60) {
+                                setTimeRemaining(`${remainingSeconds}s remaining`);
+                            } else {
+                                setTimeRemaining(`${Math.ceil(remainingSeconds / 60)}m remaining`);
+                            }
+                        }
                     }
                 };
 
@@ -284,7 +301,7 @@ export default function ToolClient() {
                             </div>
 
                             {(status === 'processing' || status === 'uploading') && (
-                                <ProgressBar status={status} progress={status === 'uploading' ? uploadProgress : 65} />
+                                <ProgressBar status={status} progress={status === 'uploading' ? uploadProgress : 65} timeRemaining={status === 'uploading' ? timeRemaining : undefined} />
                             )}
 
                             {status === 'failed' && (
