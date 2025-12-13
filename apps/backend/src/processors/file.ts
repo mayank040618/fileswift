@@ -47,15 +47,16 @@ const compressPdfProcessor: ToolProcessor = {
         const { quality } = job.data.data || {};
         const q = quality !== undefined ? parseInt(String(quality)) : 75;
 
-        let pdfSettings = '/ebook';
+        // Default to /screen (72dpi) for speed, as /ebook (150dpi) is too slow for free tier
+        let pdfSettings = '/screen';
 
-        if (q < 40) {
-            pdfSettings = '/screen';
-        } else if (q >= 80) {
+        if (q >= 80) {
+            pdfSettings = '/ebook';
+        } else if (q >= 90) {
             pdfSettings = '/printer';
         }
 
-        console.log(`[compress-pdf] Job ${job.id} | Q: ${q} | GS: ${gsVersion || 'No'} | QPDF: ${qpdfVersion || 'No'}`);
+        console.log(`[compress-pdf] Job ${job.id} | Q: ${q} | Mode: ${pdfSettings} | GS: ${gsVersion || 'No'} | QPDF: ${qpdfVersion || 'No'}`);
 
         // Limit concurrency to 2 for PDF compression (Ghostscript is heavy on free tier)
         const outputFiles = await pMap(inputs, async (input) => {
