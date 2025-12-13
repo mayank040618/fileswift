@@ -51,7 +51,7 @@ export function ProgressBar({ status, progress, timeRemaining }: ProgressBarProp
 
             {(status === 'processing' || status === 'uploading') && (
                 <p className="text-xs text-center text-slate-400 dark:text-slate-500 animate-pulse">
-                    {timeRemaining || (status === 'processing' ? "Estimating time remaining..." : "Calculating...")}
+                    {timeRemaining || (status === 'processing' ? "Starting AI engine..." : "Calculating...")}
                 </p>
             )}
         </div>

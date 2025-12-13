@@ -23,6 +23,7 @@ export default function ToolClient() {
     const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'completed' | 'failed'>('idle');
     const [uploadProgress, setUploadProgress] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState<string>('');
+    const [processingStartTime, setProcessingStartTime] = useState<number | null>(null);
     const [result, setResult] = useState<any>(null); // eslint-disable-line
     const [compressionQuality, setCompressionQuality] = useState(75);
 
@@ -57,6 +58,12 @@ export default function ToolClient() {
             } catch (e) {
                 console.error("Polling error", e);
             }
+        }
+
+        // Processing Timer Update
+        if (status === 'processing' && processingStartTime) {
+            const elapsed = Math.round((Date.now() - processingStartTime) / 1000);
+            setTimeRemaining(`${elapsed}s elapsed`);
         }
     }, status === 'processing' ? 1000 : null);
 
@@ -140,6 +147,8 @@ export default function ToolClient() {
             if (responseData.jobId) {
                 setJobId(responseData.jobId);
                 setStatus('processing');
+                setProcessingStartTime(Date.now());
+                setTimeRemaining('0s elapsed');
 
                 if (tool.id === 'ai-chat') {
                     setStatus('completed');
