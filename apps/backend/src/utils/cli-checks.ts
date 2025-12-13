@@ -1,56 +1,78 @@
-import { spawnWithTimeout } from './spawnWithTimeout';
+import { spawnWithTimeout } from "./spawnWithTimeout";
 
-// Cache results for 30s to prevent spamming spawn
-interface CacheEntry {
-    result: string | null;
+interface ToolStatus {
+    ghostscript: boolean;
+    qpdf: boolean;
+    sips: boolean;
+    gsVersion: string | null;
+    qpdfVersion: string | null;
+    checked: boolean;
     timestamp: number;
 }
 
-const checkCache: Record<string, CacheEntry> = {};
-const CACHE_TTL = 30000;
+let cachedStatus: ToolStatus = {
+    ghostscript: false,
+    qpdf: false,
+    sips: false,
+    gsVersion: null,
+    qpdfVersion: null,
+    checked: false,
+    timestamp: 0
+};
 
-async function getCachedCheck(cliName: string, checkFn: () => Promise<string | null>): Promise<string | null> {
-    const now = Date.now();
-    const entry = checkCache[cliName];
-    if (entry && (now - entry.timestamp < CACHE_TTL)) {
-        return entry.result;
+export const checkTools = async (force = false): Promise<ToolStatus> => {
+    // Return cached if checked within last 5 minutes and not forced
+    if (!force && cachedStatus.checked && (Date.now() - cachedStatus.timestamp < 5 * 60 * 1000)) {
+        return cachedStatus;
     }
-    const result = await checkFn();
-    checkCache[cliName] = { result, timestamp: now };
-    return result;
-}
 
-export const findCli = async (cmd: string): Promise<boolean> => {
-    return !!(await getCachedCheck(cmd, async () => {
-        try {
-            // 'which' is fast, but we use strict timeout
-            const { stdout, code } = await spawnWithTimeout('which', [cmd], {}, 2000);
-            return code === 0 && stdout.trim() ? 'yes' : null;
-        } catch {
-            return null;
+    const status: ToolStatus = { ...cachedStatus, checked: true, timestamp: Date.now() };
+
+    // Check Ghostscript
+    try {
+        const gs = await spawnWithTimeout('gs', ['--version'], {}, 2000);
+        if (gs.code === 0) {
+            status.ghostscript = true;
+            status.gsVersion = gs.stdout.trim();
+        } else {
+            status.ghostscript = false;
+            status.gsVersion = null;
         }
-    }));
+    } catch {
+        status.ghostscript = false;
+        status.gsVersion = null;
+    }
+
+    // Check QPDF
+    try {
+        const qpdf = await spawnWithTimeout('qpdf', ['--version'], {}, 2000);
+        if (qpdf.code === 0) {
+            status.qpdf = true;
+            status.qpdfVersion = qpdf.stdout.split('\n')[0].trim();
+        } else {
+            status.qpdf = false;
+            status.qpdfVersion = null;
+        }
+    } catch {
+        status.qpdf = false;
+        status.qpdfVersion = null;
+    }
+
+    // Check SIPS
+    if (process.platform === 'darwin') {
+        try {
+            const sips = await spawnWithTimeout('sips', ['--version'], {}, 2000);
+            if (sips.code === 0 || (sips.stdout && sips.stdout.includes('sips'))) {
+                status.sips = true;
+            }
+        } catch { status.sips = false; }
+    } else {
+        status.sips = false;
+    }
+
+    cachedStatus = status;
+    return status;
 };
 
-export const getGsVersion = async (): Promise<string | null> => {
-    return getCachedCheck('gs', async () => {
-        try {
-            const { stdout } = await spawnWithTimeout('gs', ['--version'], {}, 2000);
-            return stdout.trim() || null;
-        } catch {
-            return null;
-        }
-    });
-};
-
-export const getQpdfVersion = async (): Promise<string | null> => {
-    return getCachedCheck('qpdf', async () => {
-        try {
-            const { stdout } = await spawnWithTimeout('qpdf', ['--version'], {}, 2000);
-            // qpdf version output can be verbose, take first line
-            return stdout.split('\n')[0].trim() || null;
-        } catch {
-            return null;
-        }
-    });
-};
+// Auto-check on import (optional, but good for startup logs)
+// checkTools().then(s => console.log('[Tools] System tools detected:', { gs: s.ghostscript, qpdf: s.qpdf }));
