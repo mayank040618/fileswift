@@ -12,6 +12,7 @@ export interface CompressionLogEntry {
     success: boolean;
     errorId?: string;
     errorDetails?: string;
+    meta?: Record<string, any>;
     timestamp: string;
 }
 

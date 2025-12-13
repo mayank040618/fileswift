@@ -14,6 +14,7 @@ import { spawnWithTimeout } from '../utils/spawnWithTimeout';
 import { makeTempDir, removeDir } from '../utils/file';
 import { CompressionLogEntry, logCompressionEvent } from '../monitoring/compression-logger';
 import { pMap } from '../utils/concurrency';
+import { isValidPdf } from '../utils/validation';
 
 const execAsync = util.promisify(exec);
 
@@ -64,6 +65,12 @@ const compressPdfProcessor: ToolProcessor = {
 
         // Limit concurrency to 2 for PDF compression (Ghostscript is heavy on free tier)
         const outputFiles = await pMap(inputs, async (input) => {
+            // Validation: Ensure it is actually a PDF
+            if (!await isValidPdf(input)) {
+                console.error(`[compress-pdf] Invalid PDF file detected: ${input}`);
+                throw new Error("Invalid PDF file detected (incorrect magic bytes)");
+            }
+
             const start = Date.now();
             const baseName = path.basename(input, '.pdf');
             const outputFilename = `compressed-${baseName}.pdf`;
@@ -166,7 +173,12 @@ const compressPdfProcessor: ToolProcessor = {
                     outputSize: outSize,
                     durationMs: end - start,
                     success: activeTool !== 'copy_fallback',
-                    errorDetails: activeTool === 'copy_fallback' ? errorDetails : undefined
+                    errorDetails: activeTool === 'copy_fallback' ? errorDetails : undefined,
+                    meta: {
+                        quality: q,
+                        targetDpi,
+                        preset: basePreset
+                    }
                 });
 
                 return finalOutputPath;
@@ -207,9 +219,23 @@ const pdfToWordProcessor: ToolProcessor = {
         // Try LibreOffice
         if (await hasBinary('soffice')) {
             console.log('[pdf-to-word] Using LibreOffice...');
+            console.log('[pdf-to-word] Using LibreOffice...');
             try {
-                await execAsync(`soffice --headless --infilter="writer_pdf_import" --convert-to docx "${localPath}" --outdir "${outputDir}"`);
-                // LibreOffice uses input basename. 
+                // Security: Use spawn instead of exec to prevent shell injection
+                const sanitizedInput = localPath; // Multer generates safe random names usually, but good practice to be aware
+
+                // Validate PDF first
+                if (!await isValidPdf(localPath)) throw new Error("Invalid PDF source");
+
+                await spawnWithTimeout('soffice', [
+                    '--headless',
+                    '--infilter=writer_pdf_import',
+                    '--convert-to', 'docx',
+                    sanitizedInput,
+                    '--outdir', outputDir
+                ], {}, 60000);
+
+                // LibreOffice uses input basename.  
                 const expectedName = path.basename(localPath, '.pdf') + '.docx';
                 const expectedPath = path.join(outputDir, expectedName);
 
