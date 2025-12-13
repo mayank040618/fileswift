@@ -4,7 +4,7 @@ import { TOOLS } from '@/config/tools';
 export const revalidate = 3600; // Revalidate every hour
 
 export async function GET() {
-    const baseUrl = 'https://fileswift-web.vercel.app';
+    const baseUrl = 'https://fileswift.in';
     // Use current date
     const lastModified = new Date().toISOString();
 

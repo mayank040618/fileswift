@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-    const baseUrl = 'https://fileswift-web.vercel.app'; // Fallback, usually configured via env
+    const baseUrl = 'https://fileswift.in'; // Fallback, usually configured via env
 
     return {
         rules: {

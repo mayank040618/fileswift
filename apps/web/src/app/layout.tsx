@@ -15,11 +15,11 @@ export const metadata: Metadata = {
     openGraph: {
         title: "FileSwift - AI Powered File Tools",
         description: "Compress PDF, Convert to Word, Remove Backgrounds and more.",
-        url: 'https://fileswift-web.vercel.app',
+        url: 'https://fileswift.in',
         siteName: 'FileSwift',
         images: [
             {
-                url: 'https://fileswift-web.vercel.app/og-image.png', // We will need to create this later or use a default
+                url: 'https://fileswift.in/og-image.png', // We will need to create this later or use a default
                 width: 1200,
                 height: 630,
             },
@@ -31,10 +31,10 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: "FileSwift - AI Powered File Tools",
         description: "Compress, convert, and edit files with AI precision.",
-        images: ['https://fileswift-web.vercel.app/og-image.png'],
+        images: ['https://fileswift.in/og-image.png'],
     },
     verification: {
-        google: '3ggtYRuYG-jw7bzTSY5fUFvBcv-af5rTa3tIR1dXs0A',
+        google: '9I9NOWPy481Ul2kqc1rXvdRF2KjfbMMw4TlfxW6p5L0',
     },
     appleWebApp: {
         capable: true,
@@ -113,7 +113,7 @@ export default function RootLayout({
                             "@context": "https://schema.org",
                             "@type": "WebApplication",
                             "name": "FileSwift",
-                            "url": "https://fileswift-web.vercel.app",
+                            "url": "https://fileswift.in",
                             "applicationCategory": "ProductivityApplication",
                             "operatingSystem": "Any",
                             "offers": {
@@ -122,7 +122,7 @@ export default function RootLayout({
                                 "priceCurrency": "USD"
                             },
                             "featureList": "PDF Compression, Image Resizing, Format Conversion",
-                            "screenshot": "https://fileswift-web.vercel.app/og-image.png"
+                            "screenshot": "https://fileswift.in/og-image.png"
                         })
                     }}
                 />
