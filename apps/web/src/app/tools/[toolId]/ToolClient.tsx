@@ -22,6 +22,7 @@ export default function ToolClient() {
     const [jobId, setJobId] = useState<string | null>(null);
     const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'completed' | 'failed'>('idle');
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [processingProgress, setProcessingProgress] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState<string>('');
     const [processingStartTime, setProcessingStartTime] = useState<number | null>(null);
     const [result, setResult] = useState<any>(null); // eslint-disable-line
@@ -64,6 +65,14 @@ export default function ToolClient() {
         if (status === 'processing' && processingStartTime) {
             const elapsed = Math.round((Date.now() - processingStartTime) / 1000);
             setTimeRemaining(`${elapsed}s elapsed`);
+
+            // Simulated Progress: Smoothly increment to 95%
+            setProcessingProgress(prev => {
+                if (prev >= 95) return 95;
+                // Add varied increment (0.5% to 2%) for realism
+                const increment = Math.random() * 1.5 + 0.5;
+                return Math.min(prev + increment, 95);
+            });
         }
     }, status === 'processing' ? 1000 : null);
 
@@ -148,6 +157,7 @@ export default function ToolClient() {
                 setJobId(responseData.jobId);
                 setStatus('processing');
                 setProcessingStartTime(Date.now());
+                setProcessingProgress(0);
                 setTimeRemaining('0s elapsed');
 
                 if (tool.id === 'ai-chat') {
@@ -310,7 +320,11 @@ export default function ToolClient() {
                             </div>
 
                             {(status === 'processing' || status === 'uploading') && (
-                                <ProgressBar status={status} progress={status === 'uploading' ? uploadProgress : 65} timeRemaining={status === 'uploading' ? timeRemaining : undefined} />
+                                <ProgressBar
+                                    status={status}
+                                    progress={status === 'uploading' ? uploadProgress : processingProgress}
+                                    timeRemaining={status === 'uploading' ? timeRemaining : undefined}
+                                />
                             )}
 
                             {status === 'failed' && (
