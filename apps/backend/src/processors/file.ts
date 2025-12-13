@@ -93,174 +93,133 @@ const compressPdfProcessor: ToolProcessor = {
 
             // If we still can't get page count, we can't safely parallelize.
             // But we can still single-pass compress.
-            const canParallelize = pageCount > 5 && hasGs;
-
-            let compressed = false;
-            let activeTool = '';
+            let activeTool = 'none';
             let errorDetails = '';
+            // Unique Temp Dir for this file processing to ensure isolation
+            const workId = Math.random().toString(36).substring(7);
+            const tempDir = await makeTempDir(`compress-work-${job.id}-${workId}`);
 
-            // --- STRATEGY 1: Parallel Compression (Safe Mode) ---
-            if (canParallelize) {
-                console.log(`[compress-pdf] Attempting Safe Parallel for ${baseName} (${pageCount} pages)`);
-                activeTool = 'ghostscript-parallel';
-                const tempDir = await makeTempDir(`safe-parallel-${job.id}`);
-
-                try {
-                    const CHUNK_SIZE = 5;
-                    const chunks: { start: number, end: number, index: number }[] = [];
-                    for (let i = 0; i < pageCount; i += CHUNK_SIZE) {
-                        chunks.push({ start: i + 1, end: Math.min(i + CHUNK_SIZE, pageCount), index: chunks.length });
-                    }
-
-                    // Strict Parallel Execution
-                    const chunkPaths = await pMap(chunks, async (chunk) => {
-                        const chunkOutput = path.join(tempDir, `chunk-${chunk.index}.pdf`);
-                        const args = [
-                            '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.4',
-                            `-dPDFSETTINGS=${basePreset}`,
-                            '-dNOPAUSE', '-dQUIET', '-dBATCH',
-                            `-dColorImageResolution=${targetDpi}`,
-                            `-dGrayImageResolution=${targetDpi}`,
-                            `-dMonoImageResolution=${targetDpi}`,
-                            '-dDownsampleColorImages=true',
-                            '-dDownsampleGrayImages=true',
-                            '-dDownsampleMonoImages=true',
-                            `-dFirstPage=${chunk.start}`,
-                            `-dLastPage=${chunk.end}`,
-                            `-sOutputFile=${chunkOutput}`,
-                            input
-                        ];
-
-                        const res = await spawnWithTimeout('gs', args, { cwd: tempDir }, 60000); // 60s per chunk
-                        if (res.timedOut || res.code !== 0) {
-                            throw new Error(`Chunk ${chunk.index} GS failed: ${res.stderr}`);
-                        }
-                        if (!await fs.pathExists(chunkOutput) || (await fs.stat(chunkOutput)).size === 0) {
-                            throw new Error(`Chunk ${chunk.index} Empty Output`);
-                        }
-                        return chunkOutput;
-                    }, 4); // Concurrency 4
-
-                    // Merge Chunks
-                    const mergeArgs = [
+            try {
+                // --- TIER 1: GHOSTSCRIPT (Quality Based) ---
+                if (hasGs) {
+                    const gsOutput = path.join(tempDir, `temp-gs.pdf`);
+                    const args = [
                         '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.4',
+                        `-dPDFSETTINGS=${basePreset}`,
                         '-dNOPAUSE', '-dQUIET', '-dBATCH',
-                        `-sOutputFile=${finalOutputPath}`,
-                        ...chunkPaths
+                        // Image Downsampling
+                        `-dColorImageResolution=${targetDpi}`,
+                        `-dGrayImageResolution=${targetDpi}`,
+                        `-dMonoImageResolution=${targetDpi}`,
+                        '-dDownsampleColorImages=true',
+                        '-dDownsampleGrayImages=true',
+                        '-dDownsampleMonoImages=true',
+                        `-sOutputFile=${gsOutput}`,
+                        input
                     ];
-                    const mergeRes = await spawnWithTimeout('gs', mergeArgs, {}, 120000);
-                    if (mergeRes.timedOut || mergeRes.code !== 0) throw new Error("Merge Failed");
 
-                    // FINAL VERIFICATION (Crucial)
-                    const outputPageCount = await getPageCount(finalOutputPath);
-                    if (outputPageCount !== pageCount) {
-                        throw new Error(`Integrity Check Failed: Input ${pageCount} pages, Output ${outputPageCount} pages`);
-                    }
+                    // 30s Hard Timeout (Requirement)
+                    const res = await spawnWithTimeout('gs', args, { cwd: tempDir }, 30000);
 
-                    compressed = true;
+                    if (res.code === 0 && await fs.pathExists(gsOutput)) {
+                        const tempSize = (await fs.stat(gsOutput)).size;
 
-                } catch (e) {
-                    console.warn(`[compress-pdf] Safe Parallel failed, reverting to Serial. Reason: ${e instanceof Error ? e.message : String(e)}`);
-                    activeTool = ''; // Reset tool
-                    // Cleanup output if it exists to avoid partial file being used
-                    if (await fs.pathExists(finalOutputPath)) await fs.remove(finalOutputPath);
-                } finally {
-                    await removeDir(tempDir);
-                }
-            }
+                        // Size Sanity Check: Must not be > 5% larger (Inflation Check)
+                        if (tempSize > 0 && tempSize <= inputSize * 1.05) {
+                            await fs.move(gsOutput, finalOutputPath, { overwrite: true });
+                            activeTool = 'ghostscript';
 
-            // --- STRATEGY 2: Single Pass Fallback ---
-            if (!compressed) {
-                const uniqueId = Math.random().toString(36).substring(7);
-                const tempDir = await makeTempDir(`compress-serial-${job.id}-${uniqueId}`);
-                const tempOutput = path.join(tempDir, outputFilename);
-
-                try {
-                    if (hasGs) {
-                        activeTool = 'ghostscript';
-                        const args = [
-                            '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.4',
-                            `-dPDFSETTINGS=${basePreset}`,
-                            '-dNOPAUSE', '-dQUIET', '-dBATCH',
-                            `-dColorImageResolution=${targetDpi}`,
-                            `-dGrayImageResolution=${targetDpi}`,
-                            `-dMonoImageResolution=${targetDpi}`,
-                            '-dDownsampleColorImages=true',
-                            '-dDownsampleGrayImages=true',
-                            '-dDownsampleMonoImages=true',
-                            `-sOutputFile=${tempOutput}`,
-                            input
-                        ];
-                        const res = await spawnWithTimeout('gs', args, { cwd: tempDir }, 180000); // 3 min timeout
-
-                        if (res.code === 0 && await fs.pathExists(tempOutput) && (await fs.stat(tempOutput)).size > 0) {
-                            compressed = true;
+                            // Log Success & Return immediately
+                            await logCompressionEvent({
+                                jobId: job.id || 'unknown',
+                                tool: 'ghostscript',
+                                inputSize, outputSize: tempSize,
+                                durationMs: Date.now() - start, success: true,
+                                compressionRatio: tempSize / inputSize,
+                                timestamp: new Date().toISOString(),
+                                meta: { quality: q, pages: pageCount }
+                            });
+                            return finalOutputPath;
                         } else {
-                            errorDetails += `GS Serial Failed: ${res.stderr || (res.timedOut ? 'Timeout' : 'Unknown')}; `;
+                            errorDetails += `GS Inflation/Empty (${tempSize} bytes); `;
                         }
+                    } else {
+                        errorDetails += `GS Failed (Code ${res.code} / ${res.timedOut ? 'Timeout' : 'Error'}); `;
                     }
-
-
-                    // --- QPDF Fallback (Tier 2) ---
-                    if (!compressed && hasQpdf) {
-                        activeTool = 'qpdf';
-                        // Enhanced QPDF flags for compression
-                        const args = [
-                            '--linearize',
-                            '--object-streams=generate',
-                            '--compress-streams=y',
-                            input,
-                            tempOutput
-                        ];
-                        const res = await spawnWithTimeout('qpdf', args, {}, 20000);
-                        if (res.code === 0 && await fs.pathExists(tempOutput) && (await fs.stat(tempOutput)).size > 0) {
-                            compressed = true;
-                        }
-                    }
-
-
-                    // --- Size Sanity Check ---
-                    // Even if compression "succeeded", did it make the file significantly larger?
-                    if (compressed) {
-                        const tempSize = (await fs.stat(tempOutput)).size;
-                        // Tolerance: 5%
-                        if (tempSize > inputSize * 1.05) {
-                            console.log(`[compress-pdf] Output (${tempSize}) larger than input (${inputSize}). Discarding.`);
-                            compressed = false; // Trigger fallback to original
-                        } else {
-                            await fs.move(tempOutput, finalOutputPath, { overwrite: true });
-                        }
-                    }
-
-                    // Ultimate Fallback: Copy original
-                    if (!compressed) {
-                        activeTool = 'copy_fallback';
-                        await fs.copy(input, finalOutputPath);
-                    }
-
-
-                } finally {
-                    await removeDir(tempDir);
                 }
+
+                // --- TIER 2: QPDF (Linearization & Optimization) ---
+                // Only runs if Tier 1 failed or was skipped
+                if (hasQpdf) {
+                    const qpdfOutput = path.join(tempDir, `temp-qpdf.pdf`);
+                    // Optimization Flags: Linearize + Object Streams + Stream Compression
+                    const args = [
+                        '--linearize',
+                        '--object-streams=generate',
+                        '--compress-streams=y',
+                        input,
+                        qpdfOutput
+                    ];
+
+                    // 30s Hard Timeout (Requirement)
+                    const res = await spawnWithTimeout('qpdf', args, {}, 30000);
+
+                    if (res.code === 0 && await fs.pathExists(qpdfOutput)) {
+                        const tempSize = (await fs.stat(qpdfOutput)).size;
+
+                        // Size Sanity Check
+                        if (tempSize > 0 && tempSize <= inputSize * 1.05) {
+                            await fs.move(qpdfOutput, finalOutputPath, { overwrite: true });
+                            activeTool = 'qpdf';
+
+                            await logCompressionEvent({
+                                jobId: job.id || 'unknown',
+                                tool: 'qpdf',
+                                inputSize, outputSize: tempSize,
+                                durationMs: Date.now() - start, success: true,
+                                compressionRatio: tempSize / inputSize,
+                                timestamp: new Date().toISOString(),
+                                meta: { quality: q, pages: pageCount, note: 'Tier 2 used' }
+                            });
+                            return finalOutputPath;
+                        } else {
+                            errorDetails += `QPDF Inflation/Empty (${tempSize} bytes); `;
+                        }
+                    } else {
+                        errorDetails += `QPDF Failed (Code ${res.code}); `;
+                    }
+                }
+
+                // --- TIER 3: FALLBACK TO ORIGINAL ---
+                // If we reached here, both engines failed or inflated the file.
+                activeTool = 'original';
+                console.log(`[compress-pdf] Job ${job.id} - Fallback to original. Errors: ${errorDetails}`);
+                await fs.copy(input, finalOutputPath, { overwrite: true });
+
+                await logCompressionEvent({
+                    jobId: job.id || 'unknown',
+                    tool: 'original',
+                    inputSize, outputSize: inputSize,
+                    durationMs: Date.now() - start, success: true,
+                    compressionRatio: 1.0,
+                    errorDetails: `All engines failed/inflated. ${errorDetails}`,
+                    timestamp: new Date().toISOString(),
+                    meta: { quality: q, pages: pageCount, fallback: true }
+                });
+
+                return finalOutputPath;
+
+            } catch (e: any) {
+                // Catastrophic failure catch - should rarely happen due to spawn checks
+                console.error(`[compress-pdf] Critical Error`, e);
+                // Last ditch effort: ensure user gets *something*
+                if (!await fs.pathExists(finalOutputPath)) {
+                    await fs.copy(input, finalOutputPath);
+                }
+                return finalOutputPath;
+            } finally {
+                await removeDir(tempDir);
             }
-
-            const end = Date.now();
-            const outSize = (await fs.pathExists(finalOutputPath)) ? (await fs.stat(finalOutputPath)).size : inputSize;
-
-            await logCompressionEvent({
-                jobId: job.id || 'unknown',
-                tool: activeTool,
-                inputSize,
-                outputSize: outSize,
-                durationMs: end - start,
-                success: activeTool !== 'copy_fallback',
-                errorDetails,
-                compressionRatio: inputSize > 0 ? outSize / inputSize : 1,
-                timestamp: new Date().toISOString(),
-                meta: { quality: q, pages: pageCount, method: activeTool }
-            });
-
-            return finalOutputPath;
         };
 
         const outputFiles = (inputs.length === 1)

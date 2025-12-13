@@ -23,3 +23,10 @@ pnpm-debug.log*
 # Editor
 .vscode
 .idea
+# Test Assets
+scripts/test-assets
+scripts/stress-assets
+
+# Uploads
+apps/backend/uploads
+uploads

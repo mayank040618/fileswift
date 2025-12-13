@@ -1,4 +1,4 @@
-import './polyfills';
+import './polyfills/dom'; // MUST BE FIRST
 import './config/env';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
