@@ -59,18 +59,23 @@ export const executeJob = async (job: IJob) => {
         // 1. Prepare Input(s)
         if (job.data.inputFiles && job.data.inputFiles.length > 0) {
             // New Bulk Flow
-            let idx = 0;
-            for (const file of job.data.inputFiles) {
+            // New Bulk Flow - Parallelized
+            const inputFilesPromises = job.data.inputFiles.map(async (file, index) => {
                 const safeName = path.basename(file.filename);
                 // Append index to avoid "dest already exists" if user uploads duplicate filenames
-                const fileInputPath = path.join(workDir, `input-${idx}-${safeName}`);
-                idx++;
+                const fileInputPath = path.join(workDir, `input-${index}-${safeName}`);
 
                 if (await fs.pathExists(file.path)) {
                     await fs.move(file.path, fileInputPath, { overwrite: true });
-                    inputPaths.push(fileInputPath);
+                    return fileInputPath;
                 }
-            }
+                return null;
+            });
+
+            const results = await Promise.all(inputFilesPromises);
+            const validPaths = results.filter((p): p is string => p !== null);
+            inputPaths.push(...validPaths);
+
             if (inputPaths.length === 0) throw new Error("All input files missing or failed to move");
         } else if (inputTempPath && await fs.pathExists(inputTempPath)) {
             // Legacy/Single Flow
