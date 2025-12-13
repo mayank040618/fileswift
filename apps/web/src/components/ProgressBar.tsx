@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 interface ProgressBarProps {
     status: 'uploading' | 'processing' | 'optimizing' | 'completed' | 'failed';
@@ -9,10 +10,31 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ status, progress, timeRemaining }: ProgressBarProps) {
+    const [messageIndex, setMessageIndex] = useState(0);
+
+    const processingMessages = [
+        "AI is analyzing content structure...",
+        "Identifying redundant data...",
+        "Optimizing assets and resources...",
+        "Applying smart compression...",
+        "Finalizing the document..."
+    ];
+
+    useEffect(() => {
+        if (status === 'processing') {
+            const interval = setInterval(() => {
+                setMessageIndex((prev) => (prev + 1) % processingMessages.length);
+            }, 2500);
+            return () => clearInterval(interval);
+        } else {
+            setMessageIndex(0);
+        }
+    }, [status]);
+
     const getStatusText = () => {
         switch (status) {
             case 'uploading': return 'Uploading file securely...';
-            case 'processing': return 'AI is processing content...';
+            case 'processing': return processingMessages[messageIndex];
             case 'optimizing': return 'Final polish and optimization...';
             case 'completed': return 'Ready for download!';
             case 'failed': return 'Processing failed.';
