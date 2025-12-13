@@ -149,7 +149,16 @@ const compressPdfProcessor: ToolProcessor = {
                             input
                         ];
 
-                        await spawnWithTimeout('gs', args, { cwd: tempDir }, 60000); // 1 min per chunk
+                        const result = await spawnWithTimeout('gs', args, { cwd: tempDir }, 60000); // 1 min per chunk
+
+                        if (result.timedOut || result.code !== 0) {
+                            throw new Error(`Chunk ${chunk.index} failed: ${result.stderr || 'Timeout'}`);
+                        }
+
+                        if (!await fs.pathExists(chunkOutput) || (await fs.stat(chunkOutput)).size === 0) {
+                            throw new Error(`Chunk ${chunk.index} produced empty/missing file`);
+                        }
+
                         return chunkOutput;
                     }, 3); // Parallel Factor
 
