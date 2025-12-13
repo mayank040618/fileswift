@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 
 export const metadata: Metadata = {
+    metadataBase: new URL('https://fileswift.in'),
     title: "FileSwift - AI Powered File Tools",
     description: "Compress PDF, Convert to Word, Remove Backgrounds and more. Free online AI file tools.",
     keywords: ["pdf compressor", "pdf to word", "remove background", "ai file tools", "image to pdf"],

@@ -23,6 +23,8 @@ const item = {
   show: { opacity: 1, y: 0 }
 };
 
+import { SeoSection } from '@/components/SeoSection';
+
 export default function Home() {
   const activeTools = TOOLS.filter(t => !t.comingSoon);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
@@ -81,6 +83,10 @@ export default function Home() {
           </motion.div>
         </motion.div>
       </div>
+
+      {/* SEO Content Section */}
+      <SeoSection />
+
     </main>
   );
 }
