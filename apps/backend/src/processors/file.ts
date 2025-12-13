@@ -9,7 +9,7 @@ import { PDFParse } from 'pdf-parse';
 // import { getFileBuffer } from '../services/storage';
 import { exec } from 'child_process';
 import util from 'util';
-import { findCli, getGsVersion, getQpdfVersion } from '../utils/cli-checks';
+import { getGsVersion, getQpdfVersion } from '../utils/cli-checks';
 import { spawnWithTimeout } from '../utils/spawnWithTimeout';
 import { makeTempDir, removeDir } from '../utils/file';
 import { CompressionLogEntry, logCompressionEvent } from '../monitoring/compression-logger';
@@ -41,7 +41,7 @@ const compressPdfProcessor: ToolProcessor = {
         const [gsVersion, qpdfVersion] = await Promise.all([getGsVersion(), getQpdfVersion()]);
         const hasGs = !!gsVersion;
         const hasQpdf = !!qpdfVersion;
-        const hasSips = await findCli('sips'); // Mac only
+        // const hasSips = await findCli('sips'); // Mac only - Removed unused variable to fix build
 
         // Parse quality (0-100)
         const { quality } = job.data.data || {};
