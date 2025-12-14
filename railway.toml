@@ -1,5 +1,4 @@
 [build]
-builder = "docker"
 dockerfilePath = "apps/backend/Dockerfile"
 
 [deploy]
