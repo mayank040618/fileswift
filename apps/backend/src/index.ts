@@ -38,6 +38,20 @@ const start = async () => {
             }
         });
 
+
+        // Security Headers
+        await server.register(require('@fastify/helmet'), {
+            contentSecurityPolicy: {
+                directives: {
+                    defaultSrc: ["'self'"],
+                    scriptSrc: ["'self'", "'unsafe-inline'"], // unsafe-inline needed for some next.js integration if served together, but ideally strict.
+                    styleSrc: ["'self'", "'unsafe-inline'"],
+                    imgSrc: ["'self'", "data:", "blob:"],
+                }
+            },
+            global: true
+        });
+
         // Middleware
         const { rateLimitMiddleware } = await import('./middleware/rateLimit');
         server.addHook('preHandler', rateLimitMiddleware);

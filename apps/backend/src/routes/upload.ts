@@ -4,6 +4,7 @@ import util from 'util';
 import { pipeline } from 'stream';
 import fs from 'fs';
 import path from 'path';
+import { Transform } from 'stream';
 
 const pump = util.promisify(pipeline);
 
@@ -37,13 +38,46 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 }
 
                 const tempPath = path.join(uploadDir, `upload-${Date.now()}-${Math.random().toString(36).substring(7)}-${safeName}`);
-                console.log(`[Upload] Streaming ${part.filename} to ${tempPath}`);
-                await pump(part.file, fs.createWriteStream(tempPath));
 
-                uploadedFiles.push({
-                    filename: safeName,
-                    path: tempPath
+                // Zero-Trust: Validate Magic Bytes (%PDF)
+                const checkPdf = new Transform({
+                    transform(chunk, _encoding, callback) {
+                        // @ts-ignore
+                        if (!this.headerChecked) {
+                            // @ts-ignore
+                            this.headerChecked = true;
+                            // Check for %PDF signature (first 4 bytes)
+                            const header = chunk.toString('utf8', 0, 4);
+                            if (header !== '%PDF') {
+                                return callback(new Error('Invalid file type: Not a PDF'));
+                            }
+                        }
+                        callback(null, chunk);
+                    }
                 });
+
+                try {
+                    console.log(`[Upload] Streaming ${part.filename} to ${tempPath}`);
+                    await pump(part.file, checkPdf, fs.createWriteStream(tempPath));
+
+                    uploadedFiles.push({
+                        filename: safeName,
+                        path: tempPath
+                    });
+                } catch (err: any) {
+                    console.error(`[Upload] Failed to save ${part.filename}:`, err.message);
+                    // Cleanup partial file
+                    if (fs.existsSync(tempPath)) {
+                        fs.unlinkSync(tempPath);
+                    }
+                    // If invalid type, we should probably abort the whole request or at least warn
+                    if (err.message.includes('Not a PDF')) {
+                        // We can choose to return immediately or just skip this file.
+                        // For security, let's skip but note it.
+                        continue;
+                    }
+                    throw err; // unexpected error
+                }
             } else {
                 if (part.fieldname === 'toolId') {
                     toolId = part.value as string;

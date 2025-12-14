@@ -1,6 +1,7 @@
 import './polyfills';
 import { Worker } from 'bullmq';
 import { config } from 'dotenv';
+import path from 'path';
 
 config();
 
@@ -42,18 +43,17 @@ const startWorker = async () => {
     }
 
     try {
-        const worker = new Worker('file-processing', async job => {
-            console.log(`Processing job ${job.id} for tool ${job.data.toolId}`);
-            try {
-                // Use shared processor logic
-                // Dynamic import not strictly necessary if we are in async function but fine
-                const { executeJob } = await import('./services/jobProcessor');
-                return await executeJob(job as any);
-            } catch (e) {
-                console.error("Job Execution Failed", e);
-                throw e;
-            }
-        }, { connection });
+        const processorPath = path.join(__dirname, 'processors', 'sandboxed' + (path.extname(__filename) === '.ts' ? '.ts' : '.js'));
+
+        const worker = new Worker('file-processing', processorPath, {
+            connection,
+            concurrency: 5,
+            limiter: {
+                max: 10,
+                duration: 1000
+            },
+            lockDuration: 30000, // 30s lock
+        });
 
         worker.on('completed', job => {
             console.log(`Job ${job.id} completed`);
@@ -63,9 +63,9 @@ const startWorker = async () => {
             console.error(`Job ${job?.id} failed: ${err.message}`);
         });
 
-        console.log("Worker started with Redis connection");
+        console.log(`Worker started with Redis connection (Sandboxed, Concurrency: 5)`);
     } catch (e) {
-        console.warn("Failed to start worker (Redis likely missing)");
+        console.warn("Failed to start worker (Redis likely missing or path error)", e);
     }
 };
 

@@ -16,10 +16,21 @@ export function UploadBox({ onFileSelect, accept }: UploadBoxProps) {
         }
     }, [onFileSelect]);
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
         onDrop,
         accept,
-        maxFiles: parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_FILES || '1')
+        maxFiles: parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_FILES || '1'),
+        maxSize: 100 * 1024 * 1024, // 100MB
+        onDropRejected: (fileRejections) => {
+            const error = fileRejections[0]?.errors[0];
+            if (error) {
+                if (error.code === 'file-too-large') {
+                    alert("File is too large. Max 100MB.");
+                } else {
+                    alert(error.message);
+                }
+            }
+        }
     });
 
     return (

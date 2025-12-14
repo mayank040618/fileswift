@@ -256,6 +256,7 @@ export default function ToolClient() {
                                         : { 'application/pdf': ['.pdf'] }
                                 }
                                 maxFiles={maxFiles}
+                                maxSize={100 * 1024 * 1024} // 100MB
                             />
 
                             {/* Options Panel */}
@@ -331,9 +332,14 @@ export default function ToolClient() {
                             <div className="mb-8 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Icons.File className="text-blue-500 w-5 h-5" />
-                                    <span className="font-medium dark:text-white">
-                                        {files.length > 1 ? `${files.length} files processing...` : files[0]?.name}
-                                    </span>
+                                    <div className="flex flex-col">
+                                        <span className="font-medium dark:text-white">
+                                            {files.length > 1 ? `${files.length} files selected` : files[0]?.name}
+                                        </span>
+                                        <span className="text-xs text-slate-500">
+                                            {(files.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024)).toFixed(2)} MB total
+                                        </span>
+                                    </div>
                                 </div>
                                 <button onClick={() => { setFiles([]); setStatus('idle'); setChatMessages([]); setResult(null); }} className="text-sm text-red-500 hover:text-red-600">
                                     Cancel
@@ -354,10 +360,18 @@ export default function ToolClient() {
                                         <Icons.FileText className="w-8 h-8" />
                                     </div>
                                     <h3 className="text-xl font-bold dark:text-white mb-2">Processing Failed</h3>
-                                    <p className="text-slate-500 mb-6">Something went wrong while processing your files. Please try again.</p>
-                                    <button onClick={() => { setFiles([]); setStatus('idle'); setResult(null); }} className="bg-slate-200 text-slate-700 px-6 py-2 rounded-xl font-medium hover:bg-slate-300 transition-colors">
-                                        Try Again
-                                    </button>
+                                    <div className="text-slate-500 mb-6">
+                                        <p>Something went wrong while processing your files.</p>
+                                        <p className="text-xs mt-2 text-slate-400">Error code: {jobId ? jobId.slice(-6) : 'UPLOAD_ERR'}</p>
+                                    </div>
+                                    <div className="flex justify-center gap-4">
+                                        <button onClick={() => { setStatus('idle'); setResult(null); }} className="bg-blue-600 text-white px-6 py-2 rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">
+                                            Retry
+                                        </button>
+                                        <button onClick={() => { setFiles([]); setStatus('idle'); setResult(null); }} className="bg-slate-200 text-slate-700 px-6 py-2 rounded-xl font-medium hover:bg-slate-300 transition-colors">
+                                            Start Over
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 

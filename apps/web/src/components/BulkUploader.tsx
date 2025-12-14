@@ -87,7 +87,19 @@ export function BulkUploader({ files, onFilesChange, accept, maxFiles = 100, max
         onDrop,
         accept,
         maxFiles: maxFiles - files.length, // Limit remaining
-        maxSize
+        maxSize,
+        onDropRejected: (fileRejections) => {
+            const error = fileRejections[0]?.errors[0];
+            if (error) {
+                if (error.code === 'file-too-large') {
+                    // Convert bytes to MB for message
+                    const maxMB = maxSize ? maxSize / (1024 * 1024) : 100;
+                    alert(`File is too large using BulkUploader. Max ${maxMB}MB.`);
+                } else {
+                    alert(error.message);
+                }
+            }
+        }
     });
 
     const isImageMode = accept && Object.keys(accept).some(k => k.startsWith('image'));

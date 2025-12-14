@@ -1,3 +1,4 @@
+
 # Dependencies
 node_modules
 .pnpm-store
@@ -26,6 +27,13 @@ pnpm-debug.log*
 # Test Assets
 scripts/test-assets
 scripts/stress-assets
+scripts/test-data
+debug-assets/
+dummy.pdf
+test-assets/
+stress-assets/
+apps/backend/backend.log
+apps/backend/logs/
 
 # Uploads
 apps/backend/uploads

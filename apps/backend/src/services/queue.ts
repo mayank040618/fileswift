@@ -79,7 +79,18 @@ try {
     if (process.env.USE_MOCK_QUEUE === 'true') {
         fileQueue = new MockQueue();
     } else {
-        fileQueue = new Queue('file-processing', { connection });
+        fileQueue = new Queue('file-processing', {
+            connection,
+            defaultJobOptions: {
+                attempts: 3,
+                backoff: {
+                    type: 'exponential',
+                    delay: 1000
+                },
+                removeOnComplete: 100,
+                removeOnFail: 500
+            }
+        });
     }
 } catch (e) {
     console.warn("Failed to connect to Redis, falling back to Mock Queue");

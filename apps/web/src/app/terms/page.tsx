@@ -1,39 +1,24 @@
-export default function TermsPage() {
+
+export default function TermsOfService() {
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-900 py-16 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto prose dark:prose-invert">
-                <h1 className="text-4xl font-bold mb-8 text-slate-900 dark:text-white">Terms of Service</h1>
-                <p className="text-sm text-slate-500 mb-8">Last Updated: December 12, 2025</p>
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-20 px-4">
+            <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                <h1 className="text-3xl font-bold mb-8 dark:text-white">Terms of Service</h1>
+                <div className="prose dark:prose-invert max-w-none">
+                    <p className="mb-4">Last updated: {new Date().toLocaleDateString()}</p>
 
-                <p>
-                    By using FileSwift, you agree to these Terms. Please read them carefully.
-                </p>
+                    <h2 className="text-xl font-semibold mt-6 mb-3">1. Acceptance of Terms</h2>
+                    <p>By accessing and using FileSwift, you accept and agree to be bound by the terms and provision of this agreement.</p>
 
-                <h2 className="text-2xl font-semibold mt-8 mb-4">1. Usage Rights</h2>
-                <p>
-                    You may use FileSwift for personal and commercial file processing. You agree NOT to upload:
-                </p>
-                <ul className="list-disc pl-6 space-y-2">
-                    <li>Illegal content or malware.</li>
-                    <li>Copyrighted material necessary authorization.</li>
-                    <li>Files that violate any laws.</li>
-                </ul>
+                    <h2 className="text-xl font-semibold mt-6 mb-3">2. Usage License</h2>
+                    <p>Permission is granted to temporarily use the materials (information or software) on FileSwift's website for personal, non-commercial transitory viewing only.</p>
 
-                <h2 className="text-2xl font-semibold mt-8 mb-4">2. Liability Limitation</h2>
-                <p>
-                    FileSwift is provided "as is". We are not liable for any data loss, file corruption, or damages resulting from the use of our service.
-                    Please always keep a backup of your original files.
-                </p>
+                    <h2 className="text-xl font-semibold mt-6 mb-3">3. Disclaimer</h2>
+                    <p>The materials on FileSwift's website are provided "as is". FileSwift makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties.</p>
 
-                <h2 className="text-2xl font-semibold mt-8 mb-4">3. Data Retention</h2>
-                <p>
-                    Files uploaded to our servers are automatically deleted after 1 hour to ensure privacy. We cannot recover files once they are deleted.
-                </p>
-
-                <h2 className="text-2xl font-semibold mt-8 mb-4">4. Changes to Terms</h2>
-                <p>
-                    We reserve the right to modify these terms at any time. Continued use of the service constitutes usage of the new terms.
-                </p>
+                    <h2 className="text-xl font-semibold mt-6 mb-3">4. Limitations</h2>
+                    <p>In no event shall FileSwift or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit) arising out of the use or inability to use the materials on FileSwift's website.</p>
+                </div>
             </div>
         </div>
     );
