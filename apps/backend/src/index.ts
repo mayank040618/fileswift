@@ -24,13 +24,7 @@ const start = async () => {
         // Plugins
         // Plugins
         await server.register(cors, {
-            origin: [
-                'http://localhost:3000',
-                'http://localhost:8080',
-                'https://fileswift.in',
-                'https://www.fileswift.in',
-                'https://fileswift-app.vercel.app'
-            ],
+            origin: true, // Allow ALL origins (Emergency Bypass)
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             credentials: true
         });

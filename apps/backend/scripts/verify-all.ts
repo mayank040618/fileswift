@@ -5,7 +5,7 @@ import axios from 'axios';
 import FormData from 'form-data';
 import { PDFDocument } from 'pdf-lib';
 
-const API_URL = 'http://localhost:8080';
+const API_URL = process.env.API_URL || 'http://localhost:8080';
 const TMP_DIR = path.join(__dirname, '../../temp_test');
 
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR);
@@ -60,16 +60,25 @@ async function runTest(toolId: string, filePath: string) {
 
         while (status !== 'completed' && status !== 'failed' && attempts < 30) {
             await new Promise(r => setTimeout(r, 1000));
-            const jobRes = await axios.get(`${API_URL}/api/jobs/${jobId}/status`);
-            status = jobRes.data.status;
-            result = jobRes.data;
-            process.stdout.write('.');
+            try {
+                const jobRes = await axios.get(`${API_URL}/api/jobs/${jobId}/status`);
+                status = jobRes.data.status;
+                result = jobRes.data;
+                process.stdout.write('.');
+            } catch (e: any) {
+                if (e.response && e.response.status === 404) {
+                    // Job might be gone or not created yet, continue polling
+                } else {
+                    console.error(`Job Polling Error: ${e.message}`);
+                    // Consider breaking or setting status to failed if this is a critical error
+                }
+            }
             attempts++;
         }
         console.log('');
 
         if (status !== 'completed') {
-            console.error('Job Error:', result?.error);
+            console.error('Job Error:', result?.error || 'Unknown error');
             throw new Error(`Job failed or timed out. Status: ${status}`);
         }
 
