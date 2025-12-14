@@ -26,7 +26,7 @@ Specific implementation details are in `/docs` and respective packages.
 ## Deployment
 
 - **Web**: Vercel
-- **Backend**: Render/Railway
+- **Backend**: Railway (Migrated from Render)
 
 ## System Requirements
 
