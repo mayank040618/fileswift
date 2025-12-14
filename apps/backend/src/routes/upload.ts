@@ -41,31 +41,24 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
 
                 const tempPath = path.join(uploadDir, `upload-${Date.now()}-${Math.random().toString(36).substring(7)}-${safeName}`);
 
-                // Zero-Trust: Validate Magic Bytes ONLY for PDF-expecting tools
-                const toolsExpectingPdf = ['compress-pdf', 'merge-pdf', 'split-pdf', 'rotate-pdf', 'pdf-to-image', 'pdf-to-word', 'ai-summary', 'ai-notes', 'ai-rewrite', 'ai-translate'];
-
-                const checkPdf = new Transform({
-                    transform(chunk, _encoding, callback) {
-                        // @ts-ignore
-                        if (!this.headerChecked) {
-                            // @ts-ignore
-                            this.headerChecked = true;
-
-                            // Only validate if we are sure it expects a PDF
-                            if (toolsExpectingPdf.includes(toolId)) {
-                                const header = chunk.toString('utf8', 0, 4);
-                                if (header !== '%PDF') {
-                                    return callback(new Error('Invalid file type: Not a PDF'));
-                                }
-                            }
-                        }
-                        callback(null, chunk);
-                    }
-                });
-
                 try {
                     console.log(`[Upload] Streaming ${part.filename} to ${tempPath}`);
-                    await pump(part.file, checkPdf, fs.createWriteStream(tempPath));
+                    await pump(part.file, fs.createWriteStream(tempPath));
+
+                    // Post-upload Validation (Stabilizes network connection)
+                    if (toolsExpectingPdf.includes(toolId)) {
+                        const buffer = Buffer.alloc(4);
+                        const fd = fs.openSync(tempPath, 'r');
+                        fs.readSync(fd, buffer, 0, 4, 0);
+                        fs.closeSync(fd);
+
+                        const header = buffer.toString('utf8');
+                        if (header !== '%PDF') {
+                            console.warn(`[Upload] Invalid PDF header for ${part.filename}: ${header}`);
+                            fs.unlinkSync(tempPath);
+                            continue; // Skip invalid file
+                        }
+                    }
 
                     uploadedFiles.push({
                         filename: safeName,
@@ -76,12 +69,6 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                     // Cleanup partial file
                     if (fs.existsSync(tempPath)) {
                         fs.unlinkSync(tempPath);
-                    }
-                    // If invalid type, we should probably abort the whole request or at least warn
-                    if (err.message.includes('Not a PDF')) {
-                        // We can choose to return immediately or just skip this file.
-                        // For security, let's skip but note it.
-                        continue;
                     }
                     throw err; // unexpected error
                 }
