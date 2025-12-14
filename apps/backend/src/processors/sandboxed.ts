@@ -1,3 +1,4 @@
+import '../polyfills/dom'; // MUST BE FIRST
 import { executeJob } from '../services/jobProcessor';
 import { Job } from 'bullmq';
 
