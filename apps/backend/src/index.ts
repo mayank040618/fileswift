@@ -22,8 +22,14 @@ import './worker';
 const start = async () => {
     try {
         // Plugins
+        // Plugins
         await server.register(cors, {
-            origin: '*',
+            origin: [
+                'http://localhost:3000',
+                'http://localhost:8080',
+                'https://fileswift.in',
+                'https://www.fileswift.in'
+            ],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             credentials: true
         });

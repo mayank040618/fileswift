@@ -4,6 +4,7 @@ import { getProcessor } from '../processors';
 import { getFileBuffer, uploadToR2 } from './storage';
 import path from 'path';
 import fs from 'fs-extra';
+import os from 'os';
 
 
 
@@ -35,8 +36,8 @@ export const executeJob = async (job: IJob) => {
     }
 
     // Create temp workspace with standardized structure
-    // {cwd}/uploads/jobs/{jobId}/
-    const uploadsDir = path.join(process.cwd(), 'uploads');
+    // {tmp}/fileswift-uploads/jobs/{jobId}/
+    const uploadsDir = process.env.UPLOAD_DIR ? path.join(process.cwd(), process.env.UPLOAD_DIR) : path.join(os.tmpdir(), 'fileswift-uploads');
     const workDir = path.join(uploadsDir, 'jobs', job.id);
     await fs.ensureDir(workDir);
 

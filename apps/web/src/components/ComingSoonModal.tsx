@@ -21,8 +21,8 @@ export function ComingSoonModal({ isOpen, setIsOpen }: ComingSoonModalProps) {
         if (isOpen) {
             trackEvent('coming_soon_open');
             // Optional: Fetch waitlist count
-            const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
-            fetch(`${apiUrl}/api/waitlist/count`)
+            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+            fetch(`${API_BASE}/api/waitlist/count`)
                 .then(res => res.json())
                 .then(data => setCount(data.count))
                 .catch(() => { });
@@ -45,8 +45,8 @@ export function ComingSoonModal({ isOpen, setIsOpen }: ComingSoonModalProps) {
         setMessage('');
 
         try {
-            const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
-            const res = await fetch(`${apiUrl}/api/waitlist`, {
+            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+            const res = await fetch(`${API_BASE}/api/waitlist`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, source: 'homepage_coming_soon' })

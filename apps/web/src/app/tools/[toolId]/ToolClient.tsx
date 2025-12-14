@@ -37,8 +37,8 @@ export default function ToolClient() {
     useInterval(async () => {
         if (status === 'processing' && jobId && tool.id !== 'ai-chat') {
             try {
-                const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
-                const res = await fetch(`${apiUrl}/api/jobs/${jobId}/status`);
+                const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+                const res = await fetch(`${API_BASE}/api/jobs/${jobId}/status`);
                 const data = await res.json();
 
                 if (res.status === 200) {
@@ -133,8 +133,8 @@ export default function ToolClient() {
 
         try {
             // 1. Upload
-            const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
-            const endpoint = `${apiUrl}/upload`;
+            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+            const endpoint = `${API_BASE}/upload`;
             console.log(`[Upload] Endpoint: ${endpoint}`);
 
             const responseData = await new Promise<any>((resolve, reject) => {
@@ -212,8 +212,8 @@ export default function ToolClient() {
         setChatInput('');
 
         try {
-            const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
-            const res = await fetch(`${apiUrl}/api/ai/chat-message`, {
+            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+            const res = await fetch(`${API_BASE}/api/ai/chat-message`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ jobId, message: userMsg })

@@ -5,6 +5,7 @@ import { pipeline } from 'stream';
 import fs from 'fs';
 import path from 'path';
 import { Transform } from 'stream';
+import os from 'os';
 
 const pump = util.promisify(pipeline);
 
@@ -31,7 +32,8 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
 
                 // Sanitize filename: Remove special chars, spaces, and truncate.
                 const safeName = part.filename.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
-                const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
+                const baseDir = process.env.UPLOAD_DIR ? path.join(process.cwd(), process.env.UPLOAD_DIR) : path.join(os.tmpdir(), 'fileswift-uploads');
+                const uploadDir = baseDir;
 
                 if (!fs.existsSync(uploadDir)) {
                     fs.mkdirSync(uploadDir, { recursive: true });
