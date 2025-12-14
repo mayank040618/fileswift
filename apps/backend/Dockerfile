@@ -36,4 +36,4 @@ RUN pnpm --filter backend build
 EXPOSE 8080
 
 # Start
-CMD ["pnpm", "--filter", "backend", "start"]
+CMD ["pnpm", "--filter", "backend", "run", "start:prod"]
