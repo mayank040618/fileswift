@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { BulkUploader } from '@/components/BulkUploader';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -33,6 +33,11 @@ export default function ToolClient() {
     const [chatInput, setChatInput] = useState('');
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    // Debugging: Log errors to console (also ensures variable is 'used' for linter)
+    useEffect(() => {
+        if (errorMessage) console.error('[ToolClient] Error:', errorMessage);
+    }, [errorMessage]);
 
     if (!tool) return <div className="p-10 text-center">Tool not found</div>;
 
