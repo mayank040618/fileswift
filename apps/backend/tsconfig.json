@@ -4,6 +4,10 @@
         "src"
     ],
     "compilerOptions": {
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "rootDir": "src",
         "outDir": "dist",
         "noEmit": false

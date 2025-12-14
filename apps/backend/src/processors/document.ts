@@ -2,8 +2,7 @@ import { ToolProcessor } from './types';
 import OpenAI from 'openai';
 import fs from 'fs-extra';
 // @ts-ignore
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
+// const require = createRequire(import.meta.url); // Removed for CommonJS
 
 let pdf = require('pdf-parse');
 // Handle ESM/CJS interop where require might return { default: fn }
