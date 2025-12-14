@@ -3,9 +3,11 @@ import { spawnWithTimeout } from "./spawnWithTimeout";
 interface ToolStatus {
     ghostscript: boolean;
     qpdf: boolean;
+    libreoffice: boolean;
     sips: boolean;
     gsVersion: string | null;
     qpdfVersion: string | null;
+    libreofficeVersion: string | null;
     checked: boolean;
     timestamp: number;
 }
@@ -13,9 +15,11 @@ interface ToolStatus {
 let cachedStatus: ToolStatus = {
     ghostscript: false,
     qpdf: false,
+    libreoffice: false,
     sips: false,
     gsVersion: null,
     qpdfVersion: null,
+    libreofficeVersion: null,
     checked: false,
     timestamp: 0
 };
@@ -56,6 +60,22 @@ export const checkTools = async (force = false): Promise<ToolStatus> => {
     } catch {
         status.qpdf = false;
         status.qpdfVersion = null;
+    }
+
+    // Check LibreOffice
+    try {
+        const loCmd = process.platform === 'darwin' ? '/Applications/LibreOffice.app/Contents/MacOS/soffice' : 'soffice';
+        const lo = await spawnWithTimeout(loCmd, ['--version'], {}, 2000);
+        if (lo.code === 0) {
+            status.libreoffice = true;
+            status.libreofficeVersion = lo.stdout.trim().replace('LibreOffice ', '');
+        } else {
+            status.libreoffice = false;
+            status.libreofficeVersion = null;
+        }
+    } catch {
+        status.libreoffice = false;
+        status.libreofficeVersion = null;
     }
 
     // Check SIPS

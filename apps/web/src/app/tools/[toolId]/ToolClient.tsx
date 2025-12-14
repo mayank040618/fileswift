@@ -32,6 +32,8 @@ export default function ToolClient() {
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai', content: string }[]>([]);
     const [chatInput, setChatInput] = useState('');
 
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
     if (!tool) return <div className="p-10 text-center">Tool not found</div>;
 
     useInterval(async () => {
@@ -47,14 +49,17 @@ export default function ToolClient() {
                         setResult(data);
                     } else if (data.status === 'failed') {
                         setStatus('failed');
-                        alert(data.error || "Job failed");
+                        setErrorMessage(data.error);
+                        // alert(data.error || "Job failed"); // Removed alert to use inline UI
                     }
                 } else if (res.status === 404) {
                     // Job lost (server restart?)
                     setStatus('failed');
+                    setErrorMessage("Job not found (Server might have restarted)");
                 } else if (res.status === 429) {
                     // Rate limit hit - stop polling to be safe
                     setStatus('failed');
+                    setErrorMessage("Rate limit exceeded. Please try again.");
                 }
             } catch (e) {
                 console.error("Polling error", e);
@@ -360,9 +365,9 @@ export default function ToolClient() {
                                         <Icons.FileText className="w-8 h-8" />
                                     </div>
                                     <h3 className="text-xl font-bold dark:text-white mb-2">Processing Failed</h3>
-                                    <div className="text-slate-500 mb-6">
-                                        <p>Something went wrong while processing your files.</p>
-                                        <p className="text-xs mt-2 text-slate-400">Error code: {jobId ? jobId.slice(-6) : 'UPLOAD_ERR'}</p>
+                                    <div className="text-slate-500 mb-6 bg-red-50 dark:bg-red-900/10 p-4 rounded-xl inline-block max-w-lg">
+                                        <p className="font-medium text-red-600 dark:text-red-400 mb-1">{errorMessage || "Something went wrong while processing your files."}</p>
+                                        <p className="text-xs text-slate-400">Ref: {jobId ? jobId.slice(-6) : 'UPLOAD_ERR'}</p>
                                     </div>
                                     <div className="flex justify-center gap-4">
                                         <button onClick={() => { setStatus('idle'); setResult(null); }} className="bg-blue-600 text-white px-6 py-2 rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">

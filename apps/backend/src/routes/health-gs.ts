@@ -21,9 +21,11 @@ export async function healthGsRoutes(fastify: FastifyInstance) {
 
             status.ghostscript = toolStatus.ghostscript;
             status.qpdf = toolStatus.qpdf;
+            (status as any).libreoffice = toolStatus.libreoffice;
             status.sips = toolStatus.sips;
             status.gsVersion = toolStatus.gsVersion;
             status.qpdfVersion = toolStatus.qpdfVersion;
+            (status as any).libreofficeVersion = toolStatus.libreofficeVersion;
             // Readiness: True if at least one engine is available
             (status as any).compressionReady = status.ghostscript || status.qpdf;
 
