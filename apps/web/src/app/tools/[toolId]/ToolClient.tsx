@@ -95,7 +95,7 @@ export default function ToolClient() {
                 return Math.min(prev + increment, 95);
             });
         }
-    }, status === 'processing' ? 200 : null);
+    }, status === 'processing' ? 2000 : null);
 
     const handleUpload = async () => {
         if (files.length === 0) return;

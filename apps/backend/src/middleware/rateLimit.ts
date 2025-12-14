@@ -3,7 +3,7 @@ import Redis from 'ioredis';
 
 // Rate limit configuration
 const WINDOW_SIZE_IN_SECONDS = 60;
-const MAX_REQUESTS_PER_WINDOW = 20; // 20 requests per minute per IP
+const MAX_REQUESTS_PER_WINDOW = 60; // 60 requests per minute per IP
 const REDIS_KEY_PREFIX = 'rate-limit:';
 
 let redis: Redis | null = null;
