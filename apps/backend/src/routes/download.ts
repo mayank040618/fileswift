@@ -32,7 +32,11 @@ export async function downloadRoutes(fastify: FastifyInstance) {
         }
 
         // Fix: Use process.cwd()/uploads/jobs to match jobProcessor.ts
-        const jobsBaseDir = path.join(process.cwd(), 'uploads', 'jobs');
+        // Align with jobProcessor.ts storage logic
+        const baseDir = process.env.UPLOAD_DIR
+            ? path.join(process.cwd(), process.env.UPLOAD_DIR)
+            : path.join(require('os').tmpdir(), 'fileswift-uploads');
+        const jobsBaseDir = path.join(baseDir, 'jobs');
 
         // Try 'outputs' dir first
         const outputsDir = path.join(jobsBaseDir, jobId, 'outputs');
