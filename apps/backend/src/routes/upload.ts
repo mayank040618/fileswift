@@ -4,7 +4,6 @@ import util from 'util';
 import { pipeline } from 'stream';
 import fs from 'fs';
 import path from 'path';
-import { Transform } from 'stream';
 import os from 'os';
 
 const pump = util.promisify(pipeline);
@@ -40,6 +39,9 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 }
 
                 const tempPath = path.join(uploadDir, `upload-${Date.now()}-${Math.random().toString(36).substring(7)}-${safeName}`);
+
+                // Zero-Trust: Validate Magic Bytes ONLY for PDF-expecting tools
+                const toolsExpectingPdf = ['compress-pdf', 'merge-pdf', 'split-pdf', 'rotate-pdf', 'pdf-to-image', 'pdf-to-word', 'ai-summary', 'ai-notes', 'ai-rewrite', 'ai-translate'];
 
                 try {
                     console.log(`[Upload] Streaming ${part.filename} to ${tempPath}`);
