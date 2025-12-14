@@ -288,16 +288,16 @@ export default function ToolClient() {
                                             </div>
                                             <input
                                                 type="range"
-                                                min="5"
-                                                max="95"
+                                                min="30"
+                                                max="90"
                                                 value={compressionQuality}
                                                 onChange={(e) => setCompressionQuality(parseInt(e.target.value))}
                                                 id="compress-q"
                                                 className="w-full accent-blue-600"
                                             />
                                             <div className="flex justify-between text-xs text-slate-500 mt-1">
-                                                <span>Max Compression (Low Quality)</span>
-                                                <span>Light Compression (High Quality)</span>
+                                                <span>Max Safe Compression</span>
+                                                <span>Light Compression</span>
                                             </div>
                                         </div>
                                     )}
@@ -423,7 +423,12 @@ export default function ToolClient() {
                                                             {(result.result.metadata.originalSize / 1024 / 1024).toFixed(2)} MB
                                                         </span>
                                                     </p>
-                                                    <p className="text-slate-500 text-sm">Compression successful!</p>
+                                                    <p className="text-slate-500 text-sm">
+                                                        Compression successful!
+                                                        {compressionQuality <= 35 && (
+                                                            <span className="block text-xs text-slate-400 mt-1">Maximum safe compression applied</span>
+                                                        )}
+                                                    </p>
                                                 </>
                                             ) : result?.result?.metadata?.action === 'skipped_optimized' ? (
                                                 <>
