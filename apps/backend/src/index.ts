@@ -28,7 +28,8 @@ const start = async () => {
                 'http://localhost:3000',
                 'http://localhost:8080',
                 'https://fileswift.in',
-                'https://www.fileswift.in'
+                'https://www.fileswift.in',
+                'https://fileswift-app.vercel.app'
             ],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
             credentials: true
