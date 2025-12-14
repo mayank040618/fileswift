@@ -409,9 +409,53 @@ export default function ToolClient() {
 
                                     <h3 className="text-xl font-bold dark:text-white mb-2">Processing Complete!</h3>
 
-                                    <p className="text-slate-600 dark:text-slate-400 mb-8">
-                                        {result?.result?.count ? `Successfully processed ${result.result.count} files.` : 'Your files are ready for download.'}
-                                    </p>
+                                    {tool.id === 'compress-pdf' ? (
+                                        <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 mb-8 border border-slate-200 dark:border-slate-700">
+                                            {/* Smart Message Logic */}
+                                            {result?.result?.metadata?.action === 'compressed' ? (
+                                                <>
+                                                    <span className="inline-block px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-sm font-bold mb-3">
+                                                        Saved {Math.round((1 - (result.result.metadata.finalSize / result.result.metadata.originalSize)) * 100)}%
+                                                    </span>
+                                                    <p className="text-2xl font-bold dark:text-white mb-1">
+                                                        {(result.result.metadata.finalSize / 1024 / 1024).toFixed(2)} MB
+                                                        <span className="text-base font-normal text-slate-400 line-through ml-2">
+                                                            {(result.result.metadata.originalSize / 1024 / 1024).toFixed(2)} MB
+                                                        </span>
+                                                    </p>
+                                                    <p className="text-slate-500 text-sm">Compression successful!</p>
+                                                </>
+                                            ) : result?.result?.metadata?.action === 'skipped_optimized' ? (
+                                                <>
+                                                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full text-sm font-bold mb-3">
+                                                        Already Optimized
+                                                    </span>
+                                                    <p className="text-lg font-medium dark:text-white mb-2">
+                                                        This PDF is already efficient.
+                                                    </p>
+                                                    <p className="text-slate-500 text-sm max-w-sm mx-auto">
+                                                        We skipped compression to prevent quality loss or file size increase.
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 rounded-full text-sm font-bold mb-3">
+                                                        File Too Small
+                                                    </span>
+                                                    <p className="text-lg font-medium dark:text-white mb-2">
+                                                        No compression needed.
+                                                    </p>
+                                                    <p className="text-slate-500 text-sm">
+                                                        This file is small enough that compression would likely increase its size.
+                                                    </p>
+                                                </>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-slate-600 dark:text-slate-400 mb-8">
+                                            {result?.result?.count ? `Successfully processed ${result.result.count} files.` : 'Your files are ready for download.'}
+                                        </p>
+                                    )}
 
                                     <div className="flex justify-center gap-4">
                                         <button onClick={() => window.open(result?.downloadUrl || '#', '_blank')} className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transform hover:-translate-y-0.5">

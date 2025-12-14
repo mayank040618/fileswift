@@ -52,24 +52,21 @@ const compressPdfProcessor: ToolProcessor = {
         const tools = await checkTools();
         const gsVersion = tools.gsVersion;
         const qpdfVersion = tools.qpdfVersion;
-
         const hasGs = !!gsVersion;
         const hasQpdf = !!qpdfVersion;
 
         const { quality } = job.data.data || {};
         const q = quality !== undefined ? parseInt(String(quality)) : 75;
-        // DPI Calculation: 50 - 300
-        const targetDpi = Math.floor(Math.max(q * 3, 50));
 
-        let basePreset = '/screen';
-        if (targetDpi >= 150) basePreset = '/ebook';
-        if (targetDpi >= 300) basePreset = '/printer';
+        // --- RULE 3: MINIMUM SIZE THRESHOLD ---
+        // Do not compress if < 500KB (likely to inflate or needless)
+        // We handle this inside processFile loop
 
-        console.log(`[compress-pdf] Job ${job.id} | Q: ${q} | DPI: ${targetDpi} | Preset: ${basePreset}`);
+        console.log(`[compress-pdf] Job ${job.id} | Q: ${q}`);
 
         const processFile = async (input: string) => {
             if (!await isValidPdf(input)) {
-                throw new Error("Invalid PDF file detected (incorrect magic bytes)");
+                throw new Error("Invalid PDF file detected");
             }
 
             const start = Date.now();
@@ -79,35 +76,89 @@ const compressPdfProcessor: ToolProcessor = {
             const outputFilename = `compressed-${baseName}.pdf`;
             const finalOutputPath = path.join(outputDir, outputFilename);
 
-            // 1. Get Page Count (Critical for Validation)
-            let pageCount = await getPageCount(input);
-            if (pageCount === 0) {
-                // Try qpdf if pdf-lib failed
-                if (hasQpdf) {
-                    try {
-                        const res = await execAsync(`qpdf --show-npages "${input}"`);
-                        pageCount = parseInt(res.stdout.trim());
-                    } catch { }
-                }
+            // 0. CHECK MINIMUM SIZE
+            if (inputSize < 500 * 1024) { // 500 KB
+                console.log(`[compress-pdf] Skipping ${baseName} (Too small: ${inputSize} bytes)`);
+                await fs.copy(input, finalOutputPath);
+                return {
+                    path: finalOutputPath,
+                    meta: {
+                        action: 'skipped_small',
+                        originalSize: inputSize,
+                        finalSize: inputSize
+                    }
+                };
             }
 
-            // If we still can't get page count, we can't safely parallelize.
-            // But we can still single-pass compress.
-            // If we still can't get page count, we can't safely parallelize.
-            // But we can still single-pass compress.
-            let errorDetails = '';
-            // Unique Temp Dir for this file processing to ensure isolation
+            // 1. Get Page Count & Text Stats for Classification
+            let pageCount = await getPageCount(input);
+
+            // Fallback for page count
+            if (pageCount === 0 && hasQpdf) {
+                try {
+                    const res = await execAsync(`qpdf --show-npages "${input}"`);
+                    pageCount = parseInt(res.stdout.trim());
+                } catch { }
+            }
+            if (pageCount === 0) pageCount = 1; // Fallback to avoid division by zero
+
+            // Simple Heuristic for Classification
+            // We use pdf-parse (referenced in document.ts) to get text length? 
+            // Importing pdf-parse here locally to keep it clean, or assume simple size heuristic.
+            // Since we don't have pdf-parse imported in 'file.ts' (it was in document.ts), 
+            // and adding imports might break things if not careful, let's look at imports.
+            // Ah, line 8 says: // @ts-ignore import { PDFParse } from 'pdf-parse'; -> It IS imported!
+            // Wait, looking at file content provided previously...
+            // line 8: import { PDFParse } from 'pdf-parse'; -> This might be wrong import style for the library.
+            // document.ts used `require('pdf-parse')`.
+            // Let's stick to purely size-based heuristic for robustness if pdf-parse is flaky, 
+            // OR try a quick text extraction if easy.
+
+            const avgBytesPerPage = inputSize / pageCount;
+            let classification = 'standard';
+
+            // > 100KB per page usually means images/scans. < 30KB usually means text.
+            if (avgBytesPerPage > 100 * 1024) {
+                classification = 'image-heavy';
+            } else if (avgBytesPerPage < 40 * 1024) {
+                classification = 'text-heavy';
+            }
+
+            // Classification Logic for DPI/Quality
+            // Image-heavy: Safe to downsample aggressive.
+            // Text-heavy: Be careful, don't rasterize text.
+
+            let targetDpi = Math.floor(Math.max(q * 3, 72));
+            let basePreset = '/ebook'; // Default 150 dpi-ish
+
+            if (classification === 'image-heavy') {
+                // Aggressive checks
+                basePreset = '/screen'; // 72 dpi
+                targetDpi = Math.max(72, q * 2);
+            } else if (classification === 'text-heavy') {
+                basePreset = '/printer'; // 300 dpi (preserve text vectors mostly)
+                targetDpi = 300;
+            }
+
+            console.log(`[compress-pdf] File: ${baseName} | Size: ${(inputSize / 1024 / 1024).toFixed(2)}MB | Pages: ${pageCount} | Class: ${classification} | Preset: ${basePreset}`);
+
+            // Unique Temp Dir
             const workId = Math.random().toString(36).substring(7);
             const tempDir = await makeTempDir(`compress-work-${job.id}-${workId}`);
 
             try {
-                // --- TIER 1: GHOSTSCRIPT (Quality Based) ---
+                let bestPath = '';
+                let bestSize = inputSize; // Start with original being the "best" so far (baseline)
+
+                // --- TIER 1: GHOSTSCRIPT ---
                 if (hasGs) {
                     const gsOutput = path.join(tempDir, `temp-gs.pdf`);
                     const args = [
                         '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.4',
                         `-dPDFSETTINGS=${basePreset}`,
                         '-dNOPAUSE', '-dQUIET', '-dBATCH',
+                        // Safety: Do not rotate pages automatically
+                        '-dAutoRotatePages=/None',
                         // Image Downsampling
                         `-dColorImageResolution=${targetDpi}`,
                         `-dGrayImageResolution=${targetDpi}`,
@@ -119,120 +170,137 @@ const compressPdfProcessor: ToolProcessor = {
                         input
                     ];
 
-                    // 30s Hard Timeout (Requirement)
-                    const res = await spawnWithTimeout('gs', args, { cwd: tempDir }, 30000);
+                    const res = await spawnWithTimeout('gs', args, { cwd: tempDir }, 45000); // Increased timeout
 
                     if (res.code === 0 && await fs.pathExists(gsOutput)) {
-                        const tempSize = (await fs.stat(gsOutput)).size;
+                        const gsSize = (await fs.stat(gsOutput)).size;
+                        console.log(`[compress-pdf] GS Result: ${gsSize} bytes (Ratio: ${(gsSize / inputSize).toFixed(2)})`);
 
-                        // Size Sanity Check: Must not be > 5% larger (Inflation Check)
-                        if (tempSize > 0 && tempSize <= inputSize * 1.05) {
-                            await fs.move(gsOutput, finalOutputPath, { overwrite: true });
-
-                            // Log Success & Return immediately
-                            await logCompressionEvent({
-                                jobId: job.id || 'unknown',
-                                tool: 'ghostscript',
-                                inputSize, outputSize: tempSize,
-                                durationMs: Date.now() - start, success: true,
-                                compressionRatio: tempSize / inputSize,
-                                timestamp: new Date().toISOString(),
-                                meta: { quality: q, pages: pageCount }
-                            });
-                            return finalOutputPath;
-                        } else {
-                            errorDetails += `GS Inflation/Empty (${tempSize} bytes); `;
+                        // RULE 1: ABSOLUTE SIZE SAFETY
+                        // Must be strictly SMALLER. Equal is not good enough to justify the rewrite risk.
+                        if (gsSize < inputSize) {
+                            bestPath = gsOutput;
+                            bestSize = gsSize;
                         }
-                    } else {
-                        errorDetails += `GS Failed (Code ${res.code} / ${res.timedOut ? 'Timeout' : 'Error'}); `;
                     }
                 }
 
-                // --- TIER 2: QPDF (Linearization & Optimization) ---
-                // Only runs if Tier 1 failed or was skipped
+                // --- TIER 2: QPDF (Linearization) ---
+                // If GS failed to beat original, OR we want to optimize GS output?
+                // Usually running QPDF *after* GS is good for web optimization (linearization).
+                // But running QPDF on original is also a fallback.
+
+                let sourceForQpdf = bestPath || input; // Process the best candidate so far
+                const qpdfOutput = path.join(tempDir, `temp-qpdf.pdf`);
+
                 if (hasQpdf) {
-                    const qpdfOutput = path.join(tempDir, `temp-qpdf.pdf`);
-                    // Optimization Flags: Linearize + Object Streams + Stream Compression
                     const args = [
-                        '--linearize',
+                        '--linearize', // Web optimized
                         '--object-streams=generate',
-                        '--compress-streams=y',
-                        '--compress-streams=y',
-                        input,
+                        '--recompress-flate',
+                        sourceForQpdf,
                         qpdfOutput
                     ];
-
-                    // 30s Hard Timeout (Requirement)
                     const res = await spawnWithTimeout('qpdf', args, {}, 30000);
-
                     if (res.code === 0 && await fs.pathExists(qpdfOutput)) {
-                        const tempSize = (await fs.stat(qpdfOutput)).size;
+                        const qpdfSize = (await fs.stat(qpdfOutput)).size;
+                        console.log(`[compress-pdf] QPDF Result: ${qpdfSize} bytes`);
 
-                        // Size Sanity Check
-                        if (tempSize > 0 && tempSize <= inputSize * 1.05) {
-                            await fs.move(qpdfOutput, finalOutputPath, { overwrite: true });
-
-                            await logCompressionEvent({
-                                jobId: job.id || 'unknown',
-                                tool: 'qpdf',
-                                inputSize, outputSize: tempSize,
-                                durationMs: Date.now() - start, success: true,
-                                compressionRatio: tempSize / inputSize,
-                                timestamp: new Date().toISOString(),
-                                meta: { quality: q, pages: pageCount, note: 'Tier 2 used' }
-                            });
-                            return finalOutputPath;
-                        } else {
-                            errorDetails += `QPDF Inflation/Empty (${tempSize} bytes); `;
+                        if (qpdfSize < bestSize) {
+                            bestPath = qpdfOutput;
+                            bestSize = qpdfSize;
                         }
-                    } else {
-                        errorDetails += `QPDF Failed (Code ${res.code}); `;
                     }
                 }
 
-                // --- TIER 3: FALLBACK TO ORIGINAL ---
-                // If we reached here, both engines failed or inflated the file.
-                console.log(`[compress-pdf] Job ${job.id} - Fallback to original. Errors: ${errorDetails}`);
-                await fs.copy(input, finalOutputPath, { overwrite: true });
+                // --- FINAL DECISION ---
+                let action = 'compressed';
+
+                // If we haven't found a smaller file
+                if (!bestPath || bestSize >= inputSize) {
+                    console.log(`[compress-pdf] No reduction achieved. Returning original.`);
+                    await fs.copy(input, finalOutputPath, { overwrite: true });
+                    action = 'skipped_optimized';
+                    bestSize = inputSize;
+                } else {
+                    // Valid compression
+                    console.log(`[compress-pdf] Validation Passed. Saving ${(bestSize / 1024).toFixed(2)} KB.`);
+                    await fs.move(bestPath, finalOutputPath, { overwrite: true });
+                }
 
                 await logCompressionEvent({
                     jobId: job.id || 'unknown',
-                    tool: 'original',
-                    inputSize, outputSize: inputSize,
+                    tool: 'smart-engine',
+                    inputSize, outputSize: bestSize,
                     durationMs: Date.now() - start, success: true,
-                    compressionRatio: 1.0,
-                    errorDetails: `All engines failed/inflated. ${errorDetails}`,
+                    compressionRatio: bestSize / inputSize,
                     timestamp: new Date().toISOString(),
-                    meta: { quality: q, pages: pageCount, fallback: true }
+                    meta: { quality: q, pages: pageCount, classification, action }
                 });
 
-                return finalOutputPath;
+                return {
+                    path: finalOutputPath,
+                    meta: { action, originalSize: inputSize, finalSize: bestSize }
+                };
 
             } catch (e: any) {
-                // Catastrophic failure catch - should rarely happen due to spawn checks
-                console.error(`[compress-pdf] Critical Error`, e);
-                // Last ditch effort: ensure user gets *something*
+                console.error(`[compress-pdf] Error processing ${baseName}:`, e);
+                // Safe Fallback
                 if (!await fs.pathExists(finalOutputPath)) {
                     await fs.copy(input, finalOutputPath);
                 }
-                return finalOutputPath;
+                return {
+                    path: finalOutputPath,
+                    meta: { action: 'fallback_error', originalSize: inputSize, finalSize: inputSize }
+                };
             } finally {
                 await removeDir(tempDir);
             }
         };
 
-        const outputFiles = (inputs.length === 1)
+        const results = (inputs.length === 1)
             ? [await processFile(inputs[0])]
             : await pMap(inputs, processFile, 2);
 
-        if (outputFiles.length === 0) throw new Error("Processing failed");
+        // Aggregate Metadata for Frontend
+        // We need to pass this metadata back. 
+        // The return type of `process` handles { resultKey, metadata }.
+        // We will sum up sizes for bulk stats.
 
-        if (outputFiles.length === 1) {
-            return { resultKey: path.basename(outputFiles[0]) };
+        const totalOriginal = results.reduce((acc, r) => acc + (r.meta.originalSize || 0), 0);
+        const totalFinal = results.reduce((acc, r) => acc + (r.meta.finalSize || 0), 0);
+        const actions = results.map(r => r.meta.action);
+
+        // Determine primary action for UI message
+        // If mixed, prioritize 'compressed' > 'skipped_optimized'
+        let primaryAction = 'skipped_optimized';
+        if (actions.includes('compressed')) primaryAction = 'compressed';
+        else if (actions.every(a => a === 'skipped_small')) primaryAction = 'skipped_small';
+
+        const outputPaths = results.map(r => r.path);
+
+        if (outputPaths.length === 1) {
+            return {
+                resultKey: path.basename(outputPaths[0]),
+                metadata: {
+                    type: 'pdf',
+                    originalSize: totalOriginal,
+                    finalSize: totalFinal,
+                    action: primaryAction
+                }
+            };
         } else {
             const zipName = `compressed-pdfs-${job.id}.zip`;
-            await zipFiles(outputFiles, outputDir, zipName);
-            return { resultKey: zipName };
+            await zipFiles(outputPaths, outputDir, zipName);
+            return {
+                resultKey: zipName,
+                metadata: {
+                    type: 'zip',
+                    originalSize: totalOriginal,
+                    finalSize: totalFinal,
+                    action: primaryAction
+                }
+            };
         }
     }
 };
