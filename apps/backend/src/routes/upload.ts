@@ -39,17 +39,22 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
 
                 const tempPath = path.join(uploadDir, `upload-${Date.now()}-${Math.random().toString(36).substring(7)}-${safeName}`);
 
-                // Zero-Trust: Validate Magic Bytes (%PDF)
+                // Zero-Trust: Validate Magic Bytes ONLY for PDF-expecting tools
+                const toolsExpectingPdf = ['compress-pdf', 'merge-pdf', 'split-pdf', 'rotate-pdf', 'pdf-to-image', 'pdf-to-word', 'ai-summary', 'ai-notes', 'ai-rewrite', 'ai-translate'];
+
                 const checkPdf = new Transform({
                     transform(chunk, _encoding, callback) {
                         // @ts-ignore
                         if (!this.headerChecked) {
                             // @ts-ignore
                             this.headerChecked = true;
-                            // Check for %PDF signature (first 4 bytes)
-                            const header = chunk.toString('utf8', 0, 4);
-                            if (header !== '%PDF') {
-                                return callback(new Error('Invalid file type: Not a PDF'));
+
+                            // Only validate if we are sure it expects a PDF
+                            if (toolsExpectingPdf.includes(toolId)) {
+                                const header = chunk.toString('utf8', 0, 4);
+                                if (header !== '%PDF') {
+                                    return callback(new Error('Invalid file type: Not a PDF'));
+                                }
                             }
                         }
                         callback(null, chunk);
