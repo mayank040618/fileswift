@@ -32,8 +32,11 @@ COPY . .
 # Build
 RUN pnpm --filter backend build
 
+# Set workdir to backend for runtime
+WORKDIR /app/apps/backend
+
 # Expose port
 EXPOSE 8080
 
 # Start
-CMD ["pnpm", "--filter", "backend", "run", "start:prod"]
+CMD ["node", "dist/index.js"]

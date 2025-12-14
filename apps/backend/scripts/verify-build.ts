@@ -57,10 +57,10 @@ async function main() {
     // 3. Worker Compatibility Check
     console.log("\n3. Checking Production Worker Config...");
     const pkg = JSON.parse(fs.readFileSync(path.join(BACKEND_ROOT, 'package.json'), 'utf-8'));
-    if (pkg.scripts['start:prod'] && pkg.scripts['start:prod'].includes('node dist/src/index.js')) {
+    if (pkg.scripts['start:prod'] && pkg.scripts['start:prod'].includes('node dist/index.js')) {
         console.log(green("  ✅ 'start:prod' script is correctly configured for production"));
     } else {
-        console.error(red("  ❌ 'start:prod' script missing or incorrect (Must use 'node dist/src/index.js')"));
+        console.error(red("  ❌ 'start:prod' script missing or incorrect (Must use 'node dist/index.js')"));
         failed = true;
     }
 
