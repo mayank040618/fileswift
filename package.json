@@ -23,6 +23,16 @@
   "engines": {
     "node": ">=18"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "esbuild",
+      "protobufjs",
+      "msgpackr-extract",
+      "@parcel/watcher",
+      "unrs-resolver"
+    ]
+  },
   "dependencies": {
     "pnpm": "^10.25.0"
   }
