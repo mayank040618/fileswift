@@ -412,7 +412,35 @@ export const rotatePdfProcessor: ToolProcessor = {
 
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
 
+        // Ensure QPDF is available
+        const hasQpdf = await hasBinary('qpdf');
+
         const outputFiles = await pMap(inputs, async (input) => {
+            const outputFilename = `rotated-${path.basename(input)}`;
+            const outputPath = path.join(outputDir, outputFilename);
+
+            if (hasQpdf) {
+                try {
+                    // qpdf --rotate=+90 input.pdf output.pdf
+                    // Syntax: qpdf in.pdf out.pdf --rotate=+90
+                    // Actually: qpdf --rotate=+90:1-z in.pdf out.pdf  (applies to all pages)
+                    const args = [
+                        `--rotate=+${rotationToAdd}:1-z`,
+                        input,
+                        outputPath
+                    ];
+
+                    await spawnWithTimeout('qpdf', args, {}, 30000);
+
+                    if (await fs.pathExists(outputPath)) {
+                        return outputPath;
+                    }
+                } catch (e) {
+                    console.error('[rotate-pdf] QPDF failed, falling back to JS', e);
+                }
+            }
+
+            // Fallback: JS (pdf-lib) - ONLY IF CLI FAILS
             try {
                 const pdfBytes = await fs.readFile(input);
                 const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
@@ -424,15 +452,11 @@ export const rotatePdfProcessor: ToolProcessor = {
                     page.setRotation(pdfDegrees(newRotation));
                 });
 
-                const outputFilename = `rotated-${path.basename(input)}`;
-                const outputPath = path.join(outputDir, outputFilename);
                 await fs.writeFile(outputPath, await pdfDoc.save());
                 return outputPath;
             } catch (e) {
                 console.error(`[rotate-pdf] Failed to rotate ${input}`, e);
-                // Fallback: Copy original
-                const outputFilename = `failed-rotate-${path.basename(input)}`;
-                const outputPath = path.join(outputDir, outputFilename);
+                // Last ditch: copy
                 await fs.copy(input, outputPath);
                 return outputPath;
             }

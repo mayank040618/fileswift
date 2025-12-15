@@ -1,4 +1,5 @@
 import { ToolProcessor } from './types';
+import { PDFDocument, PageSizes } from 'pdf-lib';
 import fs from 'fs-extra';
 import { normalizeImage } from '../utils/normalizeImage';
 import path from 'path';
@@ -6,28 +7,7 @@ import sharp from 'sharp';
 import { zipFiles } from '../utils/zipper';
 import { pMap } from '../utils/concurrency';
 
-// HARD POLYFILL: Ensure DOMMatrix exists for pdf-lib here
-if (typeof global.DOMMatrix === 'undefined') {
-    // @ts-ignore
-    global.DOMMatrix = class DOMMatrix {
-        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
-        constructor(init?: any) {
-            if (init) {
-                this.a = init.a || 1; this.b = init.b || 0; this.c = init.c || 0;
-                this.d = init.d || 1; this.e = init.e || 0; this.f = init.f || 0;
-            }
-        }
-        multiply() { return this; }
-        transformPoint(p: any) { return p; }
-        toString() { return `matrix(${this.a}, ${this.b}, ${this.c}, ${this.d}, ${this.e}, ${this.f})`; }
-    };
-    // @ts-ignore
-    global.DOMPoint = class DOMPoint {
-        x = 0; y = 0; z = 0; w = 1;
-        constructor(x = 0, y = 0, z = 0, w = 1) { this.x = x; this.y = y; this.z = z; this.w = w; }
-        matrixTransform() { return this; }
-    };
-}
+// Polyfills removed. pdf-lib should work in Node without DOMMatrix for basic operations.
 
 export const imageResizerProcessor: ToolProcessor = {
     id: 'image-resizer',
@@ -176,8 +156,7 @@ export const bulkImageResizerProcessor: ToolProcessor = {
 export const imageToPdfProcessor: ToolProcessor = {
     id: 'image-to-pdf',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
-        const pdflib = await import('pdf-lib'); // Dynamic import to ensure polyfills loaded
-        const { PDFDocument, PageSizes } = pdflib;
+        // I will use static import.
 
         const pdfDoc = await PDFDocument.create();
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];

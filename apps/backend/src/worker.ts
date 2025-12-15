@@ -1,4 +1,4 @@
-import './polyfills';
+// import './polyfills'; // Removed: Browser polyfills crash Node workers
 import { Worker } from 'bullmq';
 import { config } from 'dotenv';
 import path from 'path';

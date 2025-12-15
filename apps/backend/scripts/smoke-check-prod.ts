@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Configuration
 const BASE_URL = process.env.BASE_URL || 'https://fileswift.in';
 const API_URL = BASE_URL.replace(/\/$/, ''); // Remove trailing slash
-const TIMEOUT_MS = 300000; // 5 minutes global timeout
+// const TIMEOUT_MS = 300000; // Unused
 const JOB_TIMEOUT_MS = 60000; // 1 minute per job
 
 // Colors for console
@@ -124,7 +124,7 @@ const checkHealth = async () => {
     }
 };
 
-const pollJob = async (jobId: string, toolId: string): Promise<any> => {
+const pollJob = async (jobId: string, _toolId: string): Promise<any> => { // unused toolId
     const start = Date.now();
     while (Date.now() - start < JOB_TIMEOUT_MS) {
         try {
@@ -166,7 +166,7 @@ const runToolTest = async (tool: { id: string, type: string, data?: any }) => {
         formData.append('toolId', tool.id);
         if (tool.data) formData.append('data', JSON.stringify(tool.data)); // Ensure tool.data is still appended
 
-        const uploadStart = Date.now();
+        // const uploadStart = Date.now();
         // Use /api/upload as per fix
         const uploadRes = await axios.post(`${API_URL}/api/upload`, formData, {
             headers: {
@@ -183,7 +183,7 @@ const runToolTest = async (tool: { id: string, type: string, data?: any }) => {
             throw new Error(`Upload failed: ${uploadRes.status} ${JSON.stringify(uploadRes.data)}`);
         }
 
-        const { jobId, uploadId } = uploadRes.data;
+        const { jobId } = uploadRes.data;
         if (!jobId) throw new Error("No jobId returned");
 
         // 2. Process

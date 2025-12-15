@@ -1,0 +1,225 @@
+diff --git a/apps/backend/scripts/smoke-check-prod.ts b/apps/backend/scripts/smoke-check-prod.ts
+index cb31a17..1c443d8 100644
+--- a/apps/backend/scripts/smoke-check-prod.ts
++++ b/apps/backend/scripts/smoke-check-prod.ts
+@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
+ // Configuration
+ const BASE_URL = process.env.BASE_URL || 'https://fileswift.in';
+ const API_URL = BASE_URL.replace(/\/$/, ''); // Remove trailing slash
+-const TIMEOUT_MS = 300000; // 5 minutes global timeout
++// const TIMEOUT_MS = 300000; // Unused
+ const JOB_TIMEOUT_MS = 60000; // 1 minute per job
+ 
+ // Colors for console
+@@ -124,7 +124,7 @@ const checkHealth = async () => {
+     }
+ };
+ 
+-const pollJob = async (jobId: string, toolId: string): Promise<any> => {
++const pollJob = async (jobId: string, _toolId: string): Promise<any> => { // unused toolId
+     const start = Date.now();
+     while (Date.now() - start < JOB_TIMEOUT_MS) {
+         try {
+@@ -166,7 +166,7 @@ const runToolTest = async (tool: { id: string, type: string, data?: any }) => {
+         formData.append('toolId', tool.id);
+         if (tool.data) formData.append('data', JSON.stringify(tool.data)); // Ensure tool.data is still appended
+ 
+-        const uploadStart = Date.now();
++        // const uploadStart = Date.now();
+         // Use /api/upload as per fix
+         const uploadRes = await axios.post(`${API_URL}/api/upload`, formData, {
+             headers: {
+@@ -183,7 +183,7 @@ const runToolTest = async (tool: { id: string, type: string, data?: any }) => {
+             throw new Error(`Upload failed: ${uploadRes.status} ${JSON.stringify(uploadRes.data)}`);
+         }
+ 
+-        const { jobId, uploadId } = uploadRes.data;
++        const { jobId } = uploadRes.data;
+         if (!jobId) throw new Error("No jobId returned");
+ 
+         // 2. Process
+diff --git a/apps/backend/src/polyfills.ts b/apps/backend/src/polyfills.ts
+deleted file mode 100644
+index c05cc1f..0000000
+--- a/apps/backend/src/polyfills.ts
++++ /dev/null
+@@ -1,15 +0,0 @@
+-// Polyfill DOMMatrix/DOMPoint for Node.js (Required for pdf-lib/pdf-parse/etc)
+-if (typeof global.DOMMatrix === 'undefined') {
+-    // @ts-ignore
+-    global.DOMMatrix = class DOMMatrix {
+-        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+-        constructor(init?: any) {
+-            if (init) { this.a = init.a; this.b = init.b; this.c = init.c; this.d = init.d; this.e = init.e; this.f = init.f; }
+-        }
+-    };
+-}
+-if (typeof global.DOMPoint === 'undefined') {
+-    // @ts-ignore
+-    global.DOMPoint = class DOMPoint { x = 0; y = 0; w = 1; constructor(x = 0, y = 0) { this.x = x; this.y = y; } matrixTransform() { return this; } };
+-}
+-console.log('✅ DOMMatrix Polyfill Loaded');
+diff --git a/apps/backend/src/polyfills/dom.ts b/apps/backend/src/polyfills/dom.ts
+deleted file mode 100644
+index 5ec82cc..0000000
+--- a/apps/backend/src/polyfills/dom.ts
++++ /dev/null
+@@ -1,41 +0,0 @@
+-// Polyfill DOMMatrix/DOMPoint for Node.js (Required for pdf-lib/pdf-parse/etc)
+-// This file IS THE Source of Truth for DOM Global Polyfills.
+-// It must be imported BEFORE any other import in index.ts
+-
+-if (typeof global.DOMMatrix === 'undefined') {
+-    // @ts-ignore
+-    global.DOMMatrix = class DOMMatrix {
+-        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+-        constructor(init?: any) {
+-            if (init) {
+-                this.a = init.a || 1;
+-                this.b = init.b || 0;
+-                this.c = init.c || 0;
+-                this.d = init.d || 1;
+-                this.e = init.e || 0;
+-                this.f = init.f || 0;
+-            }
+-        }
+-        // Basic identity method often called
+-        multiply(_other: any) { return this; }
+-        transformPoint(point: any) { return point; }
+-        toString() { return `matrix(${this.a}, ${this.b}, ${this.c}, ${this.d}, ${this.e}, ${this.f})`; }
+-    };
+-    console.log('[Polyfill] DOMMatrix defined globally.');
+-}
+-
+-if (typeof global.DOMPoint === 'undefined') {
+-    // @ts-ignore
+-    global.DOMPoint = class DOMPoint {
+-        x = 0; y = 0; z = 0; w = 1;
+-        constructor(x = 0, y = 0, z = 0, w = 1) {
+-            this.x = x; this.y = y; this.z = z; this.w = w;
+-        }
+-        matrixTransform() { return this; }
+-    };
+-    console.log('[Polyfill] DOMPoint defined globally.');
+-} else {
+-    // console.log('[Polyfill] DOMMatrix/DOMPoint already exists.');
+-}
+-
+-export { }; // Ensure it's treated as a module
+diff --git a/apps/backend/src/processors/file.ts b/apps/backend/src/processors/file.ts
+index e38c30d..2001d41 100644
+--- a/apps/backend/src/processors/file.ts
++++ b/apps/backend/src/processors/file.ts
+@@ -412,7 +412,35 @@ export const rotatePdfProcessor: ToolProcessor = {
+ 
+         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
+ 
++        // Ensure QPDF is available
++        const hasQpdf = await hasBinary('qpdf');
++
+         const outputFiles = await pMap(inputs, async (input) => {
++            const outputFilename = `rotated-${path.basename(input)}`;
++            const outputPath = path.join(outputDir, outputFilename);
++
++            if (hasQpdf) {
++                try {
++                    // qpdf --rotate=+90 input.pdf output.pdf
++                    // Syntax: qpdf in.pdf out.pdf --rotate=+90
++                    // Actually: qpdf --rotate=+90:1-z in.pdf out.pdf  (applies to all pages)
++                    const args = [
++                        `--rotate=+${rotationToAdd}:1-z`,
++                        input,
++                        outputPath
++                    ];
++
++                    await spawnWithTimeout('qpdf', args, {}, 30000);
++
++                    if (await fs.pathExists(outputPath)) {
++                        return outputPath;
++                    }
++                } catch (e) {
++                    console.error('[rotate-pdf] QPDF failed, falling back to JS', e);
++                }
++            }
++
++            // Fallback: JS (pdf-lib) - ONLY IF CLI FAILS
+             try {
+                 const pdfBytes = await fs.readFile(input);
+                 const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+@@ -424,15 +452,11 @@ export const rotatePdfProcessor: ToolProcessor = {
+                     page.setRotation(pdfDegrees(newRotation));
+                 });
+ 
+-                const outputFilename = `rotated-${path.basename(input)}`;
+-                const outputPath = path.join(outputDir, outputFilename);
+                 await fs.writeFile(outputPath, await pdfDoc.save());
+                 return outputPath;
+             } catch (e) {
+                 console.error(`[rotate-pdf] Failed to rotate ${input}`, e);
+-                // Fallback: Copy original
+-                const outputFilename = `failed-rotate-${path.basename(input)}`;
+-                const outputPath = path.join(outputDir, outputFilename);
++                // Last ditch: copy
+                 await fs.copy(input, outputPath);
+                 return outputPath;
+             }
+diff --git a/apps/backend/src/processors/image.ts b/apps/backend/src/processors/image.ts
+index d66c89d..8058355 100644
+--- a/apps/backend/src/processors/image.ts
++++ b/apps/backend/src/processors/image.ts
+@@ -1,4 +1,5 @@
+ import { ToolProcessor } from './types';
++import { PDFDocument, PageSizes } from 'pdf-lib';
+ import fs from 'fs-extra';
+ import { normalizeImage } from '../utils/normalizeImage';
+ import path from 'path';
+@@ -6,28 +7,7 @@ import sharp from 'sharp';
+ import { zipFiles } from '../utils/zipper';
+ import { pMap } from '../utils/concurrency';
+ 
+-// HARD POLYFILL: Ensure DOMMatrix exists for pdf-lib here
+-if (typeof global.DOMMatrix === 'undefined') {
+-    // @ts-ignore
+-    global.DOMMatrix = class DOMMatrix {
+-        a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+-        constructor(init?: any) {
+-            if (init) {
+-                this.a = init.a || 1; this.b = init.b || 0; this.c = init.c || 0;
+-                this.d = init.d || 1; this.e = init.e || 0; this.f = init.f || 0;
+-            }
+-        }
+-        multiply() { return this; }
+-        transformPoint(p: any) { return p; }
+-        toString() { return `matrix(${this.a}, ${this.b}, ${this.c}, ${this.d}, ${this.e}, ${this.f})`; }
+-    };
+-    // @ts-ignore
+-    global.DOMPoint = class DOMPoint {
+-        x = 0; y = 0; z = 0; w = 1;
+-        constructor(x = 0, y = 0, z = 0, w = 1) { this.x = x; this.y = y; this.z = z; this.w = w; }
+-        matrixTransform() { return this; }
+-    };
+-}
++// Polyfills removed. pdf-lib should work in Node without DOMMatrix for basic operations.
+ 
+ export const imageResizerProcessor: ToolProcessor = {
+     id: 'image-resizer',
+@@ -176,8 +156,7 @@ export const bulkImageResizerProcessor: ToolProcessor = {
+ export const imageToPdfProcessor: ToolProcessor = {
+     id: 'image-to-pdf',
+     process: async ({ job, localPath, inputPaths, outputDir }) => {
+-        const pdflib = await import('pdf-lib'); // Dynamic import to ensure polyfills loaded
+-        const { PDFDocument, PageSizes } = pdflib;
++        // I will use static import.
+ 
+         const pdfDoc = await PDFDocument.create();
+         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
+diff --git a/apps/backend/src/worker.ts b/apps/backend/src/worker.ts
+index 7e24960..012f487 100644
+--- a/apps/backend/src/worker.ts
++++ b/apps/backend/src/worker.ts
+@@ -1,4 +1,4 @@
+-import './polyfills';
++// import './polyfills'; // Removed: Browser polyfills crash Node workers
+ import { Worker } from 'bullmq';
+ import { config } from 'dotenv';
+ import path from 'path';
