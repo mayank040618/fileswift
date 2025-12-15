@@ -155,12 +155,13 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
     const handleUpload = async () => {
         if (files.length === 0) return;
 
-        // 1. Health Check
+        // 1. Health Check (Optimistic)
+        // We warn the user if health check fails, but we DO NOT BLOCK.
+        // This ensures mobile wakeups/transient errors don't prevent uploads.
         const healthResult = await checkHealth();
         if (!healthResult.ready) {
-            setErrorMessage(`Upload service unavailable: ${healthResult.error || 'Connection Failed'}`);
-            setStatus('failed');
-            return;
+            console.warn('[ToolClient] Health check failed, proceeding optimistically:', healthResult.error);
+            // Optional: Show a toast? For now, silent validation.
         }
 
         setStatus('uploading');
@@ -238,19 +239,23 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
     };
 
 
+    // Fail-Open Health Check: We generally assume success unless proven otherwise.
     const checkHealth = async (): Promise<{ ready: boolean; error?: string }> => {
         const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
         let lastError: any;
 
-        // Retry 3 times for mobile resilience
+        // Try health check, but if it fails, we warn instead of blocking.
+        // We only return ready: false if we have a very specific reason to believe upload is impossible.
+        // Actually, for Adobe-grade reliability, we should probably NEVER block on a GET check.
+        // We'll return the error for logging/warning, but handleUpload will decide.
+
         for (let i = 0; i < 3; i++) {
             try {
-                // 1. Critical: Can we upload?
                 const res = await fetch(`${API_BASE}/api/health/upload`);
                 if (res.ok) {
                     const data = await res.json();
 
-                    // 2. Warning: Can we process? (Non-blocking)
+                    // Warning: Can we process? (Non-blocking)
                     fetch(`${API_BASE}/api/health/process`)
                         .then(r => r.json())
                         .then(d => {
@@ -260,7 +265,7 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
 
                     if (data.uploadReady) return { ready: true };
                 }
-                // If 503, maybe server is starting up. Wait and retry.
+
                 if (res.status === 503) {
                     await new Promise(r => setTimeout(r, 1000));
                     continue;
@@ -268,15 +273,13 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                 lastError = new Error(`Server returned ${res.status}`);
 
             } catch (e: any) {
-                console.error(`Health check attempt ${i + 1} failed`, e);
+                console.warn(`Health check attempt ${i + 1} failed (Non-blocking warning)`, e);
                 lastError = e;
-                // Wait 1s before retry on network error
                 await new Promise(r => setTimeout(r, 1000));
             }
         }
 
-        console.error("Health check failed after 3 attempts", lastError);
-        return { ready: false, error: lastError?.message || 'Unknown Error' };
+        return { ready: false, error: lastError?.message || 'Connection Warning' };
     };
 
     const handleChatSubmit = async (e: React.FormEvent) => {
