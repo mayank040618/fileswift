@@ -5,7 +5,13 @@ import os from 'os';
 export async function healthRoutes(fastify: FastifyInstance) {
     const startTime = Date.now();
 
-    fastify.get('/health', async (req, reply) => {
+    // 1. INFRASTRUCTURE HEALTH (Railway/K8s Probe) - ALWAYS 200
+    fastify.get('/health', async (_req, reply) => {
+        return reply.status(200).send({ status: 'ok', timestamp: new Date().toISOString() });
+    });
+
+    // 2. APP LOGIC HEALTH (Deep Check)
+    fastify.get('/api/health/system', async (req, reply) => {
         let redisStatus = 'unknown';
 
         try {

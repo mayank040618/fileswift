@@ -1,4 +1,4 @@
-import './polyfills/dom'; // MUST BE FIRST
+// import './polyfills/dom'; // Removed
 import './config/env';
 import Fastify, { FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
