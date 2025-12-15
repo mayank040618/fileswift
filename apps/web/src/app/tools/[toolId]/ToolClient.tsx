@@ -156,9 +156,9 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
         if (files.length === 0) return;
 
         // 1. Health Check
-        const isHealthy = await checkHealth();
-        if (!isHealthy) {
-            setErrorMessage("Upload service is currently unavailable. Please check your connection or try again later.");
+        const healthResult = await checkHealth();
+        if (!healthResult.ready) {
+            setErrorMessage(`Upload service unavailable: ${healthResult.error || 'Connection Failed'}`);
             setStatus('failed');
             return;
         }
@@ -238,31 +238,45 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
     };
 
 
-    const checkHealth = async (): Promise<boolean> => {
-        try {
-            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+    const checkHealth = async (): Promise<{ ready: boolean; error?: string }> => {
+        const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        let lastError: any;
 
-            // 1. Critical: Can we upload?
-            const res = await fetch(`${API_BASE}/api/health/upload`);
-            if (res.ok) {
-                const data = await res.json();
+        // Retry 3 times for mobile resilience
+        for (let i = 0; i < 3; i++) {
+            try {
+                // 1. Critical: Can we upload?
+                const res = await fetch(`${API_BASE}/api/health/upload`);
+                if (res.ok) {
+                    const data = await res.json();
 
-                // 2. Warning: Can we process? (Non-blocking)
-                // We fire this asynchronously to warn console, but don't block upload
-                fetch(`${API_BASE}/api/health/process`)
-                    .then(r => r.json())
-                    .then(d => {
-                        if (!d.processReady) console.warn('[Health] Processing degraded:', d.error);
-                    })
-                    .catch(() => console.warn('[Health] Processing check failed'));
+                    // 2. Warning: Can we process? (Non-blocking)
+                    fetch(`${API_BASE}/api/health/process`)
+                        .then(r => r.json())
+                        .then(d => {
+                            if (!d.processReady) console.warn('[Health] Processing degraded:', d.error);
+                        })
+                        .catch(() => console.warn('[Health] Processing check failed'));
 
-                if (data.uploadReady) return true;
+                    if (data.uploadReady) return { ready: true };
+                }
+                // If 503, maybe server is starting up. Wait and retry.
+                if (res.status === 503) {
+                    await new Promise(r => setTimeout(r, 1000));
+                    continue;
+                }
+                lastError = new Error(`Server returned ${res.status}`);
+
+            } catch (e: any) {
+                console.error(`Health check attempt ${i + 1} failed`, e);
+                lastError = e;
+                // Wait 1s before retry on network error
+                await new Promise(r => setTimeout(r, 1000));
             }
-            return false;
-        } catch (e) {
-            console.error("Health check failed", e);
-            return false;
         }
+
+        console.error("Health check failed after 3 attempts", lastError);
+        return { ready: false, error: lastError?.message || 'Unknown Error' };
     };
 
     const handleChatSubmit = async (e: React.FormEvent) => {
