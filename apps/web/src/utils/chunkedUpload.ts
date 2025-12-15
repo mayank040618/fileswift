@@ -138,7 +138,31 @@ export class XHRUploader {
         this.uploadId = crypto.randomUUID();
     }
 
-    start(onProgress: (p: UploadProgress) => void, data?: any): Promise<{ jobId: string; uploadId: string }> {
+    async start(onProgress: (p: UploadProgress) => void, data?: any): Promise<{ jobId: string; uploadId: string }> {
+        let attempts = 0;
+        const maxRetries = 3;
+
+        while (attempts < maxRetries) {
+            try {
+                return await this.uploadAttempt(onProgress, data);
+            } catch (error: any) {
+                attempts++;
+                console.warn(`[XHRUploader] Attempt ${attempts} failed:`, error);
+
+                // Don't retry on client errors (4xx) except 429
+                if (error.status && error.status >= 400 && error.status < 500 && error.status !== 429) {
+                    throw error;
+                }
+
+                if (attempts >= maxRetries) throw error;
+                // Backoff: 1s, 2s, 4s
+                await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempts - 1)));
+            }
+        }
+        throw new Error('Upload failed after retries');
+    }
+
+    private uploadAttempt(onProgress: (p: UploadProgress) => void, data?: any): Promise<{ jobId: string; uploadId: string }> {
         return new Promise((resolve, reject) => {
             this.xhr = new XMLHttpRequest();
             this.xhr.open('POST', `${this.apiBase}/api/upload`);
@@ -163,11 +187,13 @@ export class XHRUploader {
                         reject(new Error('Invalid JSON response'));
                     }
                 } else {
-                    reject(new Error(this.xhr ? `Upload failed: ${this.xhr.statusText}` : 'Upload failed'));
+                    const err: any = new Error(this.xhr ? `Upload failed: ${this.xhr.statusText}` : 'Upload failed');
+                    err.status = this.xhr ? this.xhr.status : 0;
+                    reject(err);
                 }
             };
 
-            this.xhr.onerror = () => reject(new Error('Network Error'));
+            this.xhr.onerror = () => reject(new Error('Network Error')); // Status 0, so will retry
             this.xhr.ontimeout = () => reject(new Error('Connection Timeout'));
             this.xhr.onabort = () => reject(new Error('UPLOAD_CANCELLED'));
 
