@@ -158,7 +158,7 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
         // 1. Health Check
         const isHealthy = await checkHealth();
         if (!isHealthy) {
-            setErrorMessage("System is currently unavailable for uploads. Please try again later.");
+            setErrorMessage("Upload service is currently unavailable. Please check your connection or try again later.");
             setStatus('failed');
             return;
         }
@@ -241,9 +241,21 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
     const checkHealth = async (): Promise<boolean> => {
         try {
             const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+
+            // 1. Critical: Can we upload?
             const res = await fetch(`${API_BASE}/api/health/upload`);
             if (res.ok) {
                 const data = await res.json();
+
+                // 2. Warning: Can we process? (Non-blocking)
+                // We fire this asynchronously to warn console, but don't block upload
+                fetch(`${API_BASE}/api/health/process`)
+                    .then(r => r.json())
+                    .then(d => {
+                        if (!d.processReady) console.warn('[Health] Processing degraded:', d.error);
+                    })
+                    .catch(() => console.warn('[Health] Processing check failed'));
+
                 if (data.uploadReady) return true;
             }
             return false;

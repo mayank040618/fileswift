@@ -14,13 +14,42 @@ const pump = util.promisify(pipeline);
 export default async function uploadRoutes(fastify: FastifyInstance) {
 
     // --- Health Endpoint ---
-    fastify.get("/api/health/upload", async (_req, _reply) => {
+    // --- Health Endpoint (Upload Only) ---
+    fastify.get("/api/health/upload", async (_req, reply) => {
+        // 1. Check if Temp Dir is writable
+        try {
+            // We use os.tmpdir() or UPLOAD_DIR
+            const testFile = path.join(os.tmpdir(), `health-${Date.now()}`);
+            fs.writeFileSync(testFile, 'ok');
+            fs.unlinkSync(testFile);
+        } catch (e) {
+            return reply.code(503).send({ uploadReady: false, error: "Temp dir not writable" });
+        }
+
         return {
             uploadReady: true,
             maxFileSizeMB: parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50'),
             timeoutSeconds: 120,
             streaming: true
         };
+    });
+
+    // --- Health Endpoint (Process Readiness) ---
+    fastify.get("/api/health/process", async (_req, reply) => {
+        // Identify what tools are needed
+        // We can piggyback on existing health-gs logic or re-import
+        try {
+            const { checkTools } = await import('../utils/cli-checks');
+            const status = await checkTools(false);
+            const isReady = status.ghostscript || status.qpdf || status.libreoffice;
+
+            return {
+                processReady: isReady,
+                details: status
+            };
+        } catch (e) {
+            return { processReady: false, error: "Tool check failed" };
+        }
     });
 
     // --- Status Endpoint ---
