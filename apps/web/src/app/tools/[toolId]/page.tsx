@@ -19,19 +19,35 @@ export async function generateMetadata({ params }: { params: { toolId: string } 
         ? [...tool.keywords, 'file tools', 'pdf tools', 'online tools']
         : [`${tool.title} free`, `${tool.title} online`, 'file tools', 'pdf tools'];
 
-    const typeLabel = tool.type === 'image' ? 'Image' : 'PDF';
-    const title = `${tool.title} | Free Online ${typeLabel} Tool - FileSwift`;
+    // New Title Format: {Primary Keyword} Online Free – Fast & Secure | FileSwift
+    // Primary keyword is usually the first item in the keywords list if available, or the title.
+    const primaryKeyword = tool.keywords?.[0] || tool.title;
+
+    // Capitalize first letter of each word in primary keyword for Title Case
+    const titleCaseKeyword = primaryKeyword.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+
+    const title = `${titleCaseKeyword} Online Free – Fast & Secure | FileSwift`;
+
+    // Dynamic Description based on tool type
+    let description = tool.description;
+    if (tool.id === 'compress-pdf') {
+        description = "Compress and optimize PDFs online for free. FileSwift reduces PDF size without quality loss. No signup. Secure & fast.";
+    } else if (tool.type === 'image') {
+        description = `${tool.title} online for free. Optimize and resize images without losing quality. Secure, fast, and no signup required.`;
+    } else {
+        description = `${tool.title} online. Convert files securely and quickly with FileSwift. No installation or registration needed.`;
+    }
 
     return {
         title: title,
-        description: tool.description,
+        description: description,
         keywords: keywordList,
         alternates: {
             canonical: `https://fileswift.in/tools/${params.toolId}`,
         },
         openGraph: {
             title: title,
-            description: tool.description,
+            description: description,
             type: 'website',
             url: `https://fileswift.in/tools/${params.toolId}`,
             siteName: 'FileSwift',
@@ -39,18 +55,21 @@ export async function generateMetadata({ params }: { params: { toolId: string } 
         twitter: {
             card: 'summary_large_image',
             title: title,
-            description: tool.description,
+            description: description,
         }
     };
 }
 
 function getJsonLd(tool: Tool) {
-    return {
+    const schemas: any[] = [];
+
+    // 1. SoftwareApplication Schema
+    schemas.push({
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
         name: tool.title,
         description: tool.description,
-        applicationCategory: 'ProductivityApplication',
+        applicationCategory: 'UtilitiesApplication',
         operatingSystem: 'Any',
         offers: {
             '@type': 'Offer',
@@ -58,7 +77,26 @@ function getJsonLd(tool: Tool) {
             priceCurrency: 'USD',
         },
         featureList: tool.content?.features.join(', ') || 'PDF Compression, Image Resizing, Format Conversion',
-    };
+        softwareRequirements: 'Modern Web Browser',
+    });
+
+    // 2. FAQPage Schema
+    if (tool.content?.faq && tool.content.faq.length > 0) {
+        schemas.push({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: tool.content.faq.map(item => ({
+                '@type': 'Question',
+                name: item.question,
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: item.answer
+                }
+            }))
+        });
+    }
+
+    return schemas;
 }
 
 export default function Page({ params }: { params: { toolId: string } }) {
@@ -93,14 +131,17 @@ export default function Page({ params }: { params: { toolId: string } }) {
         )
     }
 
-    const jsonLd = getJsonLd(tool);
+    const schemas = getJsonLd(tool);
 
     return (
         <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
+            {schemas.map((schema, idx) => (
+                <script
+                    key={idx}
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+                />
+            ))}
             <ToolClient />
         </>
     );

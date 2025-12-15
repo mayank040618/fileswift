@@ -12,6 +12,7 @@ import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSquare } from '@/components/ads/AdSquare';
 import { Feedback } from '@/components/Feedback';
 import { ToolCard } from '@/components/ToolCard';
+import ReactMarkdown from 'react-markdown';
 
 export default function ToolClient() {
     const params = useParams();
@@ -509,6 +510,17 @@ export default function ToolClient() {
                 {/* SEO Content */}
                 {tool.content && (
                     <div className="mt-20 space-y-20">
+                        {/* Long Description (Rich SEO Content) */}
+                        {tool.longDescription && (
+                            <article className="prose prose-lg dark:prose-invert max-w-4xl mx-auto
+                                prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white
+                                prose-p:text-slate-600 dark:prose-p:text-slate-400
+                                prose-strong:text-slate-900 dark:prose-strong:text-white
+                                prose-li:text-slate-600 dark:prose-li:text-slate-400">
+                                <ReactMarkdown>{tool.longDescription}</ReactMarkdown>
+                            </article>
+                        )}
+
                         {/* Features */}
                         <section>
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">

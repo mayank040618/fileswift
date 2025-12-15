@@ -14,6 +14,7 @@ export interface Tool {
         benefits: string[];
         faq?: { question: string; answer: string }[];
     };
+    longDescription?: string;
     comingSoon?: boolean;
 }
 
@@ -27,7 +28,7 @@ export const TOOLS: Tool[] = [
         color: 'bg-red-500',
         slug: '/tools/compress-pdf',
         type: 'file',
-        keywords: ['compress pdf', 'reduce pdf size', 'shrink pdf', 'optimize pdf', 'pdf compressor online', 'compress pdf file', 'reduce pdf size online'],
+        keywords: ['compress pdf', 'reduce pdf size', 'compress small pdf', 'pdf compressor free', 'shrink pdf', 'optimize pdf', 'compress pdf file', 'reduce pdf file size'],
         content: {
             features: [
                 'Smart Compression Algorithms: Reduce PDF file size significantly while maintaining high visual quality.',
@@ -48,15 +49,43 @@ export const TOOLS: Tool[] = [
             ],
             faq: [
                 {
-                    question: 'Is it safe to compress my PDF online?',
-                    answer: 'Yes, absolutely. We use SSL encryption for file transfers, and your files are permanently deleted from our servers after 1 hour.'
+                    question: 'Is FileSwift free?',
+                    answer: 'Yes, FileSwift is a 100% free PDF compressor. You can compress unlimited files without any hidden costs or watermarks.'
                 },
                 {
-                    question: 'How much can I reduce my PDF size?',
-                    answer: 'Compression rates vary depending on the file content. Text-heavy PDFs can often be reduced by 50-80%, while image-heavy PDFs can see even greater reductions.'
+                    question: 'Can I compress small PDFs?',
+                    answer: 'Yes! Our smart algorithm analyzes your file. If it\'s already optimized, we\'ll tell you. If it can be smaller, we compress it.'
+                },
+                {
+                    question: 'Is it safe to compress my PDF online?',
+                    answer: 'Absolutely. We use 256-bit SSL encryption for file transfers. Your files are never read by humans and are permanently deleted from our servers after 1 hour.'
+                },
+                {
+                    question: 'Why didn’t my PDF size reduce?',
+                    answer: 'Some PDFs are already highly optimized or contain content that cannot be compressed further without quality loss (like already compressed JPEGs). FileSwift respects your quality settings to avoid blurry documents.'
                 }
             ]
-        }
+        },
+        longDescription: `
+## Best Free Online PDF Compressor
+
+FileSwift is the fastest and most secure way to **compress PDF** files online. whether you need to **reduce PDF size** for email attachments, government portal uploads, or simply to save storage space, our smart compression engine delivers the perfect balance between file size and quality.
+
+### Why Choose FileSwift to Compress PDF?
+
+Unlike other tools that upload your data to third-party servers, FileSwift processes your files with privacy as a priority. We understand that your documents may contain sensitive information. That's why we enforce a strict **1-hour auto-deletion policy**. Once you download your file, it is gone from our system forever.
+
+### Understanding PDF Compression
+
+Our tool gives you control. You can choose:
+- **High Compression**: Great for text documents and situations where file size matters most.
+- **Medium Compression**: The perfect balance for most business documents containing images and text.
+- **Low Compression**: Best for high-quality presentations where visual fidelity is critical.
+
+### "My PDF didn't get smaller?"
+
+We believe in honesty. If you upload a **small PDF** that is already optimized, our engine will detect it and may skip compression to prevent accidental quality loss or file size increase. We won't give you a "fake" compression result. If your file can be smaller, we will make it smaller.
+`
     },
     // 2. Image Compressor
     {
@@ -67,7 +96,7 @@ export const TOOLS: Tool[] = [
         color: 'bg-pink-500',
         slug: '/tools/image-compressor',
         type: 'image',
-        keywords: ['compress image', 'compress jpg', 'compress png', 'reduce image size', 'optimize images', 'image optimizer', 'compress photos'],
+        keywords: ['image compressor online', 'compress jpg', 'compress png', 'reduce image size', 'optimize images', 'image optimizer', 'resize image online'],
         content: {
             features: [
                 'Lossless & Lossy Options: Choose between maximum quality or maximum compression.',
@@ -85,8 +114,36 @@ export const TOOLS: Tool[] = [
                 'Improve website speed and SEO scores.',
                 'Stay within email attachment size limits.',
                 'Save bandwidth and storage on mobile devices.'
+            ],
+            faq: [
+                {
+                    question: 'How does the Image Compressor work?',
+                    answer: 'Our tool intelligently scans your image and selectively reduces the number of colors and pixels that the human eye cannot perceive, significantly dragging down file size without noticeable quality loss.'
+                },
+                {
+                    question: 'Does it support Bulk Compression?',
+                    answer: 'Yes! You can select or drag and drop up to 100 images at once. FileSwift will process them in parallel and let you download them all as a ZIP file.'
+                }
             ]
-        }
+        },
+        longDescription: `
+## Professional Online Image Compressor
+
+Need to **compress JPG**, PNG, or WEBP files? FileSwift offers a powerful **image compressor online** that reduces file size by up to 80% while keeping your images looking crisp and clear.
+
+### Speed Up Your Website
+
+Large images slow down websites, hurting your SEO and user experience. Use FileSwift to **optimize images** before uploading them to your blog, e-commerce store, or portfolio. Our tool removes unnecessary metadata and optimizes compression layers to give you the smallest file possible.
+
+### Privacy & Security
+
+Your photos are yours. Whether they are personal memories or professional assets, we treat them with strict confidentiality. All processing happens on secure servers, and images are wiped automatically after 1 hour. No sign-up is required, so you don't need to share your email to get started.
+
+### Formats Supported
+- **JPG/JPEG**: Best for photographs and realistic images.
+- **PNG**: Ideal for graphics, screenshots, and images with transparent backgrounds.
+- **WEBP**: The modern web standard for high-performance images.
+`
     },
     // 3. Image to PDF
     {
@@ -115,8 +172,32 @@ export const TOOLS: Tool[] = [
                 'Create a shareable portfolio of your work.',
                 'Submit scanned documents (ID, receipts) as a single file.',
                 'Archive photos in a universal, non-editable format.'
+            ],
+            faq: [
+                {
+                    question: 'Can I combine JPG and PNG in one PDF?',
+                    answer: 'Yes! You can mix different image formats (JPG, PNG, WEBP) and they will all be merged into a single, seamless PDF document.'
+                },
+                {
+                    question: 'Does it reduce image quality?',
+                    answer: 'By default, we maintain high resolution for your photos. We optimize the container format but preserve the visual fidelity of your uploaded images.'
+                }
             ]
-        }
+        },
+        longDescription: `
+## Convert JPG & PNG to PDF Instantly
+
+Turn your photo gallery into professional documents with FileSwift's **Image to PDF** converter. Whether you need to compile scanned receipts for an expense report or create a digital portfolio from your design work, our tool handles it all.
+
+### Drag, Drop, Organize
+
+The order matters. That's why we built an intuitive drag-and-drop interface that lets you rearrange your photos exactly how you want them to appear in the final PDF file.
+
+### Why convert images to PDF?
+- **Universal Compatibility**: PDFs look the same on every device, unlike images which might display differently.
+- **Easy Sharing**: Send one file instead of twenty separate image attachments.
+- **Professional Presentation**: Clean presentation for client deliverables or official documentation.
+`
     },
     // 4. PDF to Word
     {
@@ -145,8 +226,31 @@ export const TOOLS: Tool[] = [
                 'Edit locked PDF content easily in Microsoft Word.',
                 'Repurpose content without retyping manually.',
                 'Fix errors in finalized PDF documents.'
+            ],
+            faq: [
+                {
+                    question: 'Will the Word doc look like my PDF?',
+                    answer: 'Our advanced conversion engine strives to preserve the exact layout, including tables, headings, and images. However, complex layouts may require minor adjustments in Word.'
+                },
+                {
+                    question: 'Can I edit the converted file?',
+                    answer: 'Yes! The output is a standard .docx file which is fully editable in Microsoft Word, Google Docs, or any other word processor.'
+                }
             ]
-        }
+        },
+        longDescription: `
+## Best PDF to Word Converter
+
+Unlock your documents with the most accurate **PDF to Word** converter. Stop retyping text manually. FileSwift instantly transforms static PDF files into editable DOCX documents, allowing you to copy, edit, and repurpose content with ease.
+
+### Preserving Your Layout
+
+One of the biggest challenges in PDF conversion is keeping the formatting intact. FileSwift uses advanced document analysis to recognize paragraphs, lists, and tables, ensuring that your new Word document looks as close to the original PDF as possible.
+
+### Safe & Secure
+
+Business contracts, legal documents, and personal resumes—we handle them all with maximum security. Your files are processed in an encrypted environment and are automatically deleted from our servers after differentiation.
+`
     },
     // 5. Merge PDFs
     {
@@ -175,8 +279,27 @@ export const TOOLS: Tool[] = [
                 'Keep related documents together (e.g., invoices, receipts).',
                 'Create professional report portfolios from scattered files.',
                 'Simplify sharing by sending one file instead of many.'
+            ],
+            faq: [
+                {
+                    question: 'Is there a limit to how many files I can merge?',
+                    answer: 'Currently, you can merge up to 20 files at once for free. This limit ensures fast processing speeds for all users.'
+                },
+                {
+                    question: 'Can I change the order?',
+                    answer: 'Yes! Use the drag-and-drop feature to arrange your files in the exact sequence you want them to appear in the final document.'
+                }
             ]
-        }
+        },
+        longDescription: `
+## Merge PDF Files Online
+
+Combine reports, invoices, and chapters into one organized document with our **Merge PDF** tool. It's the easiest way to join multiple PDF files into a single, cohesive document.
+
+### Organized & Efficient
+
+Don't send 10 separate attachments in an email. Stitch them together. Whether you are a student compiling assignments or a professional organizing project files, FileSwift makes it simple to tidy up your digital workspace.
+`
     },
     // 6. Rotate PDF
     {
@@ -205,8 +328,23 @@ export const TOOLS: Tool[] = [
                 'Fix scanned documents that are upside down or sideways.',
                 'Correct page orientation for professional presentation.',
                 'Read documents comfortably on any device.'
+            ],
+            faq: [
+                {
+                    question: 'Does this permanently rotate the file?',
+                    answer: 'Yes. Unlike simply rotating the view in a PDF reader, FileSwift permanently saves the rotation so the file opens correctly on every device.'
+                }
             ]
-        }
+        },
+        longDescription: `
+## Rotate PDF Pages
+
+Scanned a document upside down? Downloaded a form that's stuck in landscape mode? Use FileSwift to **rotate PDF** pages permanently.
+
+### Fix Scanned Documents
+
+A common problem with bulk scanning is having random pages oriented incorrectly. Our tool fixes this in seconds, ensuring your document looks professional and is easy to read without requiring your recipients to crane their necks.
+`
     },
     // 7. Image Resizer
     {
@@ -235,8 +373,23 @@ export const TOOLS: Tool[] = [
                 'Prepare images for social media posts (Instagram, Twitter).',
                 'Optimize images for faster website loading.',
                 'Meet specific upload requirements for government portals.'
+            ],
+            faq: [
+                {
+                    question: 'Will my image look pixelated?',
+                    answer: 'We use high-quality resampling algorithms. However, if you enlarge a small image significantly, some loss of sharpness is inevitable. Reducing size always produces crisp results.'
+                }
             ]
-        }
+        },
+        longDescription: `
+## Resize Images Online
+
+Need a photo to fit specific dimensions for your website, social media, or government form? FileSwift's **Online Image Resizer** lets you change the width and height of any image in pixels.
+
+### Maintain Aspect Ratio
+
+Don't stretch or distort your photos. Our tool allows you to lock the aspect ratio, so when you change the width, the height adjusts automatically to keep your image looking natural.
+`
     },
     // 8. Bulk Image Resizer
     {
@@ -265,8 +418,23 @@ export const TOOLS: Tool[] = [
                 'Save hours of manual work resizing photos one by one.',
                 'Standardize product photos for e-commerce stores.',
                 'Quickly prepare photo collections for digital albums.'
+            ],
+            faq: [
+                {
+                    question: 'How many images can I resize at once?',
+                    answer: 'You can resize up to 50 images in a single batch for free. This is ideal for photographers and e-commerce managers.'
+                }
             ]
-        }
+        },
+        longDescription: `
+## Bulk Image Resizer
+
+Resizing 50 photos one by one is a waste of time. With our **Bulk Image Resizer**, you can upload an entire folder of product photos, event snaps, or wallpapers and resize them all to a uniform size in seconds.
+
+### Perfect for E-Commerce
+
+Running an online store? Uniformity is key. Use our tool to ensure every product image on your catalog has the exact same dimensions, giving your shop a polished, professional look.
+`
     },
     // 9. PDF to Image
     {
@@ -295,8 +463,23 @@ export const TOOLS: Tool[] = [
                 'Share specific PDF pages on social media.',
                 'Insert PDF content into presentations or other documents.',
                 'View PDF content on devices intended for images.'
+            ],
+            faq: [
+                {
+                    question: 'Can I choose between JPG and PNG?',
+                    answer: 'Yes. JPG is smaller and good for photos, while PNG is better for text and diagrams as it preserves sharpness better.'
+                }
             ]
-        }
+        },
+        longDescription: `
+## PDF to Image Converter
+
+Sometimes you need a PDF page as an image file. Whether it's to share on Instagram, insert into a PowerPoint slide, or just to view on a device that doesn't support PDF, FileSwift's **PDF to Image** converter gets the job done.
+
+### Extract Every Page
+
+Our tool goes through your entire PDF document and converts each individual page into a high-quality image file. You can then download all the images in a single ZIP file for convenience.
+`
     },
     // 10. Word to PDF
     {
@@ -325,8 +508,23 @@ export const TOOLS: Tool[] = [
                 'Ensure your document looks the same on every device.',
                 'Prevent accidental editing of your finalized text.',
                 'Submit official documents in the required PDF format.'
+            ],
+            faq: [
+                {
+                    question: 'Are old .doc files supported?',
+                    answer: 'Yes, we support both the modern .docx format and the legacy .doc format used by older versions of Microsoft Word.'
+                }
             ]
-        }
+        },
+        longDescription: `
+## Word to PDF Converter
+
+Make your documents professional and portable. Convert Microsoft Word documents to **PDF format** to ensure they look exactly the same on every computer, tablet, and smartphone.
+
+### Why PDF?
+
+Word documents can shift layout depending on the version of Office being used. PDFs are fixed. By converting **Word to PDF**, you lock in your fonts, images, and formatting so your resume or contract looks perfect every time.
+`
     },
 
     // --- AI / Coming Soon Tools (Hidden or Muted) ---
