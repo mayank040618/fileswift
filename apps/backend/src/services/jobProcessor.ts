@@ -43,10 +43,20 @@ export const executeJob = async (job: IJob) => {
     console.log(`Processing job ${job.id} for tool ${job.data.toolId}`);
 
     const { toolId, key, filename, path: inputTempPath } = job.data;
+
+    // Strict Registry Check
+    const { isToolIdValid } = require('../config/toolRegistry'); // require for build compat or use dynamic import at top if possible. 
+    // Using require inside async function ok, or top level if converted to import earlier.
+    // Let's use straightforward check if possible.
+    if (!isToolIdValid(toolId)) {
+        throw new Error(`CRITICAL FAILURE: Invalid Tool ID '${toolId}' - Security Block`);
+    }
+
     const processor = getProcessor(toolId);
 
     if (!processor) {
-        throw new Error(`No processor found for tool ${toolId}`);
+        console.error(`[CRITICAL] No processor registry found for toolId: '${toolId}'`);
+        throw new Error(`CRITICAL FAILURE: No processor found for tool ${toolId}`);
     }
 
     // Create temp workspace with standardized structure

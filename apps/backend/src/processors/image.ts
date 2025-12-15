@@ -264,13 +264,18 @@ const imageToPdfProcessor: ToolProcessor = {
 };
 
 
-export const imageProcessors = [
-    imageResizerProcessor,
+// Placeholder for remove-bg (Coming Soon)
+const removeBgProcessor: ToolProcessor = {
+    id: 'remove-bg',
+    process: async ({ job: _job }) => {
+        throw new Error("Tool 'remove-bg' is coming soon and not yet implemented.");
+    }
+};
+
+export const imageProcessors: ToolProcessor[] = [
     imageCompressorProcessor,
-    bulkImageResizerProcessor,
     imageToPdfProcessor,
-    // Legacy AI
-    // upscaleProcessor,
-    // enhanceProcessor,
-    // colorizeProcessor
+    imageResizerProcessor,
+    bulkImageResizerProcessor,
+    removeBgProcessor
 ];

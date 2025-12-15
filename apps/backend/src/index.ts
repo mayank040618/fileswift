@@ -73,6 +73,8 @@ const start = async () => {
         await server.register(healthGsRoutes);
         await server.register(downloadRoutes);
         await server.register(uploadRoutes);
+        const { default: uploadDirectRoutes } = await import('./routes/upload-direct');
+        await server.register(uploadDirectRoutes);
         await server.register(chunkUploadRoutes);
         await server.register(toolRoutes);
         await server.register(waitlistRoutes);

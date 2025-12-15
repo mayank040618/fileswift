@@ -137,7 +137,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
 
         req.log.info({ msg: 'Upload started', uploadId, requestId, contentLength, userAgent, ip });
 
-        let toolId = 'default';
+        let toolId: string | null = null;
         let jobData: any = {};
         const uploadedFiles: { filename: string; path: string }[] = [];
         const tempPaths: string[] = [];
@@ -219,10 +219,18 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 return reply.code(400).send({ error: "No files uploaded" });
             }
 
+            // [HARDENING] Strict ToolId Validation
+            if (!toolId || toolId === 'default') {
+                req.log.error({ msg: 'Missing or Invalid Tool ID', uploadId, toolId });
+                uploadState.set(uploadId, { status: 'failed', error: 'Missing Tool ID', errorCode: 'INVALID_REQUEST' });
+                cleanupTempFiles(tempPaths);
+                return reply.code(400).send({ error: "Tool ID is required", code: "MISSING_TOOL_ID" });
+            }
+
             req.log.info({ msg: 'Upload completed (File written)', uploadId, fileCount: uploadedFiles.length });
 
             // Create Job
-            req.log.info({ msg: 'Creating Job...', uploadId });
+            req.log.info({ msg: 'Creating Job...', uploadId, toolId });
             const job = await createJob({
                 toolId,
                 inputFiles: uploadedFiles,

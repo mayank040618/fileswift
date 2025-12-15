@@ -378,7 +378,7 @@ const docToPdfProcessor: ToolProcessor = {
             // Fallback: Generate a PDF explaining the failure
             const pdfDoc = await PDFDocument.create();
             const page = pdfDoc.addPage();
-            const { width, height } = page.getSize();
+            const { height } = page.getSize();
 
             page.drawText('Document Conversion Failed', { x: 50, y: height - 50, size: 24 });
             page.drawText('LibreOffice is required for high-fidelity conversion.', { x: 50, y: height - 100, size: 12 });

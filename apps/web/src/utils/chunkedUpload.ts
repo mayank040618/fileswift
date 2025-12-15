@@ -278,9 +278,9 @@ export class XHRUploader {
             this.xhr.onabort = () => reject(new Error('UPLOAD_CANCELLED'));
 
             const formData = new FormData();
-            this.files.forEach(f => formData.append('files', f));
-            formData.append('uploadId', this.uploadId);
             formData.append('toolId', this.toolId);
+            formData.append('uploadId', this.uploadId);
+            this.files.forEach(f => formData.append('files', f));
             if (data) {
                 formData.append('data', JSON.stringify(data));
             }

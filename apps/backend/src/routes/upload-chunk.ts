@@ -88,8 +88,8 @@ export default async function chunkUploadRoutes(fastify: FastifyInstance) {
     fastify.post('/api/upload/complete', async (req, reply) => {
         const { uploadId, toolId, filename, totalChunks, data } = req.body as any;
 
-        if (!uploadId || !toolId || !filename || !totalChunks) {
-            return reply.code(400).send({ error: "Missing fields" });
+        if (!uploadId || !toolId || toolId === 'default' || !filename || !totalChunks) {
+            return reply.code(400).send({ error: "Missing fields or invalid toolId", code: "INVALID_REQUEST" });
         }
 
         const chunkDir = path.join(UPLOAD_DIR, 'chunks', uploadId);

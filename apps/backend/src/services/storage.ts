@@ -59,3 +59,28 @@ export const getFileBuffer = async (key: string): Promise<Buffer> => {
         return fs.readFile(path.join(LOCAL_UPLOAD_DIR, key));
     }
 };
+
+export const getUploadUrl = async (key: string, contentType: string): Promise<{ url: string, method: string, headers: Record<string, string> }> => {
+    if (s3) {
+        const command = new PutObjectCommand({
+            Bucket: BUCKET,
+            Key: key,
+            ContentType: contentType
+        });
+        const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+        return {
+            url,
+            method: 'PUT',
+            headers: { 'Content-Type': contentType }
+        };
+    } else {
+        // Local: Return a relative URL that the frontend will prepend API_BASE to.
+        // The route will be /api/upload/binary/:key
+        const apiUrl = (process.env.PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
+        return {
+            url: `${apiUrl}/api/upload/binary/${key}`,
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/octet-stream' } // Local doesn't enforce strict types yet
+        };
+    }
+};
