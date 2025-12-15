@@ -86,7 +86,8 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
     });
 
     // --- Upload Endpoint ---
-    fastify.post("/upload", async (req, reply) => {
+    fastify.post("/api/upload", async (req, reply) => {
+        console.log("Upload endpoint mounted at /api/upload");
         const userAgent = (req.headers['user-agent'] || '').toLowerCase();
 
         // 1. Bot Protection
@@ -218,12 +219,16 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 return reply.code(400).send({ error: "No files uploaded" });
             }
 
+            req.log.info({ msg: 'Upload completed (File written)', uploadId, fileCount: uploadedFiles.length });
+
             // Create Job
+            req.log.info({ msg: 'Creating Job...', uploadId });
             const job = await createJob({
                 toolId,
                 inputFiles: uploadedFiles,
                 data: jobData
             });
+            req.log.info({ msg: 'Job Created', uploadId, jobId: job.id });
 
             // Update State
             uploadState.set(uploadId, {
@@ -232,11 +237,10 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 progress: 100
             });
 
-            req.log.info({ msg: 'Upload completed', uploadId, jobId: job.id, fileCount: uploadedFiles.length });
-
             // Increment Usage Count (Successful only)
             rateLimit.incrementSuccess(ip, contentLength);
 
+            req.log.info({ msg: 'Sending 202 Response', uploadId, jobId: job.id });
             // Reply with 202 and IDs
             return reply.code(202).send({
                 uploadId,

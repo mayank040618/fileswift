@@ -187,6 +187,7 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
 
         const isMobile = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        console.log(`[Forensic] Uploading to API_BASE: ${API_BASE} | Files: ${files.length} | Mobile: ${isMobile}`);
 
         try {
             let responseData;

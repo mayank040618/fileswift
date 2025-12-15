@@ -157,14 +157,23 @@ const runToolTest = async (tool: { id: string, type: string, data?: any }) => {
             logResult(tool.id, 'skip', true, 0, 'Asset missing (e.g. DOCX)');
             return;
         }
+        // 1. Upload File
+        console.log(`${colors.cyan}➤ Uploading ${path.basename(filePath)}...${colors.reset}`);
+        const formData = new FormData();
+        const fileName = path.basename(filePath);
 
-        const form = new FormData();
-        form.append('file', fs.createReadStream(filePath));
-        form.append('toolId', tool.id);
-        if (tool.data) form.append('data', JSON.stringify(tool.data));
+        formData.append('files', fs.createReadStream(filePath), fileName); // Corrected to use fs.createReadStream for Node.js FormData
+        formData.append('toolId', tool.id);
+        if (tool.data) formData.append('data', JSON.stringify(tool.data)); // Ensure tool.data is still appended
 
-        const uploadRes = await axios.post(`${API_URL}/upload`, form, {
-            headers: form.getHeaders(),
+        const uploadStart = Date.now();
+        // Use /api/upload as per fix
+        const uploadRes = await axios.post(`${API_URL}/api/upload`, formData, {
+            headers: {
+                ...formData.getHeaders(),
+                'Origin': 'https://www.fileswift.in',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+            },
             maxContentLength: Infinity,
             maxBodyLength: Infinity,
             validateStatus: () => true
