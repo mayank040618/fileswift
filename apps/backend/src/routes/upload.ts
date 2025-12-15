@@ -35,7 +35,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
     });
 
     // --- Health Endpoint (Process Readiness) ---
-    fastify.get("/api/health/process", async (_req, reply) => {
+    fastify.get("/api/health/process", async (_req, _reply) => {
         // Identify what tools are needed
         // We can piggyback on existing health-gs logic or re-import
         try {

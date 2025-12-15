@@ -560,7 +560,7 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                                             placeholder="Ask something about the document..."
                                             className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
                                         />
-                                        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition-colors">
+                                        <button type="submit" aria-label="Send message" className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition-colors">
                                             <Icons.ArrowRight className="w-5 h-5" />
                                         </button>
                                     </form>

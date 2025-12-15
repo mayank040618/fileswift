@@ -10,7 +10,7 @@ export class DirectUploader {
     private toolId: string;
     private apiBase: string;
     private uploadId: string | null = null;
-    private abortController: AbortController | null = null;
+    // private abortController: AbortController | null = null; // Removed to fix build error
 
     constructor(file: File, toolId: string, apiBase: string) {
         this.file = file;
@@ -93,13 +93,12 @@ export class DirectUploader {
             xhr.onerror = () => reject(new Error('Network Error'));
             xhr.ontimeout = () => reject(new Error('Timeout'));
 
-            this.abortController = new AbortController(); // Mock for future API logic if switched to fetch
+            // this.abortController = new AbortController(); // Removed
             xhr.send(this.file);
         });
     }
 
     abort() {
         console.warn('[DirectUpload] Abort requested (Not fully implemented on XHR yet)');
-        // In real impl, we'd abort the XHR.
     }
 }
