@@ -32,12 +32,6 @@ export class ChunkedUploader {
         // 1. Resume Check (Optional optimization: get existing chunks)
         // For now, simpler to just start. Or implement check.
         // Let's implement robust resume check for Mobile.
-        let existingChunks: number[] = [];
-        try {
-            // If we have a saved uploadId, check
-            // But here we might generate new ID. Usually resume happens if we reused ID from localStorage.
-            // We'll skip pre-check for this version unless passed in ID.
-        } catch (e) { }
 
         for (let i = 0; i < totalChunks; i++) {
             if (this.aborted) throw new Error('UPLOAD_CANCELLED');
