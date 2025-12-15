@@ -1,6 +1,6 @@
 
 
-import { getProcessor } from '../processors';
+import { getProcessor, isValidToolId } from './toolRegistry';
 import { getFileBuffer, uploadToR2 } from './storage';
 import path from 'path';
 import fs from 'fs-extra';
@@ -45,17 +45,16 @@ export const executeJob = async (job: IJob) => {
     const { toolId, key, filename, path: inputTempPath } = job.data;
 
     // Strict Registry Check
-    const { isToolIdValid } = require('../config/toolRegistry'); // require for build compat or use dynamic import at top if possible. 
-    // Using require inside async function ok, or top level if converted to import earlier.
-    // Let's use straightforward check if possible.
-    if (!isToolIdValid(toolId)) {
+    // Ideally use top-level import, but let's stick to replacing the logic block safely.
+
+    if (!isValidToolId(toolId)) {
         throw new Error(`CRITICAL FAILURE: Invalid Tool ID '${toolId}' - Security Block`);
     }
 
     const processor = getProcessor(toolId);
 
+    // Redundant check since getProcessor throws, but keeping for safety
     if (!processor) {
-        console.error(`[CRITICAL] No processor registry found for toolId: '${toolId}'`);
         throw new Error(`CRITICAL FAILURE: No processor found for tool ${toolId}`);
     }
 

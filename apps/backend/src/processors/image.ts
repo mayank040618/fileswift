@@ -29,7 +29,7 @@ if (typeof global.DOMMatrix === 'undefined') {
     };
 }
 
-const imageResizerProcessor: ToolProcessor = {
+export const imageResizerProcessor: ToolProcessor = {
     id: 'image-resizer',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         const { width, height } = job.data.data || {};
@@ -67,7 +67,7 @@ const imageResizerProcessor: ToolProcessor = {
 import { compressImage } from '../utils/compressImage';
 import { createTempDir, cleanTempDir } from '../utils/fs';
 
-const imageCompressorProcessor: ToolProcessor = {
+export const imageCompressorProcessor: ToolProcessor = {
     id: 'image-compressor',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         // Create a truly unique temp dir for this specific job execution to avoid collisions
@@ -151,7 +151,7 @@ const imageCompressorProcessor: ToolProcessor = {
 };
 
 
-const bulkImageResizerProcessor: ToolProcessor = {
+export const bulkImageResizerProcessor: ToolProcessor = {
     id: 'bulk-image-resizer',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
@@ -173,7 +173,7 @@ const bulkImageResizerProcessor: ToolProcessor = {
     }
 };
 
-const imageToPdfProcessor: ToolProcessor = {
+export const imageToPdfProcessor: ToolProcessor = {
     id: 'image-to-pdf',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         const pdflib = await import('pdf-lib'); // Dynamic import to ensure polyfills loaded
@@ -265,7 +265,7 @@ const imageToPdfProcessor: ToolProcessor = {
 
 
 // Placeholder for remove-bg (Coming Soon)
-const removeBgProcessor: ToolProcessor = {
+export const removeBgProcessor: ToolProcessor = {
     id: 'remove-bg',
     process: async ({ job: _job }) => {
         throw new Error("Tool 'remove-bg' is coming soon and not yet implemented.");

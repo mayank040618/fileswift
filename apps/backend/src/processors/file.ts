@@ -40,7 +40,7 @@ const getPageCount = async (filePath: string): Promise<number> => {
     }
 };
 
-const compressPdfProcessor: ToolProcessor = {
+export const compressPdfProcessor: ToolProcessor = {
     id: 'compress-pdf',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         const inputs: string[] = (inputPaths && inputPaths.length > 0)
@@ -305,7 +305,7 @@ const compressPdfProcessor: ToolProcessor = {
     }
 };
 
-const pdfToWordProcessor: ToolProcessor = {
+export const pdfToWordProcessor: ToolProcessor = {
     id: 'pdf-to-word',
     process: async ({ job: _job, localPath, outputDir }) => {
         // PDF to Word usually takes one file. Parallelizing for bulk is possible but UI seems single-file oriented mostly.
@@ -384,7 +384,7 @@ const pdfToWordProcessor: ToolProcessor = {
     }
 };
 
-const mergePdfProcessor: ToolProcessor = {
+export const mergePdfProcessor: ToolProcessor = {
     id: 'merge-pdf',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         // Merge runs sequentially by definition (order matters).
@@ -404,7 +404,7 @@ const mergePdfProcessor: ToolProcessor = {
     }
 };
 
-const rotatePdfProcessor: ToolProcessor = {
+export const rotatePdfProcessor: ToolProcessor = {
     id: 'rotate-pdf',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         const { angle } = job.data.data || {};
@@ -451,7 +451,7 @@ const rotatePdfProcessor: ToolProcessor = {
 
 
 
-const splitPdfProcessor: ToolProcessor = {
+export const splitPdfProcessor: ToolProcessor = {
     id: 'split-pdf',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
@@ -481,7 +481,7 @@ const splitPdfProcessor: ToolProcessor = {
     }
 };
 
-const pdfToImageProcessor: ToolProcessor = {
+export const pdfToImageProcessor: ToolProcessor = {
     id: 'pdf-to-image',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];

@@ -30,7 +30,7 @@ const extractText = async (filePath: string): Promise<string> => {
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
-const summarizeProcessor: ToolProcessor = {
+export const summarizeProcessor: ToolProcessor = {
     id: 'ai-summary',
     process: async ({ job, localPath, outputDir }) => {
         const text = await extractText(localPath);
@@ -190,7 +190,7 @@ const summarizeProcessor: ToolProcessor = {
     }
 };
 
-const notesProcessor: ToolProcessor = {
+export const notesProcessor: ToolProcessor = {
     id: 'ai-notes',
     process: async ({ job, localPath, outputDir }) => {
         const text = await extractText(localPath);
@@ -214,7 +214,7 @@ const notesProcessor: ToolProcessor = {
     }
 };
 
-const rewriteProcessor: ToolProcessor = {
+export const rewriteProcessor: ToolProcessor = {
     id: 'ai-rewrite',
     process: async ({ job, localPath, outputDir }) => {
         const text = await extractText(localPath);
@@ -239,7 +239,7 @@ const rewriteProcessor: ToolProcessor = {
     }
 };
 
-const translateProcessor: ToolProcessor = {
+export const translateProcessor: ToolProcessor = {
     id: 'ai-translate',
     process: async ({ job, localPath, outputDir }) => {
         const text = await extractText(localPath);
@@ -325,7 +325,7 @@ const pdfToWordProcessor: ToolProcessor = {
     }
 };
 
-const docToPdfProcessor: ToolProcessor = {
+export const docToPdfProcessor: ToolProcessor = {
     id: 'doc-to-pdf',
     process: async ({ localPath, outputDir }) => {
         // Use LibreOffice to convert to PDF

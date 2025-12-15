@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { isValidToolId } from "../services/toolRegistry";
 import { createJob, getJob } from "../services/queue";
 import util from 'util';
 import { pipeline } from 'stream';
@@ -212,6 +213,11 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                         } catch (e) { /* ignore */ }
                     }
                 }
+            }
+
+            // STRICT VALIDATION (Moved after loop)
+            if (!toolId || !isValidToolId(toolId)) {
+                throw new Error(`Invalid Tool ID: '${toolId}'`);
             }
 
             if (uploadedFiles.length === 0) {

@@ -55,12 +55,16 @@ const startWorker = async () => {
             lockDuration: 30000, // 30s lock
         });
 
+        worker.on('active', job => {
+            console.log(`[JOB ACTIVE] ${job.id} (Tool: ${job.data.toolId})`);
+        });
+
         worker.on('completed', job => {
-            console.log(`Job ${job.id} completed`);
+            console.log(`[JOB COMPLETED] ${job.id}`);
         });
 
         worker.on('failed', (job, err) => {
-            console.error(`Job ${job?.id} failed: ${err.message}`);
+            console.error(`[JOB FAILED] ${job?.id} - Error: ${err.message}`);
         });
 
         console.log(`Worker started with Redis connection (Sandboxed, Concurrency: 5)`);

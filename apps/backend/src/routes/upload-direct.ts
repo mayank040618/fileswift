@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { isValidToolId } from "../services/toolRegistry";
 import { createJob } from "../services/queue";
 import { getUploadUrl } from "../services/storage";
 import { uploadState } from "../services/uploadState";
@@ -24,13 +25,16 @@ export default async function directUploadRoutes(fastify: FastifyInstance) {
     fastify.post("/api/upload/init", async (req, reply) => {
         const { filename, contentType, size, toolId } = req.body as any;
 
-        if (!filename || !size || !toolId) {
-            return reply.code(400).send({ error: "Missing required fields (filename, size, toolId)" });
+        // 1. STRICT TOOL VALIDATION
+        if (!toolId || !isValidToolId(toolId)) {
+            return reply.code(400).send({
+                error: "Invalid Tool ID",
+                message: `Tool '${toolId}' is not supported.`
+            });
         }
 
-        const { isToolIdValid } = await import('../config/toolRegistry');
-        if (!isToolIdValid(toolId)) {
-            return reply.code(400).send({ error: `Invalid Tool ID: ${toolId}` });
+        if (!filename || !size) {
+            return reply.code(400).send({ error: "Missing required fields (filename, size)" });
         }
 
         const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
@@ -102,8 +106,7 @@ export default async function directUploadRoutes(fastify: FastifyInstance) {
             return reply.code(400).send({ error: "Missing confirmation details" });
         }
 
-        const { isToolIdValid } = await import('../config/toolRegistry');
-        if (!isToolIdValid(toolId)) {
+        if (!isValidToolId(toolId)) {
             return reply.code(400).send({ error: `Invalid Tool ID: ${toolId} (Registry Check)` });
         }
 

@@ -95,60 +95,75 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
 
                 if (res.status === 200) {
                     const data = await res.json();
-                    setPollingErrorStart(null); // Reset grace period on success
+
+                    // ON SUCCESS: Clear any existing grace period
+                    if (pollingErrorStart) {
+                        console.log('[Job State] Connection recovered - Grace period cleared');
+                        setPollingErrorStart(null);
+                    }
 
                     if (data.status === 'completed') {
+                        console.log('[Job State] Job Completed');
                         setStatus('completed');
                         setResult(data);
                         localStorage.removeItem(`fileswift_job_${toolId}`);
                     } else if (data.status === 'failed') {
+                        // BACKEND AUTHORITATIVE FAILURE
+                        console.log('[Job State] Failed (Confirmed by Backend):', data.error);
                         setStatus('failed');
-                        setErrorMessage(data.error);
+                        setErrorMessage(data.error || "Processing failed");
                         localStorage.removeItem(`fileswift_job_${toolId}`);
                     }
+                    // else: status is 'processing' or 'active', continue polling
                 } else {
                     // 404, 500, 502, 429 - Treat as TRANSIENT
+                    console.warn(`[Job State] Transient HTTP Error: ${res.status} - Unknown State`);
                     throw new Error(`HTTP ${res.status}`);
                 }
             } catch (e) {
-                console.warn("[Polling] Transient Error:", e);
+                const now = Date.now();
+                console.warn("[Job State] Transient Exception:", e);
 
-                // Start Grace Period Timer
+                // Start or Check Grace Period
                 if (!pollingErrorStart) {
-                    setPollingErrorStart(Date.now());
-                } else if (Date.now() - pollingErrorStart > 90000) {
-                    // 90 Seconds of continuous failure -> Give up
-                    console.error("[Polling] Permanent Failure after 90s");
-                    setStatus('failed');
-                    setErrorMessage("Connection lost. Please try again.");
-                    localStorage.removeItem(`fileswift_job_${toolId}`);
+                    console.log('[Job State] Entering Grace Period (0s/90s)');
+                    setPollingErrorStart(now);
+                } else {
+                    const elapsed = now - pollingErrorStart;
+                    if (elapsed > 90000) {
+                        // 90s Grace Expired -> Hard Fail
+                        console.error("[Job State] Grace Period Expired (90s) -> Declaring Failure");
+                        setStatus('failed');
+                        setErrorMessage("Connection lost. Please try again.");
+                        localStorage.removeItem(`fileswift_job_${toolId}`);
+                    } else {
+                        console.log(`[Job State] Waiting... (${Math.round(elapsed / 1000)}s / 90s)`);
+                    }
                 }
-                // Else: Keep 'processing' state (User sees timer ticking)
+                // Do NOT setStatus('failed') here. Keep 'processing' UI active.
             }
         }
 
-        // Processing Timer Update
+        // Processing Timer & UI Updates
         if (status === 'processing' && processingStartTime) {
-            const elapsed = Math.round((Date.now() - processingStartTime) / 1000);
+            const now = Date.now();
+            const elapsed = Math.round((now - processingStartTime) / 1000);
 
-            // Show "Uncertainty" message if in grace period
-            if (pollingErrorStart && (Date.now() - pollingErrorStart > 5000)) {
-                setTimeRemaining("Finalizing... (Network slow)");
+            // User Feedback during Uncertainty
+            if (pollingErrorStart && (now - pollingErrorStart > 3000)) {
+                setTimeRemaining("Finalizing… Network slow");
             } else {
                 setTimeRemaining(`${elapsed}s elapsed`);
             }
 
-            // Simulated Progress: Smoothly increment to 95%
+            // Simulated Progress (Visual Only)
             setProcessingProgress(prev => {
                 if (prev >= 95) return 95;
-                // ... logic
-                let minInc = 0.5;
-                let maxInc = 1.5;
-                if (prev < 30) { minInc = 2; maxInc = 5; }
-                else if (prev < 70) { minInc = 1; maxInc = 3; }
-                else { minInc = 0.2; maxInc = 0.8; }
-                const increment = Math.random() * (maxInc - minInc) + minInc;
-                return Math.min(prev + increment, 95);
+                let inc = 0.2;
+                if (prev < 30) inc = 1;
+                else if (prev < 70) inc = 0.5;
+                const randomness = Math.random() * inc;
+                return Math.min(prev + randomness, 95);
             });
         }
     }, status === 'processing' ? 2000 : null);
