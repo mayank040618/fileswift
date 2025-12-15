@@ -9,13 +9,29 @@ export interface UploadProgress {
 
 export type UploadStatus = 'idle' | 'uploading' | 'processing' | 'completed' | 'failed';
 
+// --- Helpers ---
+
+// Exponential Backoff with Jitter
+// Delays: ~1s, ~2s, ~4s, ~8s... + Random 0-500ms
+const calculateBackoff = (attempt: number): number => {
+    const baseDelay = 1000 * Math.pow(2, attempt - 1); // 1s, 2s, 4s...
+    const jitter = Math.random() * 500; // 0-500ms jitter
+    return Math.min(baseDelay + jitter, 30000); // Max 30s delay
+};
+
+const logger = {
+    info: (id: string, msg: string, data?: any) => console.log(`[Upload ${id.slice(0, 8)}] ℹ️ ${msg}`, data || ''),
+    warn: (id: string, msg: string, data?: any) => console.warn(`[Upload ${id.slice(0, 8)}] ⚠️ ${msg}`, data || ''),
+    error: (id: string, msg: string, data?: any) => console.error(`[Upload ${id.slice(0, 8)}] ❌ ${msg}`, data || '')
+};
+
 export class ChunkedUploader {
     private file: File;
     private uploadId: string;
     private toolId: string;
     private chunkSize = 1024 * 1024; // 1MB
     private apiBase: string;
-    private maxRetries = 3;
+    private maxRetries = 5; // Increased resilience
     private aborted = false;
 
     constructor(file: File, toolId: string, apiBase: string, uploadId?: string) {
@@ -23,12 +39,15 @@ export class ChunkedUploader {
         this.toolId = toolId;
         this.apiBase = apiBase;
         this.uploadId = uploadId || crypto.randomUUID();
+        logger.info(this.uploadId, 'Initialized ChunkedUploader', { size: file.size, chunks: Math.ceil(file.size / this.chunkSize) });
     }
 
     async start(onProgress: (p: UploadProgress) => void, data?: any): Promise<{ jobId: string; uploadId: string }> {
         // 1. Check for resume
         const alreadyUploaded = await this.getUploadedChunks();
-        console.log(`[ChunkUploader] Resuming. Already uploaded: ${alreadyUploaded.length} chunks`);
+        if (alreadyUploaded.length > 0) {
+            logger.info(this.uploadId, `Resuming. Already uploaded: ${alreadyUploaded.length} chunks`);
+        }
 
         const totalChunks = Math.ceil(this.file.size / this.chunkSize);
         let uploaded = 0;
@@ -43,10 +62,7 @@ export class ChunkedUploader {
         // 2. Visibility Listener (Mobile Backgrounding)
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible' && !this.aborted && uploaded < this.file.size) {
-                console.log('[ChunkUploader] Tab visible. Verifying connectivity...');
-                // Optional: Ping or re-validate if needed. 
-                // The loop is awaiting uploadChunkWithRetry, which might be stuck in retry.
-                // A visibility change usually unfreezes network.
+                logger.info(this.uploadId, 'Tab visible. Connectivity check skipped (relying on retry loop).');
             }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -72,8 +88,12 @@ export class ChunkedUploader {
             }
 
             // Complete
+            logger.info(this.uploadId, 'All chunks sent. Completing upload...');
             return await this.completeUpload(totalChunks, data);
 
+        } catch (e: any) {
+            logger.error(this.uploadId, 'Upload flow failed', e.message);
+            throw e;
         } finally {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         }
@@ -92,13 +112,14 @@ export class ChunkedUploader {
                 return data.chunks || [];
             }
         } catch (e) {
-            console.warn("Failed to check resume status", e);
+            logger.warn(this.uploadId, "Failed to check resume status", e);
         }
         return [];
     }
 
     abort() {
         this.aborted = true;
+        logger.warn(this.uploadId, 'Upload aborted by user');
     }
 
     private async uploadChunkWithRetry(chunk: Blob, index: number) {
@@ -107,11 +128,19 @@ export class ChunkedUploader {
             try {
                 await this.uploadChunk(chunk, index);
                 return;
-            } catch (e) {
+            } catch (e: any) {
                 attempts++;
+
+                // Don't retry on 4xx (except 408/429)
+                if (e.status && e.status >= 400 && e.status < 500 && ![408, 429].includes(e.status)) {
+                    throw e;
+                }
+
                 if (attempts >= this.maxRetries) throw e;
-                // Exponential backoff: 500, 1000, 2000
-                await new Promise(r => setTimeout(r, 500 * Math.pow(2, attempts)));
+
+                const delay = calculateBackoff(attempts);
+                logger.warn(this.uploadId, `Chunk ${index} failed (Attempt ${attempts}/${this.maxRetries}). Retrying in ${Math.round(delay)}ms...`, e.message);
+                await new Promise(r => setTimeout(r, delay));
             }
         }
     }
@@ -131,7 +160,9 @@ export class ChunkedUploader {
                 if (xhr.status === 200) {
                     resolve();
                 } else {
-                    reject(new Error(`Chunk upload failed: ${xhr.status}`));
+                    const err: any = new Error(`Chunk upload failed: ${xhr.status}`);
+                    err.status = xhr.status;
+                    reject(err);
                 }
             };
 
@@ -181,6 +212,7 @@ export class XHRUploader {
         this.toolId = toolId;
         this.apiBase = apiBase;
         this.uploadId = crypto.randomUUID();
+        logger.info(this.uploadId, 'Initialized XHRUploader', { count: this.files.length });
     }
 
     async start(onProgress: (p: UploadProgress) => void, data?: any): Promise<{ jobId: string; uploadId: string }> {
@@ -192,16 +224,18 @@ export class XHRUploader {
                 return await this.uploadAttempt(onProgress, data);
             } catch (error: any) {
                 attempts++;
-                console.warn(`[XHRUploader] Attempt ${attempts} failed:`, error);
 
                 // Don't retry on client errors (4xx) except 429
                 if (error.status && error.status >= 400 && error.status < 500 && error.status !== 429) {
+                    logger.error(this.uploadId, 'Fatal Client Error', error.message);
                     throw error;
                 }
 
                 if (attempts >= maxRetries) throw error;
-                // Backoff: 1s, 2s, 4s
-                await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempts - 1)));
+
+                const delay = calculateBackoff(attempts);
+                logger.warn(this.uploadId, `Upload failed (Attempt ${attempts}/${maxRetries}). Retrying in ${Math.round(delay)}ms...`, error.message);
+                await new Promise(r => setTimeout(r, delay));
             }
         }
         throw new Error('Upload failed after retries');
@@ -227,6 +261,7 @@ export class XHRUploader {
                 if (this.xhr && this.xhr.status >= 200 && this.xhr.status < 300) {
                     try {
                         const res = JSON.parse(this.xhr.responseText);
+                        logger.info(this.uploadId, 'Upload successful', { jobId: res.jobId });
                         resolve({ jobId: res.jobId, uploadId: res.uploadId });
                     } catch (e) {
                         reject(new Error('Invalid JSON response'));
@@ -257,6 +292,7 @@ export class XHRUploader {
     abort() {
         if (this.xhr) {
             this.xhr.abort();
+            logger.warn(this.uploadId, 'Upload aborted by user');
         }
     }
 }
