@@ -14,9 +14,9 @@ import { Feedback } from '@/components/Feedback';
 import { ToolCard } from '@/components/ToolCard';
 import ReactMarkdown from 'react-markdown';
 
-export default function ToolClient() {
+export default function ToolClient({ toolId: propToolId }: { toolId?: string }) {
     const params = useParams();
-    const toolId = params.toolId as string;
+    const toolId = propToolId || (params?.toolId as string);
     const tool = TOOLS.find(t => t.id === toolId);
 
     const [files, setFiles] = useState<File[]>([]);

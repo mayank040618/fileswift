@@ -26,7 +26,7 @@ export const TOOLS: Tool[] = [
         description: 'Reduce file size efficiently.',
         icon: 'Minimize2',
         color: 'bg-red-500',
-        slug: '/tools/compress-pdf',
+        slug: '/compress-pdf',
         type: 'file',
         keywords: ['compress pdf', 'reduce pdf size', 'compress small pdf', 'pdf compressor free', 'shrink pdf', 'optimize pdf', 'compress pdf file', 'reduce pdf file size'],
         content: {
@@ -94,7 +94,7 @@ We believe in honesty. If you upload a **small PDF** that is already optimized, 
         description: 'Reduce image size without quality loss.',
         icon: 'Minimize2',
         color: 'bg-pink-500',
-        slug: '/tools/image-compressor',
+        slug: '/image-compressor',
         type: 'image',
         keywords: ['image compressor online', 'compress jpg', 'compress png', 'reduce image size', 'optimize images', 'image optimizer', 'resize image online'],
         content: {
@@ -152,7 +152,7 @@ Your photos are yours. Whether they are personal memories or professional assets
         description: 'Convert images to a single PDF.',
         icon: 'FileSymlink',
         color: 'bg-teal-500',
-        slug: '/tools/image-to-pdf',
+        slug: '/image-to-pdf',
         type: 'image',
         keywords: ['image to pdf', 'jpg to pdf', 'png to pdf', 'convert photo to pdf', 'combine images to pdf', 'jpeg to pdf', 'pictures to pdf'],
         content: {
@@ -206,7 +206,7 @@ The order matters. That's why we built an intuitive drag-and-drop interface that
         description: 'Convert PDF to editable Docx.',
         icon: 'FileType2',
         color: 'bg-blue-600',
-        slug: '/tools/pdf-to-word',
+        slug: '/pdf-to-word',
         type: 'file',
         keywords: ['pdf to word', 'pdf to docx', 'convert pdf to word editable', 'pdf to text', 'pdf converter to word', 'edit pdf in word'],
         content: {
@@ -259,7 +259,7 @@ Business contracts, legal documents, and personal resumes—we handle them all w
         description: 'Combine multiple PDFs into one.',
         icon: 'Combine',
         color: 'bg-orange-500',
-        slug: '/tools/merge-pdf',
+        slug: '/merge-pdf',
         type: 'file',
         keywords: ['merge pdf', 'combine pdf', 'join pdf', 'stitch pdf', 'bind pdf', 'merge pdf files online', 'combine multiple pdfs'],
         content: {
@@ -308,7 +308,7 @@ Don't send 10 separate attachments in an email. Stitch them together. Whether yo
         description: 'Rotate pages permanently.',
         icon: 'RotateCw',
         color: 'bg-lime-600',
-        slug: '/tools/rotate-pdf',
+        slug: '/rotate-pdf',
         type: 'file',
         keywords: ['rotate pdf', 'turn pdf', 'change pdf orientation', 'fix upside down pdf', 'rotate pdf pages online', 'save rotated pdf'],
         content: {
@@ -353,7 +353,7 @@ A common problem with bulk scanning is having random pages oriented incorrectly.
         description: 'Resize images by pixel or percentage.',
         icon: 'Scaling',
         color: 'bg-purple-500',
-        slug: '/tools/image-resizer',
+        slug: '/image-resizer',
         type: 'image',
         keywords: ['resize image', 'change image size', 'resize photo', 'scale image', 'resize jpg', 'resize png', 'image dimensions changer'],
         content: {
@@ -398,7 +398,7 @@ Don't stretch or distort your photos. Our tool allows you to lock the aspect rat
         description: 'Resize multiple images at once.',
         icon: 'Images', // Lucide 'Images' or similar, falling back to 'Copy' or 'Layers' if unavailable, will check Icons.tsx
         color: 'bg-indigo-500',
-        slug: '/tools/bulk-image-resizer',
+        slug: '/bulk-image-resizer',
         type: 'image',
         keywords: ['bulk resize images', 'batch image resizer', 'resize multiple photos', 'mass image resizer', 'batch photo editor'],
         content: {
@@ -443,7 +443,7 @@ Running an online store? Uniformity is key. Use our tool to ensure every product
         description: 'Convert PDF pages to JPG/PNG.',
         icon: 'Image',
         color: 'bg-cyan-500',
-        slug: '/tools/pdf-to-image',
+        slug: '/pdf-to-image',
         type: 'file',
         keywords: ['pdf to image', 'pdf to jpg', 'pdf to png', 'convert pdf pages to images', 'extract images from pdf'],
         content: {
@@ -488,7 +488,7 @@ Our tool goes through your entire PDF document and converts each individual page
         description: 'Convert DOCX/DOC to PDF.',
         icon: 'FileText',
         color: 'bg-indigo-600',
-        slug: '/tools/doc-to-pdf',
+        slug: '/doc-to-pdf',
         type: 'file',
         keywords: ['word to pdf', 'docx to pdf', 'doc to pdf', 'convert word to pdf', 'ms word to pdf', 'save docx as pdf'],
         content: {
