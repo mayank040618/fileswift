@@ -68,9 +68,17 @@ const startWorker = async () => {
         });
 
         console.log(`Worker started with Redis connection (Sandboxed, Concurrency: 5)`);
+
+        // Graceful Shutdown
+        process.on('SIGTERM', async () => {
+            console.log('[Worker] SIGTERM received. Closing worker...');
+            await worker.close();
+            process.exit(0);
+        });
+
     } catch (e) {
         console.warn("Failed to start worker (Redis likely missing or path error)", e);
     }
 };
 
-startWorker();
+startWorker().catch(e => console.error("Worker fatal error", e));
