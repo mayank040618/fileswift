@@ -1,5 +1,5 @@
 
-import { v4 as uuidv4 } from 'uuid';
+
 
 export interface UploadProgress {
     loaded: number;
@@ -22,7 +22,7 @@ export class ChunkedUploader {
         this.file = file;
         this.toolId = toolId;
         this.apiBase = apiBase;
-        this.uploadId = uploadId || uuidv4();
+        this.uploadId = uploadId || crypto.randomUUID();
     }
 
     async start(onProgress: (p: UploadProgress) => void, data?: any): Promise<{ jobId: string; uploadId: string }> {
@@ -141,7 +141,7 @@ export class XHRUploader {
         this.files = Array.isArray(files) ? files : [files];
         this.toolId = toolId;
         this.apiBase = apiBase;
-        this.uploadId = uuidv4();
+        this.uploadId = crypto.randomUUID();
     }
 
     start(onProgress: (p: UploadProgress) => void, data?: any): Promise<{ jobId: string; uploadId: string }> {
