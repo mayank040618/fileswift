@@ -1,16 +1,9 @@
 import { FastifyInstance } from "fastify";
 import { fileQueue } from "../services/queue";
-import os from 'os';
 
 export async function healthRoutes(fastify: FastifyInstance) {
     const startTime = Date.now();
 
-
-    // 1. INFRASTRUCTURE HEALTH (Railway/K8s Probe) - LIVENESS
-    // MUST ALWAYS return 200. Only proves the process is running.
-    fastify.get('/health', async (_req, reply) => {
-        return reply.status(200).send({ status: 'ok', timestamp: new Date().toISOString() });
-    });
 
     // 2. READINESS CHECK (Traffic Gate) - TRAFFIC GATE
     // Load Balancers check this to see if we can accept traffic.

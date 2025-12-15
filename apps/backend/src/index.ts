@@ -1,4 +1,3 @@
-// import './polyfills/dom'; // Removed
 import './config/env';
 import Fastify, { FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
@@ -11,13 +10,18 @@ import uploadRoutes from './routes/upload';
 import chunkUploadRoutes from "./routes/upload-chunk";
 import toolRoutes from './routes/tools';
 import waitlistRoutes from './routes/waitlist';
-import './worker'; // Start Worker
+// import './worker'; // REMOVED: Managed manually after server start
 
 // Initialize Fastify
 const server: FastifyInstance = Fastify({
     logger: true,
     connectionTimeout: 180000, // 3 minutes for mobile network resilience
     bodyLimit: 10485760, // 10 MB default for JSON, multipart overrides this
+});
+
+// 1. STRICT LIVENESS PROBE (Must be first, no deps, synchronous)
+server.get('/health', (_req, reply) => {
+    reply.code(200).send({ ok: true });
 });
 
 const start = async () => {
@@ -89,6 +93,17 @@ const start = async () => {
         const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
         await server.listen({ port, host: '0.0.0.0' });
         console.log(`Server listening on ${port}`);
+
+        // Start Worker Separately (Non-blocking)
+        import('./worker').then(({ startWorker }) => {
+            console.log('[Startup] Starting worker process...');
+            startWorker().catch(err => {
+                console.error('[Startup] Worker failed to start', err);
+                // Do NOT exit process, API must remain live
+            });
+        }).catch(err => {
+            console.error('[Startup] Failed to load worker module', err);
+        });
     } catch (err) {
         server.log.error(err);
         process.exit(1);

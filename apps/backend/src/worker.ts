@@ -29,7 +29,7 @@ const getConnectionConfig = () => {
 const connection = getConnectionConfig();
 
 
-const startWorker = async () => {
+export const startWorker = async () => {
     // If mock queue is enabled in env, we might want to skip starting the real Redis worker
     // to avoid connection errors if Redis isn't running.
     // However, if the user WANTS to run with Redis but has MOCK_QUEUE set for some reason, 
@@ -80,5 +80,3 @@ const startWorker = async () => {
         console.warn("Failed to start worker (Redis likely missing or path error)", e);
     }
 };
-
-startWorker().catch(e => console.error("Worker fatal error", e));
