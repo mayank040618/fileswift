@@ -33,7 +33,7 @@ const getRedisClient = () => {
 
 export async function rateLimitMiddleware(req: FastifyRequest, reply: FastifyReply) {
     // Skip rate limiting for health checks and static assets if any
-    if (req.url.startsWith('/api/health') || req.method === 'OPTIONS') {
+    if (req.url.startsWith('/api/health') || req.url === '/health' || req.method === 'OPTIONS') {
         return;
     }
 
