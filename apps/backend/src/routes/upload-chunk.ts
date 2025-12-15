@@ -16,8 +16,24 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || os.tmpdir();
 
 export default async function chunkUploadRoutes(fastify: FastifyInstance) {
 
+    // Helper: Atomic Metadata Update
+    const updateMetadata = (uploadId: string, index: number) => {
+        const metaPath = path.join(UPLOAD_DIR, 'chunks', uploadId, 'metadata.json');
+        let meta: { chunks: number[] } = { chunks: [] };
+        if (fs.existsSync(metaPath)) {
+            try { meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8')); } catch { }
+        }
+        if (!meta.chunks.includes(index)) {
+            meta.chunks.push(index);
+            // Atomic write
+            const tempPath = `${metaPath}.tmp`;
+            fs.writeFileSync(tempPath, JSON.stringify(meta));
+            fs.renameSync(tempPath, metaPath);
+        }
+    };
+
     // POST /api/upload/chunk
-    // Handles a single 1MB chunk
+    // Handles a single 1MB chunk with persistent tracking
     fastify.post('/api/upload/chunk', async (req, reply) => {
         let uploadId = '';
         let index = -1;
@@ -29,9 +45,7 @@ export default async function chunkUploadRoutes(fastify: FastifyInstance) {
 
             for await (const part of parts) {
                 if (part.type === 'file') {
-                    if (!uploadId || index === -1) {
-                        // We expect fields before file. If not, client must be fixed.
-                    }
+                    if (!uploadId || index === -1) { } // Expect fields first
 
                     if (!uploadId) throw { code: 'MISSING_UPLOAD_ID', message: 'Upload ID missing' };
 
@@ -40,6 +54,14 @@ export default async function chunkUploadRoutes(fastify: FastifyInstance) {
 
                     chunkPath = path.join(chunkDir, `part-${index}`);
                     await pump(part.file, fs.createWriteStream(chunkPath));
+
+                    // Verify file is not empty
+                    const stats = fs.statSync(chunkPath);
+                    if (stats.size === 0) {
+                        fs.unlinkSync(chunkPath);
+                        throw new Error("Empty chunk received");
+                    }
+
                     fileSaved = true;
 
                 } else {
@@ -50,11 +72,13 @@ export default async function chunkUploadRoutes(fastify: FastifyInstance) {
 
             if (!fileSaved) throw { code: 'NO_FILE', message: 'No file chunk received' };
 
+            // Update Metadata atomically
+            updateMetadata(uploadId, index);
+
             return reply.send({ status: 'ok', index });
 
         } catch (e: any) {
             req.log.error({ msg: 'Chunk upload failed', error: e.message, uploadId, index });
-            console.error('[ChunkUpload] Error:', e.message, 'Code:', e.code, 'UploadID:', uploadId, 'Index:', index);
             return reply.code(400).send({ error: e.message, code: e.code || 'CHUNK_ERROR' });
         }
     });
@@ -96,7 +120,15 @@ export default async function chunkUploadRoutes(fastify: FastifyInstance) {
             // Wait for file to be fully written
             await streamFinished(writeStream);
 
-            fs.rmdirSync(chunkDir); // Cleanup dir
+            // Cleanup dir recursively (includes metadata.json)
+            try {
+                if (fs.rmSync) {
+                    fs.rmSync(chunkDir, { recursive: true, force: true });
+                } else {
+                    // Node 12 fallback (unlikely needed but safe)
+                    fs.rmdirSync(chunkDir, { recursive: true });
+                }
+            } catch (e) { /* ignore cleanup errors */ }
 
             // 3. Rate Limit check
             const stats = fs.statSync(finalPath);
@@ -134,16 +166,24 @@ export default async function chunkUploadRoutes(fastify: FastifyInstance) {
         const { uploadId } = req.params as any;
         const chunkDir = path.join(UPLOAD_DIR, 'chunks', uploadId);
 
-        if (!fs.existsSync(chunkDir)) {
-            return { chunks: [] };
+        if (fs.existsSync(chunkDir)) {
+            const metaPath = path.join(chunkDir, 'metadata.json');
+            if (fs.existsSync(metaPath)) {
+                try {
+                    const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+                    return { chunks: meta.chunks.sort((a: number, b: number) => a - b) };
+                } catch { }
+            }
+
+            // Fallback to legacy file listing
+            const files = fs.readdirSync(chunkDir);
+            const indexes = files
+                .filter(f => f.startsWith('part-'))
+                .map(f => parseInt(f.replace('part-', '')))
+                .sort((a, b) => a - b);
+            return { chunks: indexes };
         }
 
-        const files = fs.readdirSync(chunkDir);
-        const indexes = files
-            .filter(f => f.startsWith('part-'))
-            .map(f => parseInt(f.replace('part-', '')))
-            .sort((a, b) => a - b);
-
-        return { chunks: indexes };
+        return { chunks: [] };
     });
 }

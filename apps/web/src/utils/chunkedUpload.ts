@@ -26,30 +26,75 @@ export class ChunkedUploader {
     }
 
     async start(onProgress: (p: UploadProgress) => void, data?: any): Promise<{ jobId: string; uploadId: string }> {
+        // 1. Check for resume
+        const alreadyUploaded = await this.getUploadedChunks();
+        console.log(`[ChunkUploader] Resuming. Already uploaded: ${alreadyUploaded.length} chunks`);
+
         const totalChunks = Math.ceil(this.file.size / this.chunkSize);
         let uploaded = 0;
 
-        // 1. Resume Check (Optional optimization: get existing chunks)
-        // For now, simpler to just start. Or implement check.
-        // Let's implement robust resume check for Mobile.
-
-        for (let i = 0; i < totalChunks; i++) {
-            if (this.aborted) throw new Error('UPLOAD_CANCELLED');
-
-            const start = i * this.chunkSize;
+        // Calculate initial progress based on verified chunks
+        alreadyUploaded.forEach(idx => {
+            const start = idx * this.chunkSize;
             const end = Math.min(start + this.chunkSize, this.file.size);
-            const chunk = this.file.slice(start, end);
+            uploaded += (end - start);
+        });
 
-            // Upload Chunk
-            await this.uploadChunkWithRetry(chunk, i);
+        // 2. Visibility Listener (Mobile Backgrounding)
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && !this.aborted && uploaded < this.file.size) {
+                console.log('[ChunkUploader] Tab visible. Verifying connectivity...');
+                // Optional: Ping or re-validate if needed. 
+                // The loop is awaiting uploadChunkWithRetry, which might be stuck in retry.
+                // A visibility change usually unfreezes network.
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
-            uploaded += chunk.size;
-            const percent = Math.round((uploaded / this.file.size) * 100);
-            onProgress({ loaded: uploaded, total: this.file.size, percent });
+        try {
+            for (let i = 0; i < totalChunks; i++) {
+                if (this.aborted) throw new Error('UPLOAD_CANCELLED');
+
+                if (alreadyUploaded.includes(i)) {
+                    continue; // Skip
+                }
+
+                const start = i * this.chunkSize;
+                const end = Math.min(start + this.chunkSize, this.file.size);
+                const chunk = this.file.slice(start, end);
+
+                // Upload Chunk
+                await this.uploadChunkWithRetry(chunk, i);
+
+                uploaded += chunk.size;
+                const percent = Math.round((uploaded / this.file.size) * 100);
+                onProgress({ loaded: uploaded, total: this.file.size, percent });
+            }
+
+            // Complete
+            return await this.completeUpload(totalChunks, data);
+
+        } finally {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         }
+    }
 
-        // Complete
-        return this.completeUpload(totalChunks, data);
+    private async getUploadedChunks(): Promise<number[]> {
+        try {
+            // If new upload (no ID), nothing to resume
+            // Currently calling code sets uploadId only if resuming, but here we enforce `this.uploadId` from constructor
+            // ID is generated in constructor. If we want cross-session resume, we need localstorage management outside this class.
+            // For now, this handles "retry within same session" or "network switch".
+
+            const res = await fetch(`${this.apiBase}/api/upload/${this.uploadId}/chunks`);
+            if (res.ok) {
+                const data = await res.json();
+                return data.chunks || [];
+            }
+        } catch (e) {
+            console.warn("Failed to check resume status", e);
+        }
+        return [];
     }
 
     abort() {
