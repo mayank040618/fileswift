@@ -28,7 +28,7 @@ const extractText = async (filePath: string): Promise<string> => {
 // --- Processors ---
 
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
-import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 const summarizeProcessor: ToolProcessor = {
     id: 'ai-summary',
@@ -343,27 +343,48 @@ const docToPdfProcessor: ToolProcessor = {
         // Ensure outputDir exists
         await fs.ensureDir(outputDir);
 
-        const result = await spawnWithTimeout(
-            command,
-            ['--headless', '--convert-to', 'pdf', '--outdir', outputDir, localPath],
-            {},
-            60000 // 60s timeout for heavy docs
-        );
-
-        if (result.code !== 0) {
-            throw new Error(`LibreOffice conversion failed: ${result.stderr || result.stdout}`);
-        }
-
-        // LibreOffice creates a file with the same basename but .pdf extension in outputDir
         const originalName = path.basename(localPath);
         const nameWithoutExt = path.parse(originalName).name;
         const expectedOutputFilename = `${nameWithoutExt}.pdf`;
-
         const generatedPdfPath = path.join(outputDir, expectedOutputFilename);
 
-        // Verify it exists
-        if (!await fs.pathExists(generatedPdfPath)) {
-            throw new Error("PDF file was not created by LibreOffice");
+        try {
+            const hasBinary = async (cmd: string) => {
+                try { await spawnWithTimeout('which', [cmd], {}, 2000); return true; } catch { return false; }
+            };
+
+            const hasLibreOffice = (command.includes('/') && await fs.pathExists(command)) || await hasBinary(command);
+
+            if (!hasLibreOffice) throw new Error("LibreOffice binary not found");
+
+            const result = await spawnWithTimeout(
+                command,
+                ['--headless', '--convert-to', 'pdf', '--outdir', outputDir, localPath],
+                {},
+                60000 // 60s timeout for heavy docs
+            );
+
+            if (result.code !== 0) {
+                throw new Error(`LibreOffice conversion failed: ${result.stderr || result.stdout}`);
+            }
+
+            // Verify it exists
+            if (!await fs.pathExists(generatedPdfPath)) {
+                throw new Error("PDF file was not created by LibreOffice");
+            }
+        } catch (e: any) {
+            console.error(`[doc-to-pdf] Failed: ${e.message}. Using fallback.`);
+
+            // Fallback: Generate a PDF explaining the failure
+            const pdfDoc = await PDFDocument.create();
+            const page = pdfDoc.addPage();
+            const { width, height } = page.getSize();
+
+            page.drawText('Document Conversion Failed', { x: 50, y: height - 50, size: 24 });
+            page.drawText('LibreOffice is required for high-fidelity conversion.', { x: 50, y: height - 100, size: 12 });
+            page.drawText(`Error: ${e.message}`, { x: 50, y: height - 130, size: 10, color: rgb(1, 0, 0) });
+
+            await fs.writeFile(generatedPdfPath, await pdfDoc.save());
         }
 
         return { resultKey: expectedOutputFilename, metadata: { type: 'pdf' } };

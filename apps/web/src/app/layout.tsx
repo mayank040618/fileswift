@@ -65,6 +65,8 @@ import { Footer } from '@/components/Footer';
 import { ConsentBanner } from '@/components/ConsentBanner';
 import { SplashScreen } from '@/components/SplashScreen';
 
+import { GoogleAnalytics } from '@/components/Analytics';
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -94,19 +96,7 @@ export default function RootLayout({
                 <Analytics />
                 <SpeedInsights />
                 <SplashScreen />
-
-                {/* Google Analytics 4 */}
-                <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`}></script>
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                        window.dataLayer = window.dataLayer || [];
-                        function gtag(){dataLayer.push(arguments);}
-                        gtag('js', new Date());
-                        gtag('config', '${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}');
-                        `
-                    }}
-                />
+                <GoogleAnalytics />
 
                 {/* JSON-LD Structured Data for SEO */}
                 <script

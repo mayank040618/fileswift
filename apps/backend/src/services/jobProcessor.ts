@@ -17,6 +17,20 @@ export interface JobData {
     data?: any;
 }
 
+const errorCounts: Record<string, { count: number, resetAt: number }> = {};
+
+const trackError = (toolId: string) => {
+    const now = Date.now();
+    if (!errorCounts[toolId] || now > errorCounts[toolId].resetAt) {
+        errorCounts[toolId] = { count: 0, resetAt: now + 10 * 60 * 1000 }; // 10 mins
+    }
+    errorCounts[toolId].count++;
+
+    if (errorCounts[toolId].count > 3) {
+        console.warn(`[ALERT] Tool ${toolId} has failed ${errorCounts[toolId].count} times in the last 10 minutes.`);
+    }
+};
+
 // Abstract Job wrapper to handle both BullMQ Job and our Mock Job
 export interface IJob {
     id: string;
@@ -134,21 +148,23 @@ export const executeJob = async (job: IJob) => {
             const resultPath = path.join(outputDir, result.resultKey);
 
             if (await fs.pathExists(resultPath)) {
-                const resultBuffer = await fs.readFile(resultPath);
+                const isR2 = process.env.STORAGE_PROVIDER === 's3' || process.env.STORAGE_PROVIDER === 'r2';
 
-                // For local dev with no bucket, we might want to just keep it in tmp and serve via /download
-                // But existing logic tries uploadToR2. Let's keep it but logging failure if env missing
-                try {
-                    finalKey = await uploadToR2(
-                        resultBuffer,
-                        result.resultKey,
-                        'application/octet-stream'
-                    );
-                } catch (e) {
-                    // Fallback: If R2 fails (or local), we rely on the file being in tmp
-                    // For pure local dev, we might just use the filename as the key and serve from tmp
-                    console.log(JSON.stringify({ event: 'UPLOAD_SKIPPED_OR_FAILED', error: String(e) }));
-                    // If we are local, finalKey might just be the filename, and download endpoint handles lookup
+                if (isR2) {
+                    try {
+                        const resultBuffer = await fs.readFile(resultPath);
+                        finalKey = await uploadToR2(
+                            resultBuffer,
+                            result.resultKey,
+                            'application/octet-stream'
+                        );
+                    } catch (e) {
+                        console.log(JSON.stringify({ event: 'UPLOAD_SKIPPED_OR_FAILED', error: String(e) }));
+                        finalKey = resultPath;
+                    }
+                } else {
+                    // Local: Use absolute path directly
+                    finalKey = resultPath;
                 }
             }
         }
@@ -200,8 +216,16 @@ export const executeJob = async (job: IJob) => {
             downloadUrl: primaryDownloadUrl,
             exports: Object.keys(finalExports).length > 0 ? finalExports : undefined
         };
-
     } catch (error: any) {
+        trackError(toolId);
+        console.error(JSON.stringify({
+            event: 'TOOL_FAIL',
+            tool: toolId,
+            errorCode: error.code || 'UNKNOWN',
+            message: error.message,
+            timestamp: new Date().toISOString()
+        }));
+
         console.error(JSON.stringify({
             event: 'JOB_FAILED',
             jobId: job.id,

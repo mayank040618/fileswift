@@ -1,126 +1,258 @@
 import { FastifyInstance } from "fastify";
-import { createJob } from "../services/queue";
+import { createJob, getJob } from "../services/queue";
 import util from 'util';
 import { pipeline } from 'stream';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { v4 as uuidv4 } from 'uuid';
+import { uploadState } from "../services/uploadState";
+import { rateLimit } from "../services/rateLimit";
 
 const pump = util.promisify(pipeline);
 
 export default async function uploadRoutes(fastify: FastifyInstance) {
-    // Limits should be configured at plugin registration level for fastify-multipart
-    // But since we can't easily change index.ts right now without more context,
-    // we will rely on manual check or global config.
+
+    // --- Health Endpoint ---
+    fastify.get("/api/health/upload", async (_req, _reply) => {
+        return {
+            uploadReady: true,
+            maxFileSizeMB: parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50'),
+            timeoutSeconds: 120,
+            streaming: true
+        };
+    });
+
+    // --- Status Endpoint ---
+    fastify.get("/api/upload-status/:uploadId", async (req, reply) => {
+        const uploadId = (req.params as any).uploadId;
+        const state = uploadState.get(uploadId);
+
+        if (!state) {
+            return reply.code(404).send({ error: "Upload session not found" });
+        }
+
+        // If we have a jobId, we can also check the job status if needed,
+        // but for now let's just return the state (which contains jobId).
+        // The frontend can switch to polling job status once it sees 'processing' + jobId.
+        return state;
+    });
+
+    // --- Download Endpoint (Secure) ---
+    fastify.get("/api/download/:token", async (req, reply) => {
+        const token = (req.params as any).token;
+        const filePath = uploadState.verifyDownloadToken(token);
+
+        console.log(`[Download] Token: ${token}, Path: ${filePath}, Exists: ${filePath ? fs.existsSync(filePath) : 'N/A'}`);
+
+        if (!filePath || !fs.existsSync(filePath)) {
+            return reply.code(410).send({ error: "Download link expired or invalid" });
+        }
+
+        const filename = path.basename(filePath);
+        const stream = fs.createReadStream(filePath);
+
+        reply.header('Content-Disposition', `attachment; filename="${filename}"`);
+        return reply.send(stream);
+    });
+
+    // --- Upload Endpoint ---
     fastify.post("/upload", async (req, reply) => {
-        const parts = req.parts();
+        const userAgent = (req.headers['user-agent'] || '').toLowerCase();
+
+        // 1. Bot Protection
+        if (userAgent.includes('curl') || userAgent.includes('python') || userAgent.includes('bot') || userAgent.includes('crawler')) {
+            return reply.code(403).send({ error: "Access denied", code: "BOT_DETECTED" });
+        }
+
+        const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
+        const contentLengthHeader = req.headers['content-length'];
+
+        // 2. Strict Content-Length Validation
+        if (!contentLengthHeader) {
+            return reply.code(411).send({ error: "Content-Length header required", code: "CONTENT_LENGTH_REQUIRED" });
+        }
+        const contentLength = parseInt(contentLengthHeader);
+
+        // 3. Rate Limiting (Fair Usage)
+        rateLimit.trackAttempt(ip);
+        const limitResult = rateLimit.check(ip, contentLength);
+
+        if (limitResult.blocked) {
+            return reply.code(429).send({
+                error: "Fair usage limit reached (25 uploads/hour). Please try again later.",
+                code: "UPLOAD_HOURLY_LIMIT_REACHED",
+                retryAfterMinutes: limitResult.remaining
+            });
+        }
+
+        if (limitResult.delay > 0) {
+            // Soft Limit Throttling
+            await new Promise(resolve => setTimeout(resolve, limitResult.delay));
+        }
+
+        const requestId = req.id;
+        const uploadId = uuidv4();
+        const maxFileSize = (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50')) * 1024 * 1024; // 50MB default
+
+        // Note: valid content-length doesn't guarantee each file size in multipart,
+        // but it gives us a global upper bound check.
+        // fastify-multipart limits will handle individual part sizes.
+
+        // Initialize State
+        uploadState.set(uploadId, {
+            status: 'uploading',
+            progress: 0
+        });
+
+        req.log.info({ msg: 'Upload started', uploadId, requestId, contentLength, userAgent, ip });
+
         let toolId = 'default';
         let jobData: any = {};
         const uploadedFiles: { filename: string; path: string }[] = [];
+        const tempPaths: string[] = [];
 
-        // Allow overriding limit via env, else default 100
-        const maxFiles = parseInt(process.env.MAX_UPLOAD_FILES || '100');
+        try {
+            const parts = req.parts();
 
-        for await (const part of parts) {
-            if (part.type === 'file') {
-                if (uploadedFiles.length >= maxFiles) {
-                    // Stop processing further files if limit reached
-                    // Note: This simply ignores excess files for now or could throw error
-                    continue;
-                }
+            // Handle Client Abort
+            req.raw.on('aborted', () => {
+                req.log.warn({ msg: 'Upload aborted by client', uploadId });
+                uploadState.set(uploadId, { status: 'failed', error: 'Upload aborted', errorCode: 'NETWORK_ABORT' });
+                cleanupTempFiles(tempPaths);
+            });
 
-                // Sanitize filename: Remove special chars, spaces, and truncate.
-                const safeName = part.filename.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
-                const baseDir = process.env.UPLOAD_DIR ? path.join(process.cwd(), process.env.UPLOAD_DIR) : path.join(os.tmpdir(), 'fileswift-uploads');
-                const uploadDir = baseDir;
+            for await (const part of parts) {
+                if (part.type === 'file') {
+                    // Check max files limit
+                    const maxFiles = parseInt(process.env.MAX_UPLOAD_FILES || '100');
+                    if (uploadedFiles.length >= maxFiles) {
+                        part.file.resume(); // Skip
+                        continue;
+                    }
 
-                if (!fs.existsSync(uploadDir)) {
-                    fs.mkdirSync(uploadDir, { recursive: true });
-                }
+                    const safeName = part.filename.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
+                    const baseDir = process.env.UPLOAD_DIR ? path.join(process.cwd(), process.env.UPLOAD_DIR) : path.join(os.tmpdir(), 'fileswift-uploads');
 
-                const tempPath = path.join(uploadDir, `upload-${Date.now()}-${Math.random().toString(36).substring(7)}-${safeName}`);
+                    if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
 
-                // Zero-Trust: Validate Magic Bytes ONLY for PDF-expecting tools
-                const toolsExpectingPdf = ['compress-pdf', 'merge-pdf', 'split-pdf', 'rotate-pdf', 'pdf-to-image', 'pdf-to-word', 'ai-summary', 'ai-notes', 'ai-rewrite', 'ai-translate'];
+                    const tempPath = path.join(baseDir, `upload-${Date.now()}-${Math.random().toString(36).substring(7)}-${safeName}`);
+                    tempPaths.push(tempPath);
 
-                try {
+                    const writeStream = fs.createWriteStream(tempPath);
+
+                    // Count bytes manually for strictness if needed, or rely on pump
+                    // part.file is a stream.
+
                     console.log(`[Upload] Streaming ${part.filename} to ${tempPath}`);
-                    await pump(part.file, fs.createWriteStream(tempPath));
 
-                    // Post-upload Validation (Stabilizes network connection)
-                    if (toolsExpectingPdf.includes(toolId)) {
-                        const buffer = Buffer.alloc(4);
+                    try {
+                        await pump(part.file, writeStream);
+                    } catch (err: any) {
+                        // If pump fails (e.g. limit reached), ensure we catch it
+                        if (err.message === 'File too large') throw { code: 'UPLOAD_FILE_TOO_LARGE' };
+                        throw err;
+                    }
+
+                    // Validate Size on Disk
+                    const stats = fs.statSync(tempPath);
+                    if (stats.size === 0) throw new Error("File is empty");
+                    if (stats.size > maxFileSize) {
+                        // Should have been caught by multipart limit, but double check
+                        throw { code: 'UPLOAD_FILE_TOO_LARGE' };
+                    }
+
+                    // PDF Magic Byte Check
+                    if (part.mimetype === 'application/pdf') {
                         const fd = fs.openSync(tempPath, 'r');
+                        const buffer = Buffer.alloc(4);
                         fs.readSync(fd, buffer, 0, 4, 0);
                         fs.closeSync(fd);
-
-                        const header = buffer.toString('utf8');
-                        if (header !== '%PDF') {
-                            console.warn(`[Upload] Invalid PDF header for ${part.filename}: ${header}`);
-                            fs.unlinkSync(tempPath);
-                            continue; // Skip invalid file
+                        if (buffer.toString() !== '%PDF') {
+                            throw { code: 'UNSUPPORTED_FILE', message: 'Invalid PDF magic bytes' };
                         }
                     }
 
-                    uploadedFiles.push({
-                        filename: safeName,
-                        path: tempPath
-                    });
-                } catch (err: any) {
-                    console.error(`[Upload] Failed to save ${part.filename}:`, err.message);
-                    // Cleanup partial file
-                    if (fs.existsSync(tempPath)) {
-                        fs.unlinkSync(tempPath);
-                    }
-                    throw err; // unexpected error
-                }
-            } else {
-                if (part.fieldname === 'toolId') {
-                    toolId = part.value as string;
-                } else if (part.fieldname === 'data') {
-                    try {
-                        jobData = JSON.parse(part.value as string);
-                    } catch (e) {
-                        req.log.warn({ err: e }, 'Failed to parse data field');
+                    uploadedFiles.push({ filename: safeName, path: tempPath });
+                } else {
+                    if (part.fieldname === 'toolId') toolId = part.value as string;
+                    else if (part.fieldname === 'data') {
+                        try {
+                            jobData = JSON.parse(part.value as string);
+                        } catch (e) { /* ignore */ }
                     }
                 }
             }
-        }
 
-        console.log(`[Upload] Processed ${uploadedFiles.length} files for tool: ${toolId}`);
+            if (uploadedFiles.length === 0) {
+                uploadState.set(uploadId, { status: 'failed', error: 'No files', errorCode: 'NO_FILES' });
+                return reply.code(400).send({ error: "No files uploaded" });
+            }
 
-        if (uploadedFiles.length === 0) {
-            return reply.code(400).send({ error: "No files uploaded" });
-        }
-
-        try {
-            console.log(`[Upload] Files saved to disk`);
-
+            // Create Job
             const job = await createJob({
                 toolId,
-                // Pass array of files
                 inputFiles: uploadedFiles,
                 data: jobData
             });
 
-            reply.code(202).send({
+            // Update State
+            uploadState.set(uploadId, {
+                status: 'processing',
                 jobId: job.id,
-                status: "queued",
-                fileCount: uploadedFiles.length
+                progress: 100
             });
-        } catch (e: any) {
-            req.log.error(e);
-            reply.code(500).send({ error: "Upload failed" });
+
+            req.log.info({ msg: 'Upload completed', uploadId, jobId: job.id, fileCount: uploadedFiles.length });
+
+            // Increment Usage Count (Successful only)
+            rateLimit.incrementSuccess(ip, contentLength);
+
+            // Reply with 202 and IDs
+            return reply.code(202).send({
+                uploadId,
+                jobId: job.id,
+                status: "processing", // We jumped specifically to processing since we finished upload
+                message: "Upload accepted"
+            });
+
+        } catch (error: any) {
+            req.log.error({ msg: 'Upload failed', uploadId, code: error.code, message: error.message });
+            cleanupTempFiles(tempPaths);
+
+            let code = "INTERNAL_RETRYABLE";
+            let status = 500;
+            let msg = "Internal Upload Error";
+
+            if (error.code === 'FST_PARTS_LIMIT' || error.code === 'FST_FILES_LIMIT' || error.code === 'FST_FIELDS_LIMIT') {
+                code = "UPLOAD_LIMIT_EXCEEDED";
+                status = 413;
+                msg = "Upload limits exceeded";
+            } else if (error.code === 'FST_REQ_FILE_TOO_LARGE' || error.code === 'UPLOAD_FILE_TOO_LARGE') {
+                code = "UPLOAD_LIMIT_EXCEEDED";
+                status = 413;
+                msg = "File too large (Max 50MB)";
+            } else if (error.message?.includes('stream') || error.message?.includes('premature close') || error.code === 'NETWORK_ABORT') {
+                code = "NETWORK_ABORT";
+                status = 400;
+                msg = "Network interruption during upload";
+            } else if (error.code === 'UNSUPPORTED_FILE') {
+                code = "UNSUPPORTED_FILE";
+                status = 400;
+                msg = "Invalid file type";
+            }
+
+            uploadState.set(uploadId, { status: 'failed', error: msg, errorCode: code });
+            return reply.code(status).send({ error: msg, code });
         }
     });
 
+    // --- Job Status Endpoint (Legacy/Job Polling) ---
     fastify.get("/api/jobs/:jobId/status", async (req, reply) => {
         const jobId = (req.params as any).jobId;
 
         try {
-            // Retrieve job from queue (Mock or Real)
-            // We need to export getJob from service
-            const { getJob } = await import("../services/queue");
+            // Retrieve job from queue
             const job = await getJob(jobId);
 
             if (!job) {
@@ -132,34 +264,37 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
 
             if (isCompleted) {
                 const result = job.returnvalue;
-                // Generate Download URL
-                // If resultKey is a full URL (R2), use it.
-                // If it's a filename, construct our API download URL.
-                let downloadUrl = '#';
+                let downloadUrl = '#'; // Fallback
                 let fileName = 'result';
 
                 if (result) {
-                    if (result.downloadUrl) {
-                        downloadUrl = result.downloadUrl;
-                    } else if (result.resultKey) {
+                    let finalPath = '';
+
+                    if (result.resultKey) {
+                        // If resultKey is a full URL (e.g., R2), use it directly.
                         if (result.resultKey.startsWith('http')) {
                             downloadUrl = result.resultKey;
                         } else {
-                            // Fallback for legacy
+                            // Assume resultKey is a local file path -> Generate Secure Token
+                            finalPath = result.resultKey;
+                            const token = uploadState.createDownloadToken(finalPath);
                             const apiUrl = (process.env.PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
-                            downloadUrl = `${apiUrl}/api/download/${result.resultKey}`;
+                            downloadUrl = `${apiUrl}/api/download/${token}`;
                         }
+                    } else if (result.downloadUrl) {
+                        downloadUrl = result.downloadUrl; // Fallback to provided URL
                     }
-                    if (result.resultKey) fileName = result.resultKey;
+
+                    if (result.resultKey) fileName = path.basename(result.resultKey);
                 }
 
                 return {
                     id: jobId,
                     status: "completed",
                     progress: 100,
-                    downloadUrl,
+                    downloadUrl, // Tokenized or direct URL
                     fileName,
-                    result
+                    result: { ...result, downloadUrl } // Include downloadUrl in result for convenience
                 };
             } else if (isFailed) {
                 return { id: jobId, status: "failed", error: job.failedReason };
@@ -168,8 +303,16 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
             }
 
         } catch (e) {
-            console.error(e);
+            req.log.error(e);
             return reply.code(500).send({ error: "Failed to check job status" });
         }
     });
+
+    const cleanupTempFiles = (paths: string[]) => {
+        paths.forEach(p => {
+            if (fs.existsSync(p)) {
+                try { fs.unlinkSync(p); } catch (e) { /* ignore */ }
+            }
+        });
+    };
 }

@@ -413,20 +413,29 @@ const rotatePdfProcessor: ToolProcessor = {
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
 
         const outputFiles = await pMap(inputs, async (input) => {
-            const pdfBytes = await fs.readFile(input);
-            const pdfDoc = await PDFDocument.load(pdfBytes);
-            const pages = pdfDoc.getPages();
+            try {
+                const pdfBytes = await fs.readFile(input);
+                const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+                const pages = pdfDoc.getPages();
 
-            pages.forEach(page => {
-                const currentRotation = page.getRotation().angle;
-                const newRotation = (currentRotation + rotationToAdd) % 360;
-                page.setRotation(pdfDegrees(newRotation));
-            });
+                pages.forEach(page => {
+                    const currentRotation = page.getRotation().angle;
+                    const newRotation = (currentRotation + rotationToAdd) % 360;
+                    page.setRotation(pdfDegrees(newRotation));
+                });
 
-            const outputFilename = `rotated-${path.basename(input)}`;
-            const outputPath = path.join(outputDir, outputFilename);
-            await fs.writeFile(outputPath, await pdfDoc.save());
-            return outputPath;
+                const outputFilename = `rotated-${path.basename(input)}`;
+                const outputPath = path.join(outputDir, outputFilename);
+                await fs.writeFile(outputPath, await pdfDoc.save());
+                return outputPath;
+            } catch (e) {
+                console.error(`[rotate-pdf] Failed to rotate ${input}`, e);
+                // Fallback: Copy original
+                const outputFilename = `failed-rotate-${path.basename(input)}`;
+                const outputPath = path.join(outputDir, outputFilename);
+                await fs.copy(input, outputPath);
+                return outputPath;
+            }
         }, 5);
 
         if (outputFiles.length === 1) {

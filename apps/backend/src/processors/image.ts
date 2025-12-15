@@ -1,8 +1,8 @@
 import { ToolProcessor } from './types';
 import fs from 'fs-extra';
+import { normalizeImage } from '../utils/normalizeImage';
 import path from 'path';
 import sharp from 'sharp';
-import { PDFDocument } from 'pdf-lib';
 import { zipFiles } from '../utils/zipper';
 import { pMap } from '../utils/concurrency';
 
@@ -176,35 +176,81 @@ const bulkImageResizerProcessor: ToolProcessor = {
 const imageToPdfProcessor: ToolProcessor = {
     id: 'image-to-pdf',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
+        const pdflib = await import('pdf-lib'); // Dynamic import to ensure polyfills loaded
+        const { PDFDocument, PageSizes } = pdflib;
+
         const pdfDoc = await PDFDocument.create();
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
+        const alignment = job.data.data?.alignment || 'center'; // top, center, bottom
 
         for (const input of inputs) {
-            const imageBytes = await fs.readFile(input);
+            let normalized;
+            try {
+                normalized = await normalizeImage(input);
+            } catch (e) {
+                console.error(`Failed to normalize image ${input}`, e);
+                continue;
+            }
+
             let image;
             try {
-                // Determine type roughly
-                const ext = path.extname(input).toLowerCase();
-                if (ext === '.png') {
-                    image = await pdfDoc.embedPng(imageBytes);
-                } else if (ext === '.jpg' || ext === '.jpeg') {
-                    image = await pdfDoc.embedJpg(imageBytes);
+                if (normalized.format === 'png') {
+                    image = await pdfDoc.embedPng(normalized.buffer);
                 } else {
-                    // Fallback try both
-                    try { image = await pdfDoc.embedJpg(imageBytes); }
-                    catch { image = await pdfDoc.embedPng(imageBytes); }
+                    image = await pdfDoc.embedJpg(normalized.buffer);
                 }
             } catch (e) {
                 console.error(`Failed to embed image ${input}`, e);
                 continue;
             }
 
-            const page = pdfDoc.addPage([image.width, image.height]);
+            // Standardize Page (A4)
+            // If image is landscape, use Landscape A4
+            const isLandscape = normalized.width > normalized.height;
+            const pageWidth = isLandscape ? PageSizes.A4[1] : PageSizes.A4[0];
+            const pageHeight = isLandscape ? PageSizes.A4[0] : PageSizes.A4[1];
+
+            const page = pdfDoc.addPage([pageWidth, pageHeight]);
+
+            // Calculate Fit (Contain with margin)
+            const margin = 20;
+            const availableWidth = pageWidth - (margin * 2);
+            const availableHeight = pageHeight - (margin * 2);
+
+            const scale = Math.min(
+                availableWidth / normalized.width,
+                availableHeight / normalized.height
+            );
+
+            // If image is smaller than page, don't scale up (optional choice, but "contain" usually means max fit)
+            // Let's stick to "contain" (scale UP or DOWN to fit available space) for consistent looking PDFs
+            // Or better: Math.min(1, ...) if we don't want pixelation.
+            // But usually PDF users want full page. Let's use exact fit to available area.
+
+            const displayWidth = normalized.width * scale;
+            const displayHeight = normalized.height * scale;
+
+            // X Position (Always Center)
+            const x = (pageWidth - displayWidth) / 2;
+
+            // Y Position (Based on Alignment)
+            let y = 0;
+            if (alignment === 'top') {
+                // Top of page (minus margin) - height of image
+                y = pageHeight - margin - displayHeight;
+            } else if (alignment === 'bottom') {
+                // Bottom margin
+                y = margin;
+            } else {
+                // Center
+                y = (pageHeight - displayHeight) / 2;
+            }
+
             page.drawImage(image, {
-                x: 0,
-                y: 0,
-                width: image.width,
-                height: image.height,
+                x,
+                y,
+                width: displayWidth,
+                height: displayHeight,
             });
         }
 

@@ -10,9 +10,10 @@ import { useInterval } from '@/hooks/useInterval';
 import clsx from 'clsx';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSquare } from '@/components/ads/AdSquare';
-import { Feedback } from '@/components/Feedback';
+import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { ToolCard } from '@/components/ToolCard';
 import ReactMarkdown from 'react-markdown';
+import { ChunkedUploader, XHRUploader } from '@/utils/chunkedUpload';
 
 export default function ToolClient({ toolId: propToolId }: { toolId?: string }) {
     const params = useParams();
@@ -28,6 +29,7 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
     const [processingStartTime, setProcessingStartTime] = useState<number | null>(null);
     const [result, setResult] = useState<any>(null); // eslint-disable-line
     const [compressionQuality, setCompressionQuality] = useState(75);
+    const [alignment, setAlignment] = useState<'top' | 'center' | 'bottom'>('center');
 
     // Chat State
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai', content: string }[]>([]);
@@ -42,30 +44,71 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
 
     if (!tool) return <div className="p-10 text-center">Tool not found</div>;
 
+    // Resume & Visibility Logic
+    useEffect(() => {
+        // Resume from LocalStorage
+        const savedJobId = localStorage.getItem(`fileswift_job_${toolId}`);
+        if (savedJobId && status === 'idle') {
+            console.log('[Resume] Found saved job:', savedJobId);
+            setJobId(savedJobId);
+            setStatus('processing');
+            setTimeRemaining('Resuming upload...');
+        }
+
+        // Tab Visibility Protection
+        const handleVisibilityChange = () => {
+            if (document.hidden && status === 'processing') {
+                // We can't blocking alert, but we can set a state to show a warning banner if needed.
+                // Or simply log. The real protection is backend not killing job + LocalStorage resume.
+                console.log('[Visibility] App backgrounded, job continues on server.');
+            } else if (!document.hidden && status === 'processing') {
+                console.log('[Visibility] App returned, polling continues.');
+                // Polling interval picks up naturally
+            }
+        };
+
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (status === 'processing' || status === 'uploading') {
+                e.preventDefault();
+                e.returnValue = ''; // Standard for Chrome
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [toolId, status]);
+
     useInterval(async () => {
         if (status === 'processing' && jobId && tool.id !== 'ai-chat') {
             try {
                 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
                 const res = await fetch(`${API_BASE}/api/jobs/${jobId}/status`);
-                const data = await res.json();
 
                 if (res.status === 200) {
+                    const data = await res.json();
                     if (data.status === 'completed') {
                         setStatus('completed');
                         setResult(data);
+                        localStorage.removeItem(`fileswift_job_${toolId}`); // Clear saved job
                     } else if (data.status === 'failed') {
                         setStatus('failed');
                         setErrorMessage(data.error);
-                        // alert(data.error || "Job failed"); // Removed alert to use inline UI
+                        localStorage.removeItem(`fileswift_job_${toolId}`);
                     }
                 } else if (res.status === 404) {
-                    // Job lost (server restart?)
+                    // Job lost (server restart?) - Only if we didn't just resume it (give it a chance if persistent store is slow?)
+                    // If server persistence is working, 404 means truly gone.
                     setStatus('failed');
                     setErrorMessage("Job not found (Server might have restarted)");
+                    localStorage.removeItem(`fileswift_job_${toolId}`);
                 } else if (res.status === 429) {
-                    // Rate limit hit - stop polling to be safe
                     setStatus('failed');
-                    setErrorMessage("Rate limit exceeded. Please try again.");
+                    setErrorMessage("Rate limit exceeded.");
                 }
             } catch (e) {
                 console.error("Polling error", e);
@@ -108,84 +151,70 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
         }
     }, status === 'processing' ? 2000 : null);
 
+    // Upload Logic
     const handleUpload = async () => {
         if (files.length === 0) return;
+
+        // 1. Health Check
+        const isHealthy = await checkHealth();
+        if (!isHealthy) {
+            setErrorMessage("System is currently unavailable for uploads. Please try again later.");
+            setStatus('failed');
+            return;
+        }
+
         setStatus('uploading');
-        setTimeRemaining('Calculating...');
-        const startTime = Date.now();
+        setTimeRemaining('Starting...');
+        setUploadProgress(0);
 
-        const formData = new FormData();
-        formData.append('toolId', tool.id);
-
-        // Append all files
-        files.forEach(file => {
-            formData.append('files', file);
-        });
-
-        // Gather Inputs
+        // Gather Data
         const data: Record<string, any> = {};
-
         const wInput = document.getElementById('resize-w') as HTMLInputElement;
         if (wInput?.value) data.width = wInput.value;
-
         const hInput = document.getElementById('resize-h') as HTMLInputElement;
         if (hInput?.value) data.height = hInput.value;
-
         const qInput = document.getElementById('compress-q') as HTMLInputElement;
         if (qInput?.value) data.quality = qInput.value;
-
         const angleInput = document.getElementById('rotate-angle') as HTMLSelectElement;
         if (angleInput?.value) data.angle = angleInput.value;
-
         if (tool.id === 'pdf-to-image') data.format = 'png';
-        if (tool.id === 'image-to-pdf') data.format = 'pdf';
+        if (tool.id === 'pdf-to-image') data.format = 'png';
+        if (tool.id === 'image-to-pdf') {
+            data.format = 'pdf';
+            data.alignment = alignment;
+        }
 
-        formData.append('data', JSON.stringify(data));
+        const isMobile = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
 
         try {
-            // 1. Upload
-            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-            const endpoint = `${API_BASE}/upload`;
-            console.log(`[Upload] Endpoint: ${endpoint}`);
+            let responseData;
 
-            const responseData = await new Promise<any>((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', endpoint);
+            // Strategy Selection
+            if (isMobile && files.length === 1) {
+                // Mobile Optimization: Chunked Upload (Single File)
+                console.log('[Upload] Using Chunked Strategy (Mobile)');
+                const uploader = new ChunkedUploader(files[0], tool.id, API_BASE);
 
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable) {
-                        const percent = Math.round((event.loaded * 100) / event.total);
-                        setUploadProgress(percent);
+                responseData = await uploader.start((p) => {
+                    setUploadProgress(p.percent);
+                    setTimeRemaining(p.percent < 100 ? `${100 - p.percent}% remaining` : 'Finalizing...');
+                }, data);
 
-                        // Calculate Speed & Time Remaining
-                        const elapsedSeconds = (Date.now() - startTime) / 1000;
-                        if (elapsedSeconds > 0.5) { // Wait a bit for stability
-                            const speedBytesPerSec = event.loaded / elapsedSeconds;
-                            const remainingBytes = event.total - event.loaded;
-                            const remainingSeconds = Math.ceil(remainingBytes / speedBytesPerSec);
+            } else {
+                // Standard Strategy: XHR (Desktop or Multi-file)
+                console.log('[Upload] Using standard XHR Strategy');
+                const uploader = new XHRUploader(files, tool.id, API_BASE);
 
-                            if (remainingSeconds < 60) {
-                                setTimeRemaining(`${remainingSeconds}s remaining`);
-                            } else {
-                                setTimeRemaining(`${Math.ceil(remainingSeconds / 60)}m remaining`);
-                            }
-                        }
-                    }
-                };
+                responseData = await uploader.start((p) => {
+                    setUploadProgress(p.percent);
+                    setTimeRemaining(p.percent < 100 ? `${100 - p.percent}%` : 'Processing...');
+                }, data);
+            }
 
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve(JSON.parse(xhr.responseText));
-                    } else {
-                        reject(new Error(xhr.responseText));
-                    }
-                };
-
-                xhr.onerror = () => reject(new Error('Network Error'));
-                xhr.send(formData);
-            });
-
+            // Success Handling
             if (responseData.jobId) {
+                localStorage.setItem(`fileswift_job_${tool.id}`, responseData.jobId);
                 setJobId(responseData.jobId);
                 setStatus('processing');
                 setProcessingStartTime(Date.now());
@@ -197,22 +226,32 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                     setChatMessages([{ role: 'ai', content: `Ready to chat with ${files[0].name}. Ask me anything!` }]);
                 }
             } else {
-                console.error("Upload failed: No jobId received", responseData);
                 setStatus('failed');
-                alert(responseData.error || "Upload failed");
+                setErrorMessage("No Job ID received.");
             }
+
         } catch (e: any) {
-            console.error("Upload error", e);
+            console.error("Upload failed", e);
             setStatus('failed');
-            try {
-                const errorData = JSON.parse(e.message);
-                alert(errorData.error || "Upload failed");
-            } catch {
-                alert("Upload failed: " + e.message);
-            }
+            setErrorMessage(e.message || "Upload failed");
         }
     };
 
+
+    const checkHealth = async (): Promise<boolean> => {
+        try {
+            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+            const res = await fetch(`${API_BASE}/api/health/upload`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.uploadReady) return true;
+            }
+            return false;
+        } catch (e) {
+            console.error("Health check failed", e);
+            return false;
+        }
+    };
 
     const handleChatSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -278,12 +317,12 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                                             <h3 className="font-semibold mb-3 dark:text-white">Resize Options</h3>
                                             <div className="flex gap-4">
                                                 <div>
-                                                    <label className="text-xs text-slate-500 block mb-1">Width (px)</label>
-                                                    <input type="number" placeholder="Auto" id="resize-w" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
+                                                    <label htmlFor="resize-w" className="text-xs text-slate-500 block mb-1">Width (px)</label>
+                                                    <input type="number" placeholder="Auto" id="resize-w" aria-label="Resize Width" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs text-slate-500 block mb-1">Height (px)</label>
-                                                    <input type="number" placeholder="Auto" id="resize-h" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
+                                                    <label htmlFor="resize-h" className="text-xs text-slate-500 block mb-1">Height (px)</label>
+                                                    <input type="number" placeholder="Auto" id="resize-h" aria-label="Resize Height" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
                                                 </div>
                                             </div>
                                         </div>
@@ -304,6 +343,7 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                                                 value={compressionQuality}
                                                 onChange={(e) => setCompressionQuality(parseInt(e.target.value))}
                                                 id="compress-q"
+                                                aria-label="Compression Quality"
                                                 className="w-full accent-blue-600"
                                             />
                                             <div className="flex justify-between text-xs text-slate-500 mt-1">
@@ -316,11 +356,34 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                                     {tool.id === 'rotate-pdf' && (
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                                             <h3 className="font-semibold mb-3 dark:text-white">Rotation</h3>
-                                            <select id="rotate-angle" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
+                                            <select id="rotate-angle" aria-label="Rotation Angle" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
                                                 <option value="90">90° Clockwise</option>
                                                 <option value="180">180°</option>
                                                 <option value="270">90° Counter-Clockwise</option>
                                             </select>
+                                        </div>
+
+                                    )}
+
+                                    {tool.id === 'image-to-pdf' && (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                            <h3 className="font-semibold mb-3 dark:text-white">Image Alignment</h3>
+                                            <div className="flex bg-white dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-700">
+                                                {(['top', 'center', 'bottom'] as const).map((opt) => (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => setAlignment(opt)}
+                                                        className={clsx(
+                                                            "flex-1 py-2 text-sm font-medium rounded-md transition-all",
+                                                            alignment === opt
+                                                                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow-sm"
+                                                                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                                        )}
+                                                    >
+                                                        {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
 
@@ -494,7 +557,7 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                             )}
                         </div>
                     )}
-                    <Feedback />
+                    <FeedbackWidget toolId={tool.id} />
                 </div>
 
                 {/* Related Tools */}
@@ -599,6 +662,6 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

@@ -1,0 +1,30 @@
+
+name: Production Smoke Test
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # Daily at 8am UTC
+  deployment_status:
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: npm ci
+        
+      - name: Run Smoke Check (Production)
+        env:
+          BASE_URL: https://fileswift.in
+        run: npx tsx apps/backend/scripts/smoke-check-prod.ts
