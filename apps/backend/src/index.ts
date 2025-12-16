@@ -17,8 +17,8 @@ import waitlistRoutes from './routes/waitlist';
 import feedbackRoutes from './routes/feedback';
 
 // Services
-import { runCleanup } from './services/cleanup';
-import { startWorker } from './worker';
+// NOTE: Worker and Cleanup are now moved to 'worker.ts' and run in a separate process.
+// This ensures the HTTP server is pure and instant-start.
 
 // STRICT PRODUCTION BOOT SEQUENCE
 // 1. Initialize Server
@@ -80,12 +80,6 @@ const start = async () => {
         await server.listen({ port, host: '0.0.0.0' });
 
         console.log(`[Boot] Server listening on ${port} (Ready for Traffic)`);
-
-        // 5. Background Systems (Post-Boot)
-        setInterval(runCleanup, 10 * 60 * 1000);
-
-        console.log('[Boot] Starting Worker...');
-        startWorker().catch(err => console.error('[Worker] Failed to start:', err));
 
     } catch (err) {
         console.error('[Boot] FATAL ERROR', err);

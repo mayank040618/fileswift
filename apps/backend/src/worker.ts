@@ -1,7 +1,8 @@
-// import './polyfills'; // Removed: Browser polyfills crash Node workers
+// Standalone Worker Process
 import { Worker } from 'bullmq';
 import { config } from 'dotenv';
 import path from 'path';
+import { runCleanup } from './services/cleanup';
 
 config();
 
@@ -28,15 +29,7 @@ const getConnectionConfig = () => {
 
 const connection = getConnectionConfig();
 
-
 export const startWorker = async () => {
-    // If mock queue is enabled in env, we might want to skip starting the real Redis worker
-    // to avoid connection errors if Redis isn't running.
-    // However, if the user WANTS to run with Redis but has MOCK_QUEUE set for some reason, 
-    // we should respect that constraint.
-    // Given the previous context, we want to allow Local Dev without Redis to work via the API/MockQueue path.
-    // So this worker process is actually optional or supplementary for Redis mode.
-
     if (process.env.USE_MOCK_QUEUE === 'true') {
         console.log("Worker skipped (Mock Queue enabled)");
         return;
@@ -44,39 +37,44 @@ export const startWorker = async () => {
 
     try {
         const processorPath = path.join(__dirname, 'processors', 'sandboxed' + (path.extname(__filename) === '.ts' ? '.ts' : '.js'));
-
         const worker = new Worker('file-processing', processorPath, {
             connection,
             concurrency: 5,
-            limiter: {
-                max: 10,
-                duration: 1000
-            },
-            lockDuration: 30000, // 30s lock
+            limiter: { max: 10, duration: 1000 },
+            lockDuration: 30000,
         });
 
-        worker.on('active', job => {
-            console.log(`[JOB ACTIVE] ${job.id} (Tool: ${job.data.toolId})`);
-        });
+        worker.on('active', job => console.log(`[JOB ACTIVE] ${job.id} (Tool: ${job.data.toolId})`));
+        worker.on('completed', job => console.log(`[JOB COMPLETED] ${job.id}`));
+        worker.on('failed', (job, err) => console.error(`[JOB FAILED] ${job?.id} - Error: ${err.message}`));
 
-        worker.on('completed', job => {
-            console.log(`[JOB COMPLETED] ${job.id}`);
-        });
-
-        worker.on('failed', (job, err) => {
-            console.error(`[JOB FAILED] ${job?.id} - Error: ${err.message}`);
-        });
-
-        console.log(`Worker started with Redis connection (Sandboxed, Concurrency: 5)`);
+        console.log(`[Worker] Started with Redis connection (Sandboxed, Concurrency: 5)`);
 
         // Graceful Shutdown
-        process.on('SIGTERM', async () => {
-            console.log('[Worker] SIGTERM received. Closing worker...');
+        const shutdown = async () => {
+            console.log('[Worker] Closing...');
             await worker.close();
             process.exit(0);
-        });
+        };
+        process.on('SIGTERM', shutdown);
+        process.on('SIGINT', shutdown);
 
     } catch (e) {
         console.warn("Failed to start worker (Redis likely missing or path error)", e);
     }
 };
+
+// Execute if running directly
+if (require.main === module) {
+    console.log("[Worker Process] Booting...");
+
+    // Start Cleanup Service (Cron)
+    setInterval(runCleanup, 10 * 60 * 1000);
+    console.log("[Worker Process] Cleanup Service Scheduled");
+
+    // Start Queue Worker
+    startWorker().catch(err => {
+        console.error("[Worker Process] Fatal Error", err);
+        process.exit(1);
+    });
+}
