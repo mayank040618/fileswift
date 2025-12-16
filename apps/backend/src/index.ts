@@ -5,6 +5,18 @@ import multipart from "@fastify/multipart";
 import helmet from "@fastify/helmet";
 import { rateLimitMiddleware } from './middleware/rateLimit';
 
+// Route Imports (Static & Simple)
+// We rely on the fact that these modules utilize LAZY initialization for ext. systems (Redis/Queue)
+import { healthRoutes } from './routes/health';
+import { healthGsRoutes } from './routes/health-gs';
+import { downloadRoutes } from './routes/download';
+import uploadRoutes from './routes/upload';
+import uploadDirectRoutes from './routes/upload-direct';
+import chunkUploadRoutes from "./routes/upload-chunk";
+import toolRoutes from './routes/tools';
+import waitlistRoutes from './routes/waitlist';
+import feedbackRoutes from './routes/feedback';
+
 // Services - Pure HTTP Server
 // STRICT PRODUCTION BOOT SEQUENCE
 
@@ -52,22 +64,19 @@ const start = async () => {
             await rateLimitMiddleware(req, reply);
         });
 
-        // Register Routes (Dynamic Importing with Safe Wrappers)
+        // Register Routes (Standard Static Registration)
+        // Simple, Readable, Debuggable.
+        await server.register(healthRoutes);
+        await server.register(healthGsRoutes);
+        await server.register(downloadRoutes);
+        await server.register(uploadRoutes);
+        await server.register(uploadDirectRoutes);
+        await server.register(chunkUploadRoutes);
+        await server.register(toolRoutes);
+        await server.register(waitlistRoutes);
+        await server.register(feedbackRoutes);
 
-        // Named Exports need wrapper: m -> { default: m.NamedConfig }
-        server.register(import('./routes/health').then(m => ({ default: m.healthRoutes })));
-        server.register(import('./routes/health-gs').then(m => ({ default: m.healthGsRoutes })));
-        server.register(import('./routes/download').then(m => ({ default: m.downloadRoutes })));
-
-        // Default Exports work directly
-        server.register(import('./routes/upload'));
-        server.register(import('./routes/upload-direct'));
-        server.register(import('./routes/upload-chunk'));
-        server.register(import('./routes/tools'));
-        server.register(import('./routes/waitlist'));
-        server.register(import('./routes/feedback'));
-
-        console.log('[Boot] Plugins Queued. Starting Server...');
+        console.log('[Boot] Routes Registered. Starting Server...');
 
         // 4. LISTEN (The First Barrier)
         // Mandatory Fix: Strict Port Binding on 0.0.0.0
