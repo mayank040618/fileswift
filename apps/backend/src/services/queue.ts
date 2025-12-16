@@ -73,36 +73,45 @@ class MockQueue {
     }
 }
 
-let fileQueue: any;
-try {
-    // Forced MockQueue for local development without Redis
-    if (process.env.USE_MOCK_QUEUE === 'true') {
-        fileQueue = new MockQueue();
-    } else {
-        fileQueue = new Queue('file-processing', {
-            connection,
-            defaultJobOptions: {
-                attempts: 3,
-                backoff: {
-                    type: 'exponential',
-                    delay: 1000
-                },
-                removeOnComplete: 100,
-                removeOnFail: 500
-            }
-        });
+// Lazy Lazy Lazy
+let fileQueueInstance: any = null;
+
+const initializeQueue = () => {
+    if (fileQueueInstance) return fileQueueInstance;
+
+    try {
+        if (process.env.USE_MOCK_QUEUE === 'true') {
+            console.log("[Queue] Using Mock Queue");
+            fileQueueInstance = new MockQueue();
+        } else {
+            console.log("[Queue] Initializing BullMQ Connection...");
+            fileQueueInstance = new Queue('file-processing', {
+                connection,
+                defaultJobOptions: {
+                    attempts: 3,
+                    backoff: { type: 'exponential', delay: 1000 },
+                    removeOnComplete: 100,
+                    removeOnFail: 500
+                }
+            });
+        }
+    } catch (e) {
+        console.warn("[Queue] Init failed, falling back to mock", e);
+        fileQueueInstance = new MockQueue();
     }
-} catch (e) {
-    console.warn("Failed to connect to Redis, falling back to Mock Queue");
-    fileQueue = new MockQueue();
-}
-
-export { fileQueue };
-
-export const createJob = async (data: { toolId: string; inputFiles?: { filename: string; path: string }[]; key?: string | null; filename?: string; path?: string; data?: any }) => {
-    return await fileQueue.add('process-file', data);
+    return fileQueueInstance;
 };
 
+// Export lazy getter
+export const getFileQueue = () => initializeQueue();
+
+// Wrapper for job creation (this will trigger init if needed)
+export const createJob = async (data: { toolId: string; inputFiles?: { filename: string; path: string }[]; key?: string | null; filename?: string; path?: string; data?: any }) => {
+    const queue = getFileQueue();
+    return await queue.add('process-file', data);
+};
+
+
 export const getJob = async (jobId: string) => {
-    return await fileQueue.getJob(jobId);
+    return await getFileQueue().getJob(jobId);
 };

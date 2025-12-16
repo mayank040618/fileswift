@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { fileQueue } from "../services/queue";
+import { getFileQueue } from "../services/queue";
 
 export async function healthRoutes(fastify: FastifyInstance) {
     const startTime = Date.now();
@@ -11,8 +11,9 @@ export async function healthRoutes(fastify: FastifyInstance) {
     fastify.get('/ready', async (_req, reply) => {
         let isReady = false;
         try {
-            if ((fileQueue as any).client) {
-                const status = (fileQueue as any).client.status;
+            const queue = getFileQueue();
+            if ((queue as any).client) {
+                const status = (queue as any).client.status;
                 isReady = status === 'ready';
             } else {
                 isReady = true; // Mock Queue is always ready
@@ -34,9 +35,10 @@ export async function healthRoutes(fastify: FastifyInstance) {
         let queueDepth = 0;
 
         try {
-            if ((fileQueue as any).client) {
-                redisStatus = (fileQueue as any).client.status;
-                queueDepth = await (fileQueue as any).count(); // Get job count
+            const queue = getFileQueue();
+            if ((queue as any).client) {
+                redisStatus = (queue as any).client.status;
+                queueDepth = await (queue as any).count(); // Get job count
             } else {
                 redisStatus = 'mock-local';
             }
