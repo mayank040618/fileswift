@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { Document, Packer, Paragraph, TextRun } from "docx";
 // @ts-ignore
-import { PDFParse } from 'pdf-parse';
+// pdf-parse removed from top-level to prevent DOMMatrix crash at boot
 // import { getFileBuffer } from '../services/storage';
 import { exec } from 'child_process';
 import util from 'util';
@@ -351,12 +351,30 @@ export const pdfToWordProcessor: ToolProcessor = {
         // JS Fallback
         console.log('[pdf-to-word] Using Node.js fallback...');
         const dataBuffer = await fs.readFile(localPath);
-        // @ts-ignore
-        const parser = new PDFParse({ data: dataBuffer, url: localPath });
-        // @ts-ignore
-        const pdfData = await parser.getText();
 
-        let rawText = pdfData.text || "";
+        let pdfLib: any;
+        try {
+            // Lazy load to prevent startup crash (DOMMatrix error)
+            const mod = await import('pdf-parse');
+            // Handle various export shapes (CJS/ESM)
+            pdfLib = mod.default || mod;
+            if (typeof pdfLib !== 'function' && (pdfLib as any).default) {
+                pdfLib = (pdfLib as any).default;
+            }
+        } catch (e) {
+            console.error('[pdf-to-word] Failed to load pdf-parse', e);
+            throw new Error("PDF Parse library failed to load");
+        }
+
+        // Execute parsing
+        let rawText = "";
+        try {
+            const data = await pdfLib(dataBuffer);
+            rawText = data.text || "";
+        } catch (e: any) {
+            console.error('[pdf-to-word] Parsing failed', e);
+            rawText = "";
+        }
         // Sanitize
         // eslint-disable-next-line no-control-regex
         const sanitizedText = rawText.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F]/g, '');
