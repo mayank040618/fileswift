@@ -1,4 +1,4 @@
-import { Queue } from 'bullmq';
+import type { Queue as QueueType } from 'bullmq';
 
 const getConnectionConfig = () => {
     if (process.env.REDIS_URL) {
@@ -76,7 +76,7 @@ class MockQueue {
 // Lazy Lazy Lazy
 let fileQueueInstance: any = null;
 
-const initializeQueue = () => {
+const initializeQueue = async () => {
     if (fileQueueInstance) return fileQueueInstance;
 
     try {
@@ -85,6 +85,7 @@ const initializeQueue = () => {
             fileQueueInstance = new MockQueue();
         } else {
             console.log("[Queue] Initializing BullMQ Connection...");
+            const { Queue } = await import('bullmq');
             fileQueueInstance = new Queue('file-processing', {
                 connection,
                 defaultJobOptions: {
@@ -103,15 +104,16 @@ const initializeQueue = () => {
 };
 
 // Export lazy getter
-export const getFileQueue = () => initializeQueue();
+export const getFileQueue = async () => initializeQueue();
 
 // Wrapper for job creation (this will trigger init if needed)
 export const createJob = async (data: { toolId: string; inputFiles?: { filename: string; path: string }[]; key?: string | null; filename?: string; path?: string; data?: any }) => {
-    const queue = getFileQueue();
+    const queue = await getFileQueue();
     return await queue.add('process-file', data);
 };
 
 
 export const getJob = async (jobId: string) => {
-    return await getFileQueue().getJob(jobId);
+    const queue = await getFileQueue();
+    return await queue.getJob(jobId);
 };

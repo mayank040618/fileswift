@@ -3,30 +3,52 @@ import { startWorker } from './worker';
 import { connectRedisWithRetry } from './services/redis-retry';
 import { FastifyInstance } from 'fastify';
 
-// Route Imports
-import { healthRoutes } from './routes/health';
-import { healthGsRoutes } from './routes/health-gs';
-import { downloadRoutes } from './routes/download';
-import uploadRoutes from './routes/upload';
-import uploadDirectRoutes from './routes/upload-direct';
-import chunkUploadRoutes from "./routes/upload-chunk";
-import toolRoutes from './routes/tools';
-import waitlistRoutes from './routes/waitlist';
-import feedbackRoutes from './routes/feedback';
+// Route Imports removed to ensure Lazy Loading
+// This prevents one bad dependency from crashing the entire boot sequence before Health Check
 
 export async function registerAppRoutes(server: FastifyInstance) {
-    console.log('[BOOT] Registering Routes...');
-    // Register Routes (These are fast and MUST be before listen)
-    await server.register(healthRoutes);
-    await server.register(healthGsRoutes);
-    await server.register(downloadRoutes);
-    await server.register(uploadRoutes);
-    await server.register(uploadDirectRoutes);
-    await server.register(chunkUploadRoutes);
-    await server.register(toolRoutes);
-    await server.register(waitlistRoutes);
-    await server.register(feedbackRoutes);
-    console.log('[BOOT] Routes Registered.');
+    console.log('[BOOT] Registering Routes (Async/Dynamic)...');
+
+    try {
+        // Register Routes (These are fast and MUST be before listen)
+
+        // Health Routes (Priority)
+        const { healthRoutes } = await import('./routes/health');
+        await server.register(healthRoutes);
+
+        const { healthGsRoutes } = await import('./routes/health-gs');
+        await server.register(healthGsRoutes);
+
+        const { downloadRoutes } = await import('./routes/download');
+        await server.register(downloadRoutes);
+
+        // Upload Routes (Heavy dependencies like Queue/BullMQ load here)
+        const { default: uploadRoutes } = await import('./routes/upload');
+        await server.register(uploadRoutes);
+
+        const { default: uploadDirectRoutes } = await import('./routes/upload-direct');
+        await server.register(uploadDirectRoutes);
+
+        const { default: chunkUploadRoutes } = await import("./routes/upload-chunk");
+        await server.register(chunkUploadRoutes);
+
+        const { default: toolRoutes } = await import('./routes/tools');
+        await server.register(toolRoutes);
+
+        const { default: waitlistRoutes } = await import('./routes/waitlist');
+        await server.register(waitlistRoutes);
+
+        const { default: feedbackRoutes } = await import('./routes/feedback');
+        await server.register(feedbackRoutes);
+
+        console.log('[BOOT] Routes Registered Successfully.');
+    } catch (e) {
+        console.error('[BOOT] CRITICAL: Failed to register routes', e);
+        // We do NOT rethrow here if we want to keep /health alive,
+        // BUT if routes fail, the app is useless.
+        // However, keeping it alive allows us to see logs in Railway!
+        // So we log error and proceed.
+    }
 }
 
 export async function startBackgroundServices() {
