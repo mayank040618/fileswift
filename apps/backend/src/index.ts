@@ -1,41 +1,35 @@
 import './config/env';
-console.log('Starting Backend Server...'); // Force log 1
-
 import Fastify, { FastifyInstance } from "fastify";
-console.log('Imported Fastify'); // Force log 2
 
-import cors from "@fastify/cors";
-import multipart from "@fastify/multipart";
-import helmet from '@fastify/helmet';
-
-console.log('Imported Core Plugins');
-
-import { healthRoutes } from './routes/health';
-import { downloadRoutes } from './routes/download';
-import uploadRoutes from './routes/upload';
-import chunkUploadRoutes from "./routes/upload-chunk";
-import toolRoutes from './routes/tools';
-import waitlistRoutes from './routes/waitlist';
-console.log('Imported Route Modules');
-
-// import './worker'; // REMOVED: Managed manually after server start
+// STRICT: No other top-level imports that could block or side-effect
+console.log('[Boot] Initializing Fastify...');
 
 // Initialize Fastify
 const server: FastifyInstance = Fastify({
     logger: true,
-    connectionTimeout: 180000, // 3 minutes for mobile network resilience
-    bodyLimit: 10485760, // 10 MB default for JSON, multipart overrides this
+    connectionTimeout: 180000,
+    bodyLimit: 10485760,
 });
 
 // 1. STRICT LIVENESS PROBE (Must be first, no deps, synchronous)
 server.get('/health', (_req, reply) => {
     reply.code(200).send({ ok: true });
 });
-console.log('Mounted /health');
 
 const start = async () => {
     try {
+        const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
+
+        // 2. LISTEN IMMEDIATELY
+        // This ensures the container passes healthchecks instantly.
+        await server.listen({ port, host: '0.0.0.0' });
+        console.log(`[Boot] Server listening on ${port} (Liveness /health active)`);
+
+        // 3. LOAD PLUGINS & ROUTES (After Listen)
+        console.log('[Boot] Loading plugins & routes...');
+
         // Register Middleware
+        const cors = (await import("@fastify/cors")).default;
         await server.register(cors, {
             origin: [
                 'https://fileswift.in',
@@ -48,11 +42,11 @@ const start = async () => {
             allowedHeaders: ['Content-Type', 'Content-Length', 'X-Upload-Id', 'Content-Range'],
             credentials: true,
         });
-        console.log('Registered CORS');
 
+        const multipart = (await import("@fastify/multipart")).default;
         const maxUploadSize = process.env.MAX_UPLOAD_FILESIZE
             ? parseInt(process.env.MAX_UPLOAD_FILESIZE)
-            : (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024); // Default 50MB
+            : (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024);
 
         await server.register(multipart, {
             limits: {
@@ -63,9 +57,8 @@ const start = async () => {
                 headerPairs: 2000
             }
         });
-        console.log('Registered Multipart');
 
-        // Security Headers
+        const helmet = (await import('@fastify/helmet')).default;
         await server.register(helmet, {
             contentSecurityPolicy: {
                 directives: {
@@ -77,50 +70,51 @@ const start = async () => {
             },
             global: true
         });
-        console.log('Registered Helmet');
 
-        // Rate Limit Middleware
+        // Rate Limit
         const { rateLimitMiddleware } = await import('./middleware/rateLimit');
         server.addHook('preHandler', rateLimitMiddleware);
-        console.log('Registered Rate Limit');
 
-        // Register Routes
+        // Routes
+        const { healthRoutes } = await import('./routes/health');
         await server.register(healthRoutes);
-        console.log('Registered Health Routes');
+
         const { healthGsRoutes } = await import('./routes/health-gs');
         await server.register(healthGsRoutes);
-        console.log('Registered Health GS Routes');
+
+        const { downloadRoutes } = await import('./routes/download');
         await server.register(downloadRoutes);
+
+        const uploadRoutes = (await import('./routes/upload')).default;
         await server.register(uploadRoutes);
-        console.log('Registered Upload Routes');
+
         const { default: uploadDirectRoutes } = await import('./routes/upload-direct');
         await server.register(uploadDirectRoutes);
-        await server.register(chunkUploadRoutes);
-        await server.register(toolRoutes);
-        await server.register(waitlistRoutes);
-        const { default: feedbackRoutes } = await import('./routes/feedback');
-        await server.register(feedbackRoutes);
-        console.log('Registered All Routes');
 
-        // Cleanup Schedule (every 10 minutes)
+        const chunkUploadRoutes = (await import("./routes/upload-chunk")).default;
+        await server.register(chunkUploadRoutes);
+
+        const toolRoutes = (await import('./routes/tools')).default;
+        await server.register(toolRoutes);
+
+        const waitlistRoutes = (await import('./routes/waitlist')).default;
+        await server.register(waitlistRoutes);
+
+        const feedbackRoutes = (await import('./routes/feedback')).default;
+        await server.register(feedbackRoutes);
+
+        // Schedules
         const { runCleanup } = await import('./services/cleanup');
         setInterval(runCleanup, 10 * 60 * 1000);
 
-        // Start
-        const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
-        await server.listen({ port, host: '0.0.0.0' });
-        console.log(`Server listening on ${port}`);
+        console.log('[Boot] App Ready (All routes loaded)');
 
-        // Start Worker Separately (Non-blocking)
+        // 4. START WORKER
         import('./worker').then(({ startWorker }) => {
-            console.log('[Startup] Starting worker process...');
-            startWorker().catch(err => {
-                console.error('[Startup] Worker failed to start', err);
-                // Do NOT exit process, API must remain live
-            });
-        }).catch(err => {
-            console.error('[Startup] Failed to load worker module', err);
-        });
+            console.log('[Boot] Starting worker process...');
+            startWorker().catch(err => console.error('[Startup] Worker failed to start', err));
+        }).catch(err => console.error('[Startup] Failed to load worker module', err));
+
     } catch (err) {
         server.log.error(err);
         process.exit(1);
