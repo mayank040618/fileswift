@@ -1,8 +1,26 @@
-
 import './config/env';
 import Fastify from "fastify";
+import cors from "@fastify/cors";
+import multipart from "@fastify/multipart";
+import helmet from "@fastify/helmet";
+import { rateLimitMiddleware } from './middleware/rateLimit';
 
-// STRICT FAIL-OPEN ARCHITECTURE
+// Routes
+import { healthRoutes } from './routes/health';
+import { healthGsRoutes } from './routes/health-gs';
+import { downloadRoutes } from './routes/download';
+import uploadRoutes from './routes/upload';
+import uploadDirectRoutes from './routes/upload-direct';
+import chunkUploadRoutes from "./routes/upload-chunk";
+import toolRoutes from './routes/tools';
+import waitlistRoutes from './routes/waitlist';
+import feedbackRoutes from './routes/feedback';
+
+// Services
+import { runCleanup } from './services/cleanup';
+import { startWorker } from './worker';
+
+// STRICT PRODUCTION BOOT SEQUENCE
 // 1. Initialize Server
 const server = Fastify({
     logger: true,
@@ -10,24 +28,20 @@ const server = Fastify({
     bodyLimit: 10485760,
 });
 
-// 2. LIVENESS PROBE (Synchronous, Zero Deps)
-// This MUST be available immediately.
+// 2. Liveness Probe (Sync)
 server.get('/health', (_req, reply) => {
     reply.send({ status: 'ok', timestamp: Date.now() });
 });
 
 const start = async () => {
     try {
-        console.log('[Boot] Initializing...');
+        console.log('[Boot] Registering Plugins (Sync)...');
 
-        // 3. REGISTER PLUGINS (Non-Blocking / Parallel)
-        // We do NOT await these one-by-one to maximize boot speed.
-        // Fastify will resolve them in parallel before opening the port.
+        // 3. Register Plugins (Synchronous Registration)
+        // Standard static imports ensure all code is loaded BEFORE we try to listen.
+        // This eliminates "Async Gaps" where the server is alive but routes are missing.
 
-        // precise import order is less important than speed here, 
-        // validating that we are "Fail Open" means we listen ASAP.
-
-        server.register(import("@fastify/cors"), {
+        await server.register(cors, {
             origin: [
                 'https://fileswift.in',
                 'https://www.fileswift.in',
@@ -37,49 +51,43 @@ const start = async () => {
             credentials: true,
         });
 
-        server.register(import("@fastify/multipart"), {
+        await server.register(multipart, {
             limits: {
                 fileSize: (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024),
                 files: 100
             }
         });
 
-        server.register(import('@fastify/helmet'), { global: true });
+        await server.register(helmet, { global: true });
+        server.addHook('preHandler', rateLimitMiddleware);
 
-        // Middleware
-        import('./middleware/rateLimit').then(m => server.addHook('preHandler', m.rateLimitMiddleware));
+        // Register Routes
+        await server.register(healthRoutes);
+        await server.register(healthGsRoutes);
+        await server.register(downloadRoutes);
+        await server.register(uploadRoutes);
+        await server.register(uploadDirectRoutes);
+        await server.register(chunkUploadRoutes);
+        await server.register(toolRoutes);
+        await server.register(waitlistRoutes);
+        await server.register(feedbackRoutes);
 
-        // Routes - Registering promises allows Fastify to boot while loading IO
-        server.register(import('./routes/health').then(m => ({ default: m.healthRoutes })));
-        server.register(import('./routes/health-gs').then(m => ({ default: m.healthGsRoutes })));
-        server.register(import('./routes/download').then(m => ({ default: m.downloadRoutes })));
-        server.register(import('./routes/upload')); // default export
-        server.register(import('./routes/upload-chunk')); // default export
-        server.register(import('./routes/upload-direct')); // default export
-        server.register(import('./routes/tools')); // default export
-        server.register(import('./routes/waitlist')); // default export
-        server.register(import('./routes/feedback')); // default export
+        console.log('[Boot] Server Ready to Listen');
 
-        // 4. LISTEN (The Barrier)
-        // Fastify waits for the plugin graph to resolve, then opens the port.
+        // 4. LISTEN (Barrier)
+        // Mandatory Fix: Strict Port Binding on 0.0.0.0
         const port = Number(process.env.PORT || 8080);
         await server.listen({ port, host: '0.0.0.0' });
 
-        console.log(`[Boot] Server listening on ${port} (Ready for Traffic)`);
+        console.log(`[Boot] Server listening on ${port}`);
 
-        // 5. BACKGROUND SYSTEMS (Post-Listen)
-        // These MUST start AFTER the server is taking traffic.
+        // 5. Background Systems (Post-Boot)
+        // Strictly after listen
+        setInterval(runCleanup, 10 * 60 * 1000);
 
-        // Cleanup Service
-        import('./services/cleanup').then(({ runCleanup }) => {
-            setInterval(runCleanup, 10 * 60 * 1000);
-        });
-
-        // Worker Service (Detached)
-        import('./worker').then(({ startWorker }) => {
-            console.log('[Boot] Starting Background Worker...');
-            startWorker().catch(err => console.error('[Worker] Start failed', err));
-        });
+        // Detached Worker Start
+        console.log('[Boot] Starting Worker...');
+        startWorker().catch(err => console.error('[Worker] Failed to start:', err));
 
     } catch (err) {
         server.log.error(err);
