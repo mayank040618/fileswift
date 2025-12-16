@@ -1,8 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { isValidToolId } from "../services/toolRegistry";
 import { createJob, getJob } from "../services/queue";
-import util from 'util';
-import { pipeline } from 'stream';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -91,10 +89,10 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
         console.log("Upload endpoint mounted at /api/upload");
         const userAgent = (req.headers['user-agent'] || '').toLowerCase();
 
-        // 1. Bot Protection
-        if (userAgent.includes('curl') || userAgent.includes('python') || userAgent.includes('bot') || userAgent.includes('crawler')) {
-            return reply.code(403).send({ error: "Access denied", code: "BOT_DETECTED" });
-        }
+        // 1. Bot Protection - DISABLED (Unrestricted Mode)
+        // if (userAgent.includes('curl') || userAgent.includes('python') || userAgent.includes('bot') || userAgent.includes('crawler')) {
+        //    return reply.code(403).send({ error: "Access denied", code: "BOT_DETECTED" });
+        // }
 
         const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
         // Content-Length is useful for rate limiting check but not reliable for streaming progress often
