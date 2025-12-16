@@ -2,6 +2,5 @@
 dockerfilePath = "apps/backend/Dockerfile"
 
 [deploy]
-startCommand = "node dist/index.js"
-healthcheckPath = "/health"
+healthcheckPath = "/"
 restartPolicyType = "on_failure"
