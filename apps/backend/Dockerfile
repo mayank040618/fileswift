@@ -37,6 +37,11 @@ RUN pnpm --filter backend build
 # Set workdir to backend for runtime
 WORKDIR /app/apps/backend
 
+# Environment defaults for reliable file processing
+# USE_MOCK_QUEUE ensures jobs are processed inline (same process that uploads)
+# This prevents file access issues when workers run in separate processes/containers
+ENV USE_MOCK_QUEUE=true
+
 # Expose port
 EXPOSE 8080
 

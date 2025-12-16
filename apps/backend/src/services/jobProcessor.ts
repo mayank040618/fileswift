@@ -82,7 +82,13 @@ export const executeJob = async (job: IJob) => {
         const inputPaths: string[] = [];
 
         // 1. Prepare Input(s)
-        // 1. Prepare Input(s)
+        // Debug: Log what input files the job received
+        console.log(`[Job ${job.id}] Input files received:`, JSON.stringify(job.data.inputFiles?.map(f => ({
+            filename: f.filename,
+            path: f.path
+        })) || 'none'));
+        console.log(`[Job ${job.id}] Storage mode:`, job.data.storageMode || 'not set');
+
         if (job.data.inputFiles && job.data.inputFiles.length > 0) {
             // New Bulk Flow - Parallelized
             const inputFilesPromises = job.data.inputFiles.map(async (file, index) => {
@@ -102,12 +108,47 @@ export const executeJob = async (job: IJob) => {
                         throw new Error(`Failed to download input file: ${file.filename}`);
                     }
                 } else {
-                    // Legacy Local Move
-                    if (await fs.pathExists(file.path)) {
+                    // Legacy Local Move - with retry for race conditions
+                    let fileExists = false;
+                    const maxRetries = 3;
+
+                    console.log(`[Job] Checking file availability: ${file.path}`);
+
+                    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                        fileExists = await fs.pathExists(file.path);
+                        if (fileExists) {
+                            console.log(`[Job] File found on attempt ${attempt}: ${file.path}`);
+                            break;
+                        }
+                        if (attempt < maxRetries) {
+                            console.log(`[Job] File not found on attempt ${attempt}, retrying in 500ms...`);
+                            await new Promise(r => setTimeout(r, 500));
+                        }
+                    }
+
+                    if (fileExists) {
                         await fs.move(file.path, fileInputPath, { overwrite: true });
                     } else {
-                        // If file not found locally, maybe it failed?
-                        console.error(`[Job] Local input missing ${file.path}`);
+                        // Log detailed debug info
+                        console.error(`[Job] CRITICAL: Local input missing after ${maxRetries} retries: ${file.path}`);
+                        console.error(`[Job] Job data:`, JSON.stringify({
+                            jobId: job.id,
+                            toolId: job.data.toolId,
+                            storageMode: job.data.storageMode,
+                            inputFilesCount: job.data.inputFiles?.length,
+                            filePath: file.path,
+                            filename: file.filename
+                        }));
+
+                        // List /tmp contents for debugging
+                        try {
+                            const tmpContents = await fs.readdir('/tmp');
+                            const relevantFiles = tmpContents.filter(f => f.startsWith('upload-')).slice(0, 10);
+                            console.error(`[Job] /tmp upload files (first 10):`, relevantFiles);
+                        } catch (e) {
+                            console.error(`[Job] Could not list /tmp:`, e);
+                        }
+
                         return null;
                     }
                 }
