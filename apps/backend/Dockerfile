@@ -30,6 +30,8 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Build
+# Build utils first, then backend
+RUN pnpm --filter @fileswift/utils build
 RUN pnpm --filter backend build
 
 # Set workdir to backend for runtime
