@@ -62,8 +62,7 @@ const start = async () => {
 
         // 4. LISTEN (The Barrier)
         // Fastify waits for the plugin graph to resolve, then opens the port.
-        // Since our plugins are lazy (no DB connect), this happens in <100ms.
-        const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
+        const port = Number(process.env.PORT || 8080);
         await server.listen({ port, host: '0.0.0.0' });
 
         console.log(`[Boot] Server listening on ${port} (Ready for Traffic)`);
