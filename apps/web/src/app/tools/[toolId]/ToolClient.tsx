@@ -10,14 +10,13 @@ import { useInterval } from '@/hooks/useInterval';
 import clsx from 'clsx';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSquare } from '@/components/ads/AdSquare';
-import { FeedbackWidget } from '@/components/FeedbackWidget';
+import { Feedback } from '@/components/Feedback';
 import { ToolCard } from '@/components/ToolCard';
 import ReactMarkdown from 'react-markdown';
-// import { ChunkedUploader, XHRUploader } from '@/utils/chunkedUpload'; // Dynamic import used instead
 
-export default function ToolClient({ toolId: propToolId }: { toolId?: string }) {
+export default function ToolClient() {
     const params = useParams();
-    const toolId = propToolId || (params?.toolId as string);
+    const toolId = params.toolId as string;
     const tool = TOOLS.find(t => t.id === toolId);
 
     const [files, setFiles] = useState<File[]>([]);
@@ -29,7 +28,6 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
     const [processingStartTime, setProcessingStartTime] = useState<number | null>(null);
     const [result, setResult] = useState<any>(null); // eslint-disable-line
     const [compressionQuality, setCompressionQuality] = useState(75);
-    const [alignment, setAlignment] = useState<'top' | 'center' | 'bottom'>('center');
 
     // Chat State
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai', content: string }[]>([]);
@@ -44,256 +42,150 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
 
     if (!tool) return <div className="p-10 text-center">Tool not found</div>;
 
-    // Resume & Visibility Logic
-    useEffect(() => {
-        // Resume from LocalStorage
-        const savedJobId = localStorage.getItem(`fileswift_job_${toolId}`);
-        if (savedJobId && status === 'idle') {
-            console.log('[Resume] Found saved job:', savedJobId);
-            setJobId(savedJobId);
-            setStatus('processing');
-            setTimeRemaining('Resuming upload...');
-        }
-
-        // Tab Visibility Protection
-        const handleVisibilityChange = () => {
-            if (document.hidden && status === 'processing') {
-                // We can't blocking alert, but we can set a state to show a warning banner if needed.
-                // Or simply log. The real protection is backend not killing job + LocalStorage resume.
-                console.log('[Visibility] App backgrounded, job continues on server.');
-            } else if (!document.hidden && status === 'processing') {
-                console.log('[Visibility] App returned, polling continues.');
-                // Polling interval picks up naturally
-            }
-        };
-
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (status === 'processing' || status === 'uploading') {
-                e.preventDefault();
-                e.returnValue = ''; // Standard for Chrome
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, [toolId, status]);
-
-    const [pollingErrorStart, setPollingErrorStart] = useState<number | null>(null);
-
-    // ...
-
     useInterval(async () => {
         if (status === 'processing' && jobId && tool.id !== 'ai-chat') {
             try {
                 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
                 const res = await fetch(`${API_BASE}/api/jobs/${jobId}/status`);
+                const data = await res.json();
 
                 if (res.status === 200) {
-                    const data = await res.json();
-
-                    // ON SUCCESS: Clear any existing grace period
-                    if (pollingErrorStart) {
-                        console.log('[Job State] Connection recovered - Grace period cleared');
-                        setPollingErrorStart(null);
-                    }
-
                     if (data.status === 'completed') {
-                        console.log('[Job State] Job Completed');
                         setStatus('completed');
                         setResult(data);
-                        localStorage.removeItem(`fileswift_job_${toolId}`);
                     } else if (data.status === 'failed') {
-                        // BACKEND AUTHORITATIVE FAILURE
-                        console.log('[Job State] Failed (Confirmed by Backend):', data.error);
                         setStatus('failed');
-                        setErrorMessage(data.error || "Processing failed");
-                        localStorage.removeItem(`fileswift_job_${toolId}`);
+                        setErrorMessage(data.error);
+                        // alert(data.error || "Job failed"); // Removed alert to use inline UI
                     }
-                    // else: status is 'processing' or 'active', continue polling
-                } else {
-                    // 404, 500, 502, 429 - Treat as TRANSIENT
-                    console.warn(`[Job State] Transient HTTP Error: ${res.status} - Unknown State`);
-                    throw new Error(`HTTP ${res.status}`);
+                } else if (res.status === 404) {
+                    // Job lost (server restart?)
+                    setStatus('failed');
+                    setErrorMessage("Job not found (Server might have restarted)");
+                } else if (res.status === 429) {
+                    // Rate limit hit - stop polling to be safe
+                    setStatus('failed');
+                    setErrorMessage("Rate limit exceeded. Please try again.");
                 }
             } catch (e) {
-                const now = Date.now();
-                console.warn("[Job State] Transient Exception:", e);
-
-                // Start or Check Grace Period
-                if (!pollingErrorStart) {
-                    console.log('[Job State] Entering Grace Period (0s/90s)');
-                    setPollingErrorStart(now);
-                } else {
-                    const elapsed = now - pollingErrorStart;
-                    if (elapsed > 90000) {
-                        // 90s Grace Expired -> Hard Fail
-                        console.error("[Job State] Grace Period Expired (90s) -> Declaring Failure");
-                        setStatus('failed');
-                        setErrorMessage("Connection lost. Please try again.");
-                        localStorage.removeItem(`fileswift_job_${toolId}`);
-                    } else {
-                        console.log(`[Job State] Waiting... (${Math.round(elapsed / 1000)}s / 90s)`);
-                    }
-                }
-                // Do NOT setStatus('failed') here. Keep 'processing' UI active.
+                console.error("Polling error", e);
             }
         }
 
-        // Processing Timer & UI Updates
+        // Processing Timer Update
         if (status === 'processing' && processingStartTime) {
-            const now = Date.now();
-            const elapsed = Math.round((now - processingStartTime) / 1000);
+            const elapsed = Math.round((Date.now() - processingStartTime) / 1000);
+            setTimeRemaining(`${elapsed}s elapsed`);
 
-            // User Feedback during Uncertainty
-            if (pollingErrorStart && (now - pollingErrorStart > 3000)) {
-                setTimeRemaining("Finalizing… Network slow");
-            } else {
-                setTimeRemaining(`${elapsed}s elapsed`);
-            }
-
-            // Simulated Progress (Visual Only)
+            // Simulated Progress: Smoothly increment to 95%
             setProcessingProgress(prev => {
                 if (prev >= 95) return 95;
-                let inc = 0.2;
-                if (prev < 30) inc = 1;
-                else if (prev < 70) inc = 0.5;
-                const randomness = Math.random() * inc;
-                return Math.min(prev + randomness, 95);
+
+                // Adaptive increment based on current progress
+                let minInc = 0.5;
+                let maxInc = 1.5;
+
+                // Fast start (0-30%)
+                if (prev < 30) {
+                    minInc = 2;
+                    maxInc = 5;
+                }
+                // Medium speed (30-70%)
+                else if (prev < 70) {
+                    minInc = 1;
+                    maxInc = 3;
+                }
+                // Slow finish (>70%) to avoid getting stuck at 99 too early
+                else {
+                    minInc = 0.2;
+                    maxInc = 0.8;
+                }
+
+                // Add varied increment
+                const increment = Math.random() * (maxInc - minInc) + minInc;
+                return Math.min(prev + increment, 95);
             });
         }
     }, status === 'processing' ? 2000 : null);
 
-    // Upload Logic
     const handleUpload = async () => {
         if (files.length === 0) return;
-
-        // 1. Health Check (Optimistic)
-        // We warn the user if health check fails, but we DO NOT BLOCK.
-        // This ensures mobile wakeups/transient errors don't prevent uploads.
-        const healthResult = await checkHealth();
-        if (!healthResult.ready) {
-            console.warn('[ToolClient] Health check failed, proceeding optimistically:', healthResult.error);
-            // Optional: Show a toast? For now, silent validation.
-        }
-
         setStatus('uploading');
-        setTimeRemaining('Starting...');
-        setUploadProgress(0);
+        setTimeRemaining('Calculating...');
+        const startTime = Date.now();
 
-        // Gather Data
+        const formData = new FormData();
+        formData.append('toolId', tool.id);
+
+        // Append all files
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+
+        // Gather Inputs
         const data: Record<string, any> = {};
+
         const wInput = document.getElementById('resize-w') as HTMLInputElement;
         if (wInput?.value) data.width = wInput.value;
+
         const hInput = document.getElementById('resize-h') as HTMLInputElement;
         if (hInput?.value) data.height = hInput.value;
+
         const qInput = document.getElementById('compress-q') as HTMLInputElement;
         if (qInput?.value) data.quality = qInput.value;
+
         const angleInput = document.getElementById('rotate-angle') as HTMLSelectElement;
         if (angleInput?.value) data.angle = angleInput.value;
-        if (tool.id === 'pdf-to-image') data.format = 'png';
-        if (tool.id === 'pdf-to-image') data.format = 'png';
-        if (tool.id === 'image-to-pdf') {
-            data.format = 'pdf';
-            data.alignment = alignment;
-        }
 
-        const isMobile = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-        console.log(`[Forensic] Uploading to API_BASE: ${API_BASE} | Files: ${files.length} | Mobile: ${isMobile}`);
+        if (tool.id === 'pdf-to-image') data.format = 'png';
+        if (tool.id === 'image-to-pdf') data.format = 'pdf';
+
+        formData.append('data', JSON.stringify(data));
 
         try {
-            let responseData;
+            // 1. Upload
+            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+            const endpoint = `${API_BASE}/api/upload`;
+            console.log(`[Upload] Endpoint: ${endpoint}`);
 
-            // Strategy: DIRECT UPLOAD (Adobe-style 3-step flow)
-            console.log('[Upload] Strategy: Direct Binary Upload');
+            const responseData = await new Promise<any>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', endpoint);
 
-            // Note: DirectUploader handles single file per instance. 
-            // If multiple files, you'd iterate. BUT XHRUploader supported multiple. 
-            // For now, let's assume single file for "mobile fix" focus, or iterate.
-            // ToolClient supports multiple files array.
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded * 100) / event.total);
+                        setUploadProgress(percent);
 
-            // If multiple files, we run them sequentially or parallel.
-            // Let's do parallel for speed.
+                        // Calculate Speed & Time Remaining
+                        const elapsedSeconds = (Date.now() - startTime) / 1000;
+                        if (elapsedSeconds > 0.5) { // Wait a bit for stability
+                            const speedBytesPerSec = event.loaded / elapsedSeconds;
+                            const remainingBytes = event.total - event.loaded;
+                            const remainingSeconds = Math.ceil(remainingBytes / speedBytesPerSec);
 
-            const { DirectUploader } = await import('../../../utils/directUpload'); // Dynamic import
-
-            if (files.length === 1) {
-                const uploader = new DirectUploader(files[0], toolId, API_BASE);
-                const result = await uploader.start((p) => {
-                    setUploadProgress(p.percent);
-                }, data);
-
-                responseData = {
-                    jobId: result.jobId,
-                    uploadId: result.uploadId,
-                    status: 'processing' // Direct jump to processing
+                            if (remainingSeconds < 60) {
+                                setTimeRemaining(`${remainingSeconds}s remaining`);
+                            } else {
+                                setTimeRemaining(`${Math.ceil(remainingSeconds / 60)}m remaining`);
+                            }
+                        }
+                    }
                 };
-            } else {
-                // Multi-file support: Map each file to a DirectUploader
-                // BUT backend createJob expects "uploadedFiles" array for a single job?
-                // Or createJob supports multiple inputFiles? Yes, logic handles it.
-                // However, /confirm takes ONE key/filename.
-                // This implies Direct Upload is 1-file-to-1-job currently?
-                // If I upload 3 files, I get 3 jobs? That breaks "Merge PDF".
 
-                // CRITICAL: The requested architecture changes the game.
-                // If the user wants robust mobile, likely single file is the main pain point.
-                // But for Merge PDF?
-                // The `upload-direct.ts` I wrote supports confirming a SINGLE file key.
-                // It calls `createJob` with that key.
-                // If I upload 3 files, I get 3 jobs? That breaks "Merge PDF".
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error(xhr.responseText));
+                    }
+                };
 
-                // PATCH: For now, I will implement Single File Direct Upload.
-                // Multi-file tools might need logic adjustment in backend to support "Init Batch -> Upload X -> Confirm Batch".
-                // BUT user said "Adobe/Dropbox-grade". usually that's file-by-file.
-                // Let's stick to 1 file = 1 uploader.
-                // If files.length > 1, we might need to revert to XHR (Standard) or loop?
-                // User said "ABANDON multipart".
+                xhr.onerror = () => reject(new Error('Network Error'));
+                xhr.send(formData);
+            });
 
-                // Solution: Loop uploads, then creating job? 
-                // My `confirm` route creates the job.
-                // So currently: 1 file = 1 job.
-                // This effectively means Merge PDF needs a rewrite to "Select Jobs" or "Upload to Library then Merge".
-                // Given "Reliability Blocker" context, usually implies simple tools (Compress, Convert).
-                // I will implement for single file (common case) and throw error for multi-file or handle sequentially if tool supports mismatch.
-
-                // Actually, `XHRUploader` handled multiple files in one request.
-                // If I want to support multiple files in Direct Upload, I need:
-                // 1. Upload File A -> Key A
-                // 2. Upload File B -> Key B
-                // 3. Confirm([Key A, Key B])
-
-                // My `confirm` endpoint takes `key` (singular) and `filename` (singular).
-                // It creates a job for THAT file.
-                // So `Merge PDF` (Tool ID: merge-pdf) which needs multiple inputs, won't work with this specific `confirm` endpoint as written.
-
-                // DECISION: Support Single File Tools primarily (Compress, Convert, Rotate - 90% of use cases).
-                // If multiple files, warning: "Multi-file direct upload not yet supported, using legacy XHR".
-                // User said "ABANDON multipart".
-                // I will fallback to XHR for >1 files for now to avoid breaking Merge, 
-                // OR I simply iterate and create N jobs (which is wrong for Merge).
-
-                if (files.length > 1) {
-                    console.warn('Direct Upload currently supports single file. Falling back to XHR for multi-file.');
-                    const { XHRUploader } = await import('../../../utils/chunkedUpload');
-                    const uploader = new XHRUploader(files, toolId, API_BASE);
-                    const res = await uploader.start((p) => setUploadProgress(p.percent), data);
-                    responseData = { jobId: res.jobId, uploadId: res.uploadId, status: 'processing' };
-                } else {
-                    const uploader = new DirectUploader(files[0], toolId, API_BASE);
-                    const result = await uploader.start((p) => setUploadProgress(p.percent), data);
-                    responseData = { jobId: result.jobId, uploadId: result.uploadId, status: 'processing' };
-                }
-            }
-
-            // Success Handling
-            if (responseData?.jobId) {
-                localStorage.setItem(`fileswift_job_${tool.id}`, responseData.jobId);
+            if (responseData.jobId) {
                 setJobId(responseData.jobId);
                 setStatus('processing');
                 setProcessingStartTime(Date.now());
@@ -305,60 +197,22 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                     setChatMessages([{ role: 'ai', content: `Ready to chat with ${files[0].name}. Ask me anything!` }]);
                 }
             } else {
+                console.error("Upload failed: No jobId received", responseData);
                 setStatus('failed');
-                setErrorMessage("No Job ID received.");
+                alert(responseData.error || "Upload failed");
             }
-
         } catch (e: any) {
-            console.error("Upload failed", e);
+            console.error("Upload error", e);
             setStatus('failed');
-            setErrorMessage(e.message || "Upload failed");
-        }
-    };
-
-
-    // Fail-Open Health Check: We generally assume success unless proven otherwise.
-    const checkHealth = async (): Promise<{ ready: boolean; error?: string }> => {
-        const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-        let lastError: any;
-
-        // Try health check, but if it fails, we warn instead of blocking.
-        // We only return ready: false if we have a very specific reason to believe upload is impossible.
-        // Actually, for Adobe-grade reliability, we should probably NEVER block on a GET check.
-        // We'll return the error for logging/warning, but handleUpload will decide.
-
-        for (let i = 0; i < 3; i++) {
             try {
-                const res = await fetch(`${API_BASE}/api/health/upload`);
-                if (res.ok) {
-                    const data = await res.json();
-
-                    // Warning: Can we process? (Non-blocking)
-                    fetch(`${API_BASE}/api/health/process`)
-                        .then(r => r.json())
-                        .then(d => {
-                            if (!d.processReady) console.warn('[Health] Processing degraded:', d.error);
-                        })
-                        .catch(() => console.warn('[Health] Processing check failed'));
-
-                    if (data.uploadReady) return { ready: true };
-                }
-
-                if (res.status === 503) {
-                    await new Promise(r => setTimeout(r, 1000));
-                    continue;
-                }
-                lastError = new Error(`Server returned ${res.status}`);
-
-            } catch (e: any) {
-                console.warn(`Health check attempt ${i + 1} failed (Non-blocking warning)`, e);
-                lastError = e;
-                await new Promise(r => setTimeout(r, 1000));
+                const errorData = JSON.parse(e.message);
+                alert(errorData.error || "Upload failed");
+            } catch {
+                alert("Upload failed: " + e.message);
             }
         }
-
-        return { ready: false, error: lastError?.message || 'Connection Warning' };
     };
+
 
     const handleChatSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -424,12 +278,12 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                                             <h3 className="font-semibold mb-3 dark:text-white">Resize Options</h3>
                                             <div className="flex gap-4">
                                                 <div>
-                                                    <label htmlFor="resize-w" className="text-xs text-slate-500 block mb-1">Width (px)</label>
-                                                    <input type="number" placeholder="Auto" id="resize-w" aria-label="Resize Width" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
+                                                    <label className="text-xs text-slate-500 block mb-1">Width (px)</label>
+                                                    <input type="number" placeholder="Auto" id="resize-w" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
                                                 </div>
                                                 <div>
-                                                    <label htmlFor="resize-h" className="text-xs text-slate-500 block mb-1">Height (px)</label>
-                                                    <input type="number" placeholder="Auto" id="resize-h" aria-label="Resize Height" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
+                                                    <label className="text-xs text-slate-500 block mb-1">Height (px)</label>
+                                                    <input type="number" placeholder="Auto" id="resize-h" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
                                                 </div>
                                             </div>
                                         </div>
@@ -450,7 +304,6 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                                                 value={compressionQuality}
                                                 onChange={(e) => setCompressionQuality(parseInt(e.target.value))}
                                                 id="compress-q"
-                                                aria-label="Compression Quality"
                                                 className="w-full accent-blue-600"
                                             />
                                             <div className="flex justify-between text-xs text-slate-500 mt-1">
@@ -463,34 +316,11 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                                     {tool.id === 'rotate-pdf' && (
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                                             <h3 className="font-semibold mb-3 dark:text-white">Rotation</h3>
-                                            <select id="rotate-angle" aria-label="Rotation Angle" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
+                                            <select id="rotate-angle" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
                                                 <option value="90">90° Clockwise</option>
                                                 <option value="180">180°</option>
                                                 <option value="270">90° Counter-Clockwise</option>
                                             </select>
-                                        </div>
-
-                                    )}
-
-                                    {tool.id === 'image-to-pdf' && (
-                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-                                            <h3 className="font-semibold mb-3 dark:text-white">Image Alignment</h3>
-                                            <div className="flex bg-white dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-700">
-                                                {(['top', 'center', 'bottom'] as const).map((opt) => (
-                                                    <button
-                                                        key={opt}
-                                                        onClick={() => setAlignment(opt)}
-                                                        className={clsx(
-                                                            "flex-1 py-2 text-sm font-medium rounded-md transition-all",
-                                                            alignment === opt
-                                                                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow-sm"
-                                                                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                                                        )}
-                                                    >
-                                                        {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                                                    </button>
-                                                ))}
-                                            </div>
                                         </div>
                                     )}
 
@@ -575,7 +405,7 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                                             placeholder="Ask something about the document..."
                                             className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
                                         />
-                                        <button type="submit" aria-label="Send message" className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition-colors">
+                                        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition-colors">
                                             <Icons.ArrowRight className="w-5 h-5" />
                                         </button>
                                     </form>
@@ -664,7 +494,7 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                             )}
                         </div>
                     )}
-                    <FeedbackWidget toolId={tool.id} />
+                    <Feedback />
                 </div>
 
                 {/* Related Tools */}
@@ -769,6 +599,6 @@ export default function ToolClient({ toolId: propToolId }: { toolId?: string }) 
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 }

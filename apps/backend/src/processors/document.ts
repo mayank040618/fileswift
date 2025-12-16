@@ -2,13 +2,9 @@ import { ToolProcessor } from './types';
 import OpenAI from 'openai';
 import fs from 'fs-extra';
 // @ts-ignore
+// @ts-ignore
 // const require = createRequire(import.meta.url); // Removed for CommonJS
 
-let pdf = require('pdf-parse');
-// Handle ESM/CJS interop where require might return { default: fn }
-if (typeof pdf !== 'function' && (pdf as any).default) {
-    pdf = (pdf as any).default;
-}
 import path from 'path';
 import { spawnWithTimeout } from '../utils/spawnWithTimeout';
 
@@ -20,6 +16,9 @@ const openai = (enableAI && process.env.OPENAI_API_KEY)
 
 // Helper to extract text
 const extractText = async (filePath: string): Promise<string> => {
+    let pdf = require('pdf-parse');
+    if (typeof pdf !== 'function' && (pdf as any).default) pdf = (pdf as any).default;
+
     const dataBuffer = await fs.readFile(filePath);
     const data = await pdf(dataBuffer);
     return data.text;

@@ -30,7 +30,7 @@ const server = Fastify({
 });
 
 // 2. HEALTHCHECK — MUST BE INSTANT (Priority #1)
-server.get('/health', async (_req, reply) => {
+server.get('/health', async () => {
     return { ok: true };
 });
 

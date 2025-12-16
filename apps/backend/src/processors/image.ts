@@ -3,7 +3,7 @@ import { PDFDocument, PageSizes } from 'pdf-lib';
 import fs from 'fs-extra';
 import { normalizeImage } from '../utils/normalizeImage';
 import path from 'path';
-import sharp from 'sharp';
+// import sharp from 'sharp'; // Lazy loaded locally to prevent boot crashes
 import { zipFiles } from '../utils/zipper';
 import { pMap } from '../utils/concurrency';
 
@@ -12,6 +12,7 @@ import { pMap } from '../utils/concurrency';
 export const imageResizerProcessor: ToolProcessor = {
     id: 'image-resizer',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
+        const sharp = (await import('sharp')).default;
         const { width, height } = job.data.data || {};
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
 
@@ -30,12 +31,11 @@ export const imageResizerProcessor: ToolProcessor = {
             const outputPath = path.join(outputDir, outputFilename);
             await pipeline.toFile(outputPath);
             return outputPath;
-        }, 5); // Concurrency 5
+        }, 5);
 
         if (outputFiles.length === 1) {
             return { resultKey: path.basename(outputFiles[0]) };
         } else {
-            // Zip
             const zipName = `resized-images-${job.id}.zip`;
             await zipFiles(outputFiles, outputDir, zipName);
             return { resultKey: zipName };
@@ -134,6 +134,7 @@ export const imageCompressorProcessor: ToolProcessor = {
 export const bulkImageResizerProcessor: ToolProcessor = {
     id: 'bulk-image-resizer',
     process: async ({ job, localPath, inputPaths, outputDir }) => {
+        const sharp = (await import('sharp')).default;
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
 
         const outputFiles = await pMap(inputs, async (input) => {
