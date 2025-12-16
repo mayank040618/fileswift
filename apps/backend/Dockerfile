@@ -1,6 +1,6 @@
 
 # Base image with Node.js
-FROM node:18-bullseye
+FROM node:20-bullseye
 
 # Install system dependencies for file processing
 RUN apt-get update && apt-get install -y \
