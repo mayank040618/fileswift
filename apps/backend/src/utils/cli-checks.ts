@@ -34,7 +34,9 @@ export const checkTools = async (force = false): Promise<ToolStatus> => {
 
     // Check Ghostscript
     try {
-        const gs = await spawnWithTimeout('gs', ['--version'], {}, 2000);
+        console.log('[checkTools] Checking gs --version...');
+        const gs = await spawnWithTimeout('gs', ['--version'], {}, 5000); // Increased to 5s
+        console.log(`[checkTools] gs result: code=${gs.code}, stdout=${gs.stdout?.substring(0, 20)}`);
         if (gs.code === 0) {
             status.ghostscript = true;
             status.gsVersion = gs.stdout.trim();
@@ -42,7 +44,8 @@ export const checkTools = async (force = false): Promise<ToolStatus> => {
             status.ghostscript = false;
             status.gsVersion = null;
         }
-    } catch {
+    } catch (e: any) {
+        console.error('[checkTools] gs check failed', e.message);
         status.ghostscript = false;
         status.gsVersion = null;
     }
