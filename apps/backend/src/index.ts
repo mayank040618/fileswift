@@ -48,7 +48,8 @@ const start = async () => {
 
         // Rate limit middleware hook
         server.addHook('preHandler', async (req, reply) => {
-            if (req.url === '/health' || req.url.startsWith('/health')) return;
+            // Skip Rate Limit for Health Checks and Root (Load Balancers)
+            if (req.url === '/health' || req.url.startsWith('/health') || req.url === '/') return;
             // rateLimitMiddleware is purely in-memory/fs, we assume it's safe.
             // If it uses Redis, it must duplicate check logic safely.
             await rateLimitMiddleware(req, reply);
