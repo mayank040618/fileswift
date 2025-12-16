@@ -35,62 +35,79 @@ server.get('/health', (_req, reply) => {
 
 const start = async () => {
     try {
-        console.log('[Boot] Registering Plugins (Sync)...');
+        console.log('[Boot] Initializing...');
 
-        // 3. Register Plugins (Synchronous Registration)
-        // Standard static imports ensure all code is loaded BEFORE we try to listen.
-        // This eliminates "Async Gaps" where the server is alive but routes are missing.
+        // 3. Register Plugins (Robust Mode)
+        // We wrap steps in try-catch to ensure one bad plugin doesn't kill the whole server.
 
-        await server.register(cors, {
-            origin: [
-                'https://fileswift.in',
-                'https://www.fileswift.in',
-                'https://fileswift-app.vercel.app',
-                'http://localhost:3000',
-            ],
-            credentials: true,
-        });
+        try {
+            console.log('[Boot] Registering Core Middleware...');
+            await server.register(cors, {
+                origin: [
+                    'https://fileswift.in',
+                    'https://www.fileswift.in',
+                    'https://fileswift-app.vercel.app',
+                    'http://localhost:3000',
+                ],
+                credentials: true,
+            });
 
-        await server.register(multipart, {
-            limits: {
-                fileSize: (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024),
-                files: 100
+            await server.register(multipart, {
+                limits: {
+                    fileSize: (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024),
+                    files: 100
+                }
+            });
+
+            await server.register(helmet, { global: true });
+            server.addHook('preHandler', rateLimitMiddleware);
+            console.log('[Boot] Core Middleware Registered');
+        } catch (e) {
+            console.error('[Boot] CRITICAL: Core Middleware Failed', e);
+            // We continue, but this is bad.
+        }
+
+        // Register Routes (Granular Checks)
+        const safeRegister = async (name: string, plugin: any) => {
+            try {
+                // console.log(`[Boot] Registering ${name}...`);
+                await server.register(plugin);
+            } catch (e) {
+                console.error(`[Boot] FAILED to register ${name}`, e);
             }
-        });
+        };
 
-        await server.register(helmet, { global: true });
-        server.addHook('preHandler', rateLimitMiddleware);
+        await safeRegister('Health (App)', healthRoutes);
+        await safeRegister('Health (GS)', healthGsRoutes);
+        await safeRegister('Download', downloadRoutes);
+        await safeRegister('Upload (Main)', uploadRoutes);
+        await safeRegister('Upload (Direct)', uploadDirectRoutes);
+        await safeRegister('Upload (Chunk)', chunkUploadRoutes);
+        await safeRegister('Tools', toolRoutes);
+        await safeRegister('Waitlist', waitlistRoutes);
+        await safeRegister('Feedback', feedbackRoutes);
 
-        // Register Routes
-        await server.register(healthRoutes);
-        await server.register(healthGsRoutes);
-        await server.register(downloadRoutes);
-        await server.register(uploadRoutes);
-        await server.register(uploadDirectRoutes);
-        await server.register(chunkUploadRoutes);
-        await server.register(toolRoutes);
-        await server.register(waitlistRoutes);
-        await server.register(feedbackRoutes);
-
-        console.log('[Boot] Server Ready to Listen');
+        console.log('[Boot] All Routes Processed');
 
         // 4. LISTEN (Barrier)
-        // Mandatory Fix: Strict Port Binding on 0.0.0.0
         const port = Number(process.env.PORT || 8080);
+        console.log(`[Boot] Attempting to listen on ${port}...`);
+
         await server.listen({ port, host: '0.0.0.0' });
 
-        console.log(`[Boot] Server listening on ${port}`);
+        console.log(`[Boot] Server listening on ${port} (Ready for Traffic)`);
 
         // 5. Background Systems (Post-Boot)
-        // Strictly after listen
-        setInterval(runCleanup, 10 * 60 * 1000);
-
-        // Detached Worker Start
-        console.log('[Boot] Starting Worker...');
-        startWorker().catch(err => console.error('[Worker] Failed to start:', err));
+        try {
+            setInterval(runCleanup, 10 * 60 * 1000);
+            console.log('[Boot] Starting Worker...');
+            startWorker().catch(err => console.error('[Worker] Failed to start:', err));
+        } catch (e) {
+            console.error('[Boot] Background Systems Error', e);
+        }
 
     } catch (err) {
-        server.log.error(err);
+        console.error('[Boot] FATAL ERROR', err);
         process.exit(1);
     }
 };
