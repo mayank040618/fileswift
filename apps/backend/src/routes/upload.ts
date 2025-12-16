@@ -281,18 +281,24 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                     let finalPath = '';
 
                     if (result.resultKey) {
-                        // If resultKey is a full URL (e.g., R2), use it directly.
-                        if (result.resultKey.startsWith('http')) {
+                        // If using Cloud Storage, prefer the pre-calculated downloadUrl (Signed URL)
+                        const isCloudStorage = process.env.STORAGE_PROVIDER === 's3' || process.env.STORAGE_PROVIDER === 'r2';
+
+                        if (isCloudStorage && result.downloadUrl && result.downloadUrl.startsWith('http')) {
+                            downloadUrl = result.downloadUrl;
+                        }
+                        // If resultKey is explicitly a URL (legacy/external), use it
+                        else if (result.resultKey.startsWith('http')) {
                             downloadUrl = result.resultKey;
                         } else {
-                            // Assume resultKey is a local file path -> Generate Secure Token
+                            // Local File Path -> Generate Secure Token
                             finalPath = result.resultKey;
                             const token = uploadState.createDownloadToken(finalPath);
                             const apiUrl = (process.env.PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
                             downloadUrl = `${apiUrl}/api/download/${token}`;
                         }
                     } else if (result.downloadUrl) {
-                        downloadUrl = result.downloadUrl; // Fallback to provided URL
+                        downloadUrl = result.downloadUrl; // Fallback
                     }
 
                     if (result.resultKey) fileName = path.basename(result.resultKey);

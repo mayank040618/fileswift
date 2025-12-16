@@ -252,9 +252,20 @@ export const executeJob = async (job: IJob) => {
         // IMPORTANT: For local serving, we must use result.resultKey (the file in /tmp) 
         // because finalKey (from uploadToR2) might have an extra timestamp prepended.
         const apiUrl = (process.env.PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
-        const primaryDownloadUrl = finalKey.startsWith('http')
-            ? finalKey
-            : `${apiUrl}/api/download/${job.id}/${path.basename(result.resultKey)}`;
+        let primaryDownloadUrl = '';
+
+        if (finalKey.startsWith('http')) {
+            primaryDownloadUrl = finalKey;
+        } else {
+            // Check if it's an R2 upload (heuristic: we just uploaded it or it's in env)
+            const isR2 = process.env.STORAGE_PROVIDER === 's3' || process.env.STORAGE_PROVIDER === 'r2';
+            if (isR2) {
+                const { getDownloadUrl } = await import('./storage');
+                primaryDownloadUrl = await getDownloadUrl(finalKey);
+            } else {
+                primaryDownloadUrl = `${apiUrl}/api/download/${job.id}/${path.basename(result.resultKey)}`;
+            }
+        }
 
         console.log(JSON.stringify({
             event: 'JOB_FINISHED',
