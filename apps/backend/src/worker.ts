@@ -1,42 +1,51 @@
-// Standalone Worker Process
-import { Worker } from 'bullmq';
-import { config } from 'dotenv';
+// Standalone Worker Logic (Lazy Loaded)
 import path from 'path';
 import { runCleanup } from './services/cleanup';
 
-config();
-
-const getConnectionConfig = () => {
-    if (process.env.REDIS_URL) {
-        try {
-            const url = new URL(process.env.REDIS_URL);
-            return {
-                host: url.hostname,
-                port: parseInt(url.port || '6379'),
-                username: url.username,
-                password: url.password,
-                ...(url.protocol === 'rediss:' ? { tls: { rejectUnauthorized: false } } : {})
-            };
-        } catch (e) {
-            console.error('Invalid REDIS_URL', e);
-        }
-    }
-    return {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-    };
-};
-
-const connection = getConnectionConfig();
+// NOTE: We do NOT import BullMQ or Redis here at the top level.
+// This ensures that importing this file in index.ts is safe and instant.
 
 export const startWorker = async () => {
-    if (process.env.USE_MOCK_QUEUE === 'true') {
-        console.log("Worker skipped (Mock Queue enabled)");
-        return;
-    }
+    console.log("🔄 Starting background worker...");
 
     try {
+        // 1. Lazy Import Dependencies
+        const { Worker } = await import('bullmq');
+        const { config } = await import('dotenv');
+        config();
+
+        // 2. Resolve Connection Config (Lazy)
+        const getConnectionConfig = () => {
+            if (process.env.REDIS_URL) {
+                try {
+                    const url = new URL(process.env.REDIS_URL);
+                    return {
+                        host: url.hostname,
+                        port: parseInt(url.port || '6379'),
+                        username: url.username,
+                        password: url.password,
+                        ...(url.protocol === 'rediss:' ? { tls: { rejectUnauthorized: false } } : {})
+                    };
+                } catch (e) {
+                    console.error('Invalid REDIS_URL', e);
+                }
+            }
+            return {
+                host: process.env.REDIS_HOST || 'localhost',
+                port: parseInt(process.env.REDIS_PORT || '6379'),
+            };
+        };
+        const connection = getConnectionConfig();
+
+        // 3. Skip if Mock (Optional)
+        if (process.env.USE_MOCK_QUEUE === 'true') {
+            console.log("Worker skipped (Mock Queue enabled)");
+            return;
+        }
+
+        // 4. Initialize Worker
         const processorPath = path.join(__dirname, 'processors', 'sandboxed' + (path.extname(__filename) === '.ts' ? '.ts' : '.js'));
+
         const worker = new Worker('file-processing', processorPath, {
             connection,
             concurrency: 5,
@@ -48,33 +57,25 @@ export const startWorker = async () => {
         worker.on('completed', job => console.log(`[JOB COMPLETED] ${job.id}`));
         worker.on('failed', (job, err) => console.error(`[JOB FAILED] ${job?.id} - Error: ${err.message}`));
 
-        console.log(`[Worker] Started with Redis connection (Sandboxed, Concurrency: 5)`);
+        console.log("✅ Worker running (Redis Connected)");
+
+        // 5. Start Cleanup Service (Background)
+        setInterval(() => {
+            runCleanup().catch(err => console.error('[Cleanup] Failed', err));
+        }, 10 * 60 * 1000);
+
+        // Initial cleanup run
+        runCleanup().catch(() => { });
 
         // Graceful Shutdown
         const shutdown = async () => {
             console.log('[Worker] Closing...');
             await worker.close();
-            process.exit(0);
         };
         process.on('SIGTERM', shutdown);
-        process.on('SIGINT', shutdown);
 
     } catch (e) {
-        console.warn("Failed to start worker (Redis likely missing or path error)", e);
+        console.error("❌ Worker failed to start", e);
+        // Important: We do NOT exit specificially here, we let the main server keep running
     }
 };
-
-// Execute if running directly
-if (require.main === module) {
-    console.log("[Worker Process] Booting...");
-
-    // Start Cleanup Service (Cron)
-    setInterval(runCleanup, 10 * 60 * 1000);
-    console.log("[Worker Process] Cleanup Service Scheduled");
-
-    // Start Queue Worker
-    startWorker().catch(err => {
-        console.error("[Worker Process] Fatal Error", err);
-        process.exit(1);
-    });
-}

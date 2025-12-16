@@ -8,12 +8,10 @@ import multipart from "@fastify/multipart";
 import helmet from "@fastify/helmet";
 import { rateLimitMiddleware } from './middleware/rateLimit';
 
-// Services
-import { runCleanup } from './services/cleanup';
+// Services (Lazy Start)
 import { startWorker } from './worker';
 
-// Route Imports (Static & Simple)
-// We rely on the fact that these modules utilize LAZY initialization for ext. systems (Redis/Queue)
+// Route Imports
 import { healthRoutes } from './routes/health';
 import { healthGsRoutes } from './routes/health-gs';
 import { downloadRoutes } from './routes/download';
@@ -31,9 +29,9 @@ const server = Fastify({
     bodyLimit: 10485760,
 });
 
-// 2. Healthcheck (Defined FIRST, Zero Dependencies)
-server.get('/health', (_req, reply) => {
-    reply.code(200).send({ ok: true });
+// 2. HEALTHCHECK — MUST BE INSTANT (Priority #1)
+server.get('/health', async (_req, reply) => {
+    return { ok: true };
 });
 
 const start = async () => {
@@ -41,7 +39,7 @@ const start = async () => {
         console.log('[Boot] Initializing...');
 
         // 3. Register Plugins
-        server.register(cors, {
+        await server.register(cors, {
             origin: [
                 'https://fileswift.in',
                 'https://www.fileswift.in',
@@ -51,14 +49,14 @@ const start = async () => {
             credentials: true,
         });
 
-        server.register(multipart, {
+        await server.register(multipart, {
             limits: {
                 fileSize: (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024),
                 files: 100
             }
         });
 
-        server.register(helmet, { global: true });
+        await server.register(helmet, { global: true });
 
         // Middleware Isolation (Skip /health explicitly)
         server.addHook('preHandler', async (req, reply) => {
@@ -66,8 +64,7 @@ const start = async () => {
             await rateLimitMiddleware(req, reply);
         });
 
-        // Register Routes (Standard Static Registration)
-        // Simple, Readable, Debuggable.
+        // Register Routes
         await server.register(healthRoutes);
         await server.register(healthGsRoutes);
         await server.register(downloadRoutes);
@@ -78,33 +75,21 @@ const start = async () => {
         await server.register(waitlistRoutes);
         await server.register(feedbackRoutes);
 
-        console.log('[Boot] Routes Registered. Starting Server...');
+        console.log('[Boot] Routes Registered.');
 
-        // 4. LISTEN (The First Barrier)
-        // Mandatory Fix: Strict Port Binding on 0.0.0.0
+        // 4. START SERVER FIRST (NON-NEGOTIABLE)
         const port = Number(process.env.PORT || 8080);
+
         await server.listen({ port, host: '0.0.0.0' });
 
-        console.log(`[Boot] Server listening on ${port} (Ready for Traffic)`);
+        console.log(`🚀 Server listening on port ${port}`);
 
-        // 5. Background Systems (Restored Monolith)
-        // Started strictly AFTER listen to ensure Healthcheck passes first
-
-        try {
-            console.log('[Boot] Starting Background Systems...');
-
-            // Cleanup Service
-            setInterval(runCleanup, 10 * 60 * 1000);
-
-            // Worker Service
-            // We catch errors here so the HTTP server stays alive even if Redis fails
-            startWorker().catch(err => {
-                console.error('[Worker] Failed to start:', err);
-            });
-
-        } catch (e) {
-            console.error('[Boot] Background Systems Error:', e);
-        }
+        // 5. START WORKER AFTER SERVER IS LIVE
+        console.log('🔄 Triggering Background Worker...');
+        startWorker().catch(err => {
+            console.error('❌ Worker failed to start', err);
+            // We do NOT crash the server. HTTP must remain active.
+        });
 
     } catch (err) {
         console.error('[Boot] FATAL ERROR', err);

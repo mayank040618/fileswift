@@ -41,5 +41,5 @@ WORKDIR /app/apps/backend
 EXPOSE 8080
 
 # Start
-# Start via npm to respect package.json scripts (and debug logs)
-CMD ["npm", "run", "start"]
+# Start via npm to respect package.json# Strict CMD
+CMD ["npm", "start"]
