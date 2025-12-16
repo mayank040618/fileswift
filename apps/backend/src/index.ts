@@ -1,28 +1,14 @@
 // Services - Pure HTTP Server
 // STRICT PRODUCTION BOOT SEQUENCE
-
 import './config/env';
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import helmet from "@fastify/helmet";
 import { rateLimitMiddleware } from './middleware/rateLimit';
+import { initBackgroundServices } from './background';
 
-// Services (Lazy Start)
-import { startWorker } from './worker';
-
-// Route Imports
-import { healthRoutes } from './routes/health';
-import { healthGsRoutes } from './routes/health-gs';
-import { downloadRoutes } from './routes/download';
-import uploadRoutes from './routes/upload';
-import uploadDirectRoutes from './routes/upload-direct';
-import chunkUploadRoutes from "./routes/upload-chunk";
-import toolRoutes from './routes/tools';
-import waitlistRoutes from './routes/waitlist';
-import feedbackRoutes from './routes/feedback';
-
-// 1. Initialize Server
+// 1. Initialize Server (Bare metal)
 const server = Fastify({
     logger: true,
     connectionTimeout: 180000,
@@ -30,15 +16,17 @@ const server = Fastify({
 });
 
 // 2. HEALTHCHECK — MUST BE INSTANT (Priority #1)
+// ❗ RULE: Nothing async is allowed before app.listen()
 server.get('/health', async () => {
-    return { ok: true };
+    return { status: 'ok' }; // Standardized response
 });
 
 const start = async () => {
     try {
-        console.log('[Boot] Initializing...');
+        const PORT = Number(process.env.PORT || 8080);
+        console.log('[Boot] HTTP Server init...');
 
-        // 3. Register Plugins
+        // 3. Register Critical Middleware (Fast & Required for security)
         await server.register(cors, {
             origin: [
                 'https://fileswift.in',
@@ -48,47 +36,28 @@ const start = async () => {
             ],
             credentials: true,
         });
-
         await server.register(multipart, {
-            limits: {
-                fileSize: (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024),
-                files: 100
-            }
+            limits: { fileSize: (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024), files: 100 }
         });
-
         await server.register(helmet, { global: true });
 
-        // Middleware Isolation (Skip /health explicitly)
+        // Rate limit middleware hook
         server.addHook('preHandler', async (req, reply) => {
             if (req.url === '/health' || req.url.startsWith('/health')) return;
+            // rateLimitMiddleware is purely in-memory/fs, we assume it's safe.
+            // If it uses Redis, it must duplicate check logic safely.
             await rateLimitMiddleware(req, reply);
         });
 
-        // Register Routes
-        await server.register(healthRoutes);
-        await server.register(healthGsRoutes);
-        await server.register(downloadRoutes);
-        await server.register(uploadRoutes);
-        await server.register(uploadDirectRoutes);
-        await server.register(chunkUploadRoutes);
-        await server.register(toolRoutes);
-        await server.register(waitlistRoutes);
-        await server.register(feedbackRoutes);
+        // 4. BIND TO PORT FIRST (NON-NEGOTIABLE)
+        // 🚨 CRITICAL: bind FIRST
+        await server.listen({ port: PORT, host: '0.0.0.0' });
+        console.log('[BOOT] HTTP server listening on', PORT);
 
-        console.log('[Boot] Routes Registered.');
-
-        // 4. START SERVER FIRST (NON-NEGOTIABLE)
-        const port = Number(process.env.PORT || 8080);
-
-        await server.listen({ port, host: '0.0.0.0' });
-
-        console.log(`🚀 Server listening on port ${port}`);
-
-        // 5. START WORKER AFTER SERVER IS LIVE
-        console.log('🔄 Triggering Background Worker...');
-        startWorker().catch(err => {
-            console.error('❌ Worker failed to start', err);
-            // We do NOT crash the server. HTTP must remain active.
+        // 5. START BACKGROUND SERVICES (Async / Non-Blocking)
+        // ⬇️ EVERYTHING below must be async & non-blocking
+        initBackgroundServices(server).catch(err => {
+            console.error('[BOOT] Background init failed', err);
         });
 
     } catch (err) {
