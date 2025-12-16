@@ -10,7 +10,7 @@ import { useInterval } from '@/hooks/useInterval';
 import clsx from 'clsx';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSquare } from '@/components/ads/AdSquare';
-import { Feedback } from '@/components/Feedback';
+import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { ToolCard } from '@/components/ToolCard';
 import ReactMarkdown from 'react-markdown';
 
@@ -494,7 +494,7 @@ export default function ToolClient() {
                             )}
                         </div>
                     )}
-                    <Feedback />
+                    <FeedbackWidget toolId={tool.id} />
                 </div>
 
                 {/* Related Tools */}
