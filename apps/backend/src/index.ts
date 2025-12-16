@@ -33,12 +33,7 @@ const start = async () => {
 
         // 3. Register Critical Middleware (Fast & Required for security)
         await server.register(cors, {
-            origin: [
-                'https://fileswift.in',
-                'https://www.fileswift.in',
-                'https://fileswift-app.vercel.app',
-                'http://localhost:3000',
-            ],
+            origin: true, // Allow all origins for debugging (TEMPORARY)
             credentials: true,
         });
         await server.register(multipart, {
