@@ -99,22 +99,22 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
         const contentLengthHeader = req.headers['content-length'];
         const contentLength = contentLengthHeader ? parseInt(contentLengthHeader) : 0;
 
-        // 2. Rate Limiting (Fair Usage)
-        rateLimit.trackAttempt(ip);
-        const limitResult = rateLimit.check(ip, contentLength);
+        // 2. Rate Limiting (Fair Usage) - DISABLED FOR DEBUGGING
+        // rateLimit.trackAttempt(ip);
+        // const limitResult = rateLimit.check(ip, contentLength);
 
-        if (limitResult.blocked) {
-            return reply.code(429).send({
-                error: "Fair usage limit reached (25 uploads/hour). Please try again later.",
-                code: "UPLOAD_HOURLY_LIMIT_REACHED",
-                retryAfterMinutes: limitResult.remaining
-            });
-        }
+        // if (limitResult.blocked) {
+        //     return reply.code(429).send({
+        //         error: "Fair usage limit reached (25 uploads/hour). Please try again later.",
+        //         code: "UPLOAD_HOURLY_LIMIT_REACHED",
+        //         retryAfterMinutes: limitResult.remaining
+        //     });
+        // }
 
-        if (limitResult.delay > 0) {
-            // Soft Limit Throttling
-            await new Promise(resolve => setTimeout(resolve, limitResult.delay));
-        }
+        // if (limitResult.delay > 0) {
+        //     // Soft Limit Throttling
+        //     await new Promise(resolve => setTimeout(resolve, limitResult.delay));
+        // }
 
         const requestId = req.id;
         const uploadId = uuidv4();
@@ -217,8 +217,8 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 progress: 100
             });
 
-            // Increment Usage Count (Successful only)
-            rateLimit.incrementSuccess(ip, contentLength);
+            // Increment Usage Count (Successful only) - DISABLED
+            // rateLimit.incrementSuccess(ip, contentLength);
 
             req.log.info({ msg: 'Sending 202 Response', uploadId, jobId: job.id });
             // Reply with 202 and IDs
