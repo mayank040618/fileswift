@@ -197,10 +197,15 @@ export default function ToolClient() {
                     // Root cause is usually mobile browser cutting connection on slow response.
                     // Since we fixed backend to be ACK-first, this should be rare.
                     // If it happens, we assume it failed but we log it.
-                    console.warn('[Upload] Network Error / XHR Error triggered');
+                    console.error('[Upload] XHR Network Error triggered');
+                    console.error('[Upload] Status:', xhr.status);
+                    console.error('[Upload] ReadyState:', xhr.readyState);
+                    console.error('[Upload] ResponseText:', xhr.responseText);
                     reject(new Error('Network Error (Check connection)'));
                 };
 
+                console.log('[Upload] Sending XHR with formData, files count:', files.length);
+                console.log('[Upload] FormData toolId:', formData.get('toolId'));
                 xhr.send(formData);
             });
 
