@@ -5,22 +5,9 @@ import multipart from "@fastify/multipart";
 import helmet from "@fastify/helmet";
 import { rateLimitMiddleware } from './middleware/rateLimit';
 
-// Routes
-import { healthRoutes } from './routes/health';
-import { healthGsRoutes } from './routes/health-gs';
-import { downloadRoutes } from './routes/download';
-import uploadRoutes from './routes/upload';
-import uploadDirectRoutes from './routes/upload-direct';
-import chunkUploadRoutes from "./routes/upload-chunk";
-import toolRoutes from './routes/tools';
-import waitlistRoutes from './routes/waitlist';
-import feedbackRoutes from './routes/feedback';
-
-// Services
-// NOTE: Worker and Cleanup are now moved to 'worker.ts' and run in a separate process.
-// This ensures the HTTP server is pure and instant-start.
-
+// Services - Pure HTTP Server
 // STRICT PRODUCTION BOOT SEQUENCE
+
 // 1. Initialize Server
 const server = Fastify({
     logger: true,
@@ -28,18 +15,17 @@ const server = Fastify({
     bodyLimit: 10485760,
 });
 
-// 2. Liveness Probe (Sync)
+// 2. Healthcheck (MANDATORY FIX: Defined FIRST, Zero Dependencies)
 server.get('/health', (_req, reply) => {
-    reply.send({ status: 'ok', timestamp: Date.now() });
+    reply.code(200).send({ ok: true });
 });
 
 const start = async () => {
     try {
         console.log('[Boot] Initializing...');
 
-        // 3. Register Plugins (Non-Blocking)
-        // We do NOT await these. Fastify queues them and resolves them during boot.
-        // This ensures 'listen' is the FIRST blocking await.
+        // 3. Register Plugins
+        // We do NOT await these. Fastify queues them.
 
         server.register(cors, {
             origin: [
@@ -59,18 +45,27 @@ const start = async () => {
         });
 
         server.register(helmet, { global: true });
-        server.addHook('preHandler', rateLimitMiddleware);
 
-        // Register Routes (Non-Blocking)
-        server.register(healthRoutes);
-        server.register(healthGsRoutes);
-        server.register(downloadRoutes);
-        server.register(uploadRoutes);
-        server.register(uploadDirectRoutes);
-        server.register(chunkUploadRoutes);
-        server.register(toolRoutes);
-        server.register(waitlistRoutes);
-        server.register(feedbackRoutes);
+        // Middleware Isolation (Skip /health explicitly)
+        server.addHook('preHandler', async (req, reply) => {
+            if (req.url === '/health' || req.url.startsWith('/health')) return;
+            await rateLimitMiddleware(req, reply);
+        });
+
+        // Register Routes (Dynamic Importing with Safe Wrappers)
+
+        // Named Exports need wrapper: m -> { default: m.NamedConfig }
+        server.register(import('./routes/health').then(m => ({ default: m.healthRoutes })));
+        server.register(import('./routes/health-gs').then(m => ({ default: m.healthGsRoutes })));
+        server.register(import('./routes/download').then(m => ({ default: m.downloadRoutes })));
+
+        // Default Exports work directly
+        server.register(import('./routes/upload'));
+        server.register(import('./routes/upload-direct'));
+        server.register(import('./routes/upload-chunk'));
+        server.register(import('./routes/tools'));
+        server.register(import('./routes/waitlist'));
+        server.register(import('./routes/feedback'));
 
         console.log('[Boot] Plugins Queued. Starting Server...');
 
