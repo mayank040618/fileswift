@@ -6,7 +6,6 @@
         "dev": "tsx watch src/index.ts",
         "build": "rm -rf dist && tsc -p tsconfig.prod.json",
         "start": "node dist/index.js",
-        "start:worker": "node dist/worker.js",
         "start:dev": "tsx src/index.ts",
         "lint": "eslint .",
         "test:smoke": "tsx scripts/verify-all.ts",

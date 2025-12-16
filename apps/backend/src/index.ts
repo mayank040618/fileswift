@@ -1,9 +1,16 @@
+// Services - Pure HTTP Server
+// STRICT PRODUCTION BOOT SEQUENCE
+
 import './config/env';
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import helmet from "@fastify/helmet";
 import { rateLimitMiddleware } from './middleware/rateLimit';
+
+// Services
+import { runCleanup } from './services/cleanup';
+import { startWorker } from './worker';
 
 // Route Imports (Static & Simple)
 // We rely on the fact that these modules utilize LAZY initialization for ext. systems (Redis/Queue)
@@ -17,9 +24,6 @@ import toolRoutes from './routes/tools';
 import waitlistRoutes from './routes/waitlist';
 import feedbackRoutes from './routes/feedback';
 
-// Services - Pure HTTP Server
-// STRICT PRODUCTION BOOT SEQUENCE
-
 // 1. Initialize Server
 const server = Fastify({
     logger: true,
@@ -27,7 +31,7 @@ const server = Fastify({
     bodyLimit: 10485760,
 });
 
-// 2. Healthcheck (MANDATORY FIX: Defined FIRST, Zero Dependencies)
+// 2. Healthcheck (Defined FIRST, Zero Dependencies)
 server.get('/health', (_req, reply) => {
     reply.code(200).send({ ok: true });
 });
@@ -37,8 +41,6 @@ const start = async () => {
         console.log('[Boot] Initializing...');
 
         // 3. Register Plugins
-        // We do NOT await these. Fastify queues them.
-
         server.register(cors, {
             origin: [
                 'https://fileswift.in',
@@ -84,6 +86,25 @@ const start = async () => {
         await server.listen({ port, host: '0.0.0.0' });
 
         console.log(`[Boot] Server listening on ${port} (Ready for Traffic)`);
+
+        // 5. Background Systems (Restored Monolith)
+        // Started strictly AFTER listen to ensure Healthcheck passes first
+
+        try {
+            console.log('[Boot] Starting Background Systems...');
+
+            // Cleanup Service
+            setInterval(runCleanup, 10 * 60 * 1000);
+
+            // Worker Service
+            // We catch errors here so the HTTP server stays alive even if Redis fails
+            startWorker().catch(err => {
+                console.error('[Worker] Failed to start:', err);
+            });
+
+        } catch (e) {
+            console.error('[Boot] Background Systems Error:', e);
+        }
 
     } catch (err) {
         console.error('[Boot] FATAL ERROR', err);
