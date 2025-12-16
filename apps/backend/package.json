@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "tsx watch src/index.ts",
         "build": "rm -rf dist && tsc -p tsconfig.prod.json",
-        "start": "node dist/index.js",
+        "start": "echo '[Start] Files in dist:' && ls -R dist && echo '[Start] Node ver:' && node -v && echo '[Start] Launching...' && node dist/index.js",
         "start:dev": "tsx src/index.ts",
         "lint": "eslint .",
         "test:smoke": "tsx scripts/verify-all.ts",
