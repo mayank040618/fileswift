@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm and tsx (required for monorepo TS execution)
+RUN npm install -g pnpm tsx
 
 # Copy package files (monorepo structure awareness)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
