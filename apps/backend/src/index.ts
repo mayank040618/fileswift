@@ -37,74 +37,55 @@ const start = async () => {
     try {
         console.log('[Boot] Initializing...');
 
-        // 3. Register Plugins (Robust Mode)
-        // We wrap steps in try-catch to ensure one bad plugin doesn't kill the whole server.
+        // 3. Register Plugins (Non-Blocking)
+        // We do NOT await these. Fastify queues them and resolves them during boot.
+        // This ensures 'listen' is the FIRST blocking await.
 
-        try {
-            console.log('[Boot] Registering Core Middleware...');
-            await server.register(cors, {
-                origin: [
-                    'https://fileswift.in',
-                    'https://www.fileswift.in',
-                    'https://fileswift-app.vercel.app',
-                    'http://localhost:3000',
-                ],
-                credentials: true,
-            });
+        server.register(cors, {
+            origin: [
+                'https://fileswift.in',
+                'https://www.fileswift.in',
+                'https://fileswift-app.vercel.app',
+                'http://localhost:3000',
+            ],
+            credentials: true,
+        });
 
-            await server.register(multipart, {
-                limits: {
-                    fileSize: (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024),
-                    files: 100
-                }
-            });
-
-            await server.register(helmet, { global: true });
-            server.addHook('preHandler', rateLimitMiddleware);
-            console.log('[Boot] Core Middleware Registered');
-        } catch (e) {
-            console.error('[Boot] CRITICAL: Core Middleware Failed', e);
-            // We continue, but this is bad.
-        }
-
-        // Register Routes (Granular Checks)
-        const safeRegister = async (name: string, plugin: any) => {
-            try {
-                // console.log(`[Boot] Registering ${name}...`);
-                await server.register(plugin);
-            } catch (e) {
-                console.error(`[Boot] FAILED to register ${name}`, e);
+        server.register(multipart, {
+            limits: {
+                fileSize: (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024),
+                files: 100
             }
-        };
+        });
 
-        await safeRegister('Health (App)', healthRoutes);
-        await safeRegister('Health (GS)', healthGsRoutes);
-        await safeRegister('Download', downloadRoutes);
-        await safeRegister('Upload (Main)', uploadRoutes);
-        await safeRegister('Upload (Direct)', uploadDirectRoutes);
-        await safeRegister('Upload (Chunk)', chunkUploadRoutes);
-        await safeRegister('Tools', toolRoutes);
-        await safeRegister('Waitlist', waitlistRoutes);
-        await safeRegister('Feedback', feedbackRoutes);
+        server.register(helmet, { global: true });
+        server.addHook('preHandler', rateLimitMiddleware);
 
-        console.log('[Boot] All Routes Processed');
+        // Register Routes (Non-Blocking)
+        server.register(healthRoutes);
+        server.register(healthGsRoutes);
+        server.register(downloadRoutes);
+        server.register(uploadRoutes);
+        server.register(uploadDirectRoutes);
+        server.register(chunkUploadRoutes);
+        server.register(toolRoutes);
+        server.register(waitlistRoutes);
+        server.register(feedbackRoutes);
 
-        // 4. LISTEN (Barrier)
+        console.log('[Boot] Plugins Queued. Starting Server...');
+
+        // 4. LISTEN (The First Barrier)
+        // Mandatory Fix: Strict Port Binding on 0.0.0.0
         const port = Number(process.env.PORT || 8080);
-        console.log(`[Boot] Attempting to listen on ${port}...`);
-
         await server.listen({ port, host: '0.0.0.0' });
 
         console.log(`[Boot] Server listening on ${port} (Ready for Traffic)`);
 
         // 5. Background Systems (Post-Boot)
-        try {
-            setInterval(runCleanup, 10 * 60 * 1000);
-            console.log('[Boot] Starting Worker...');
-            startWorker().catch(err => console.error('[Worker] Failed to start:', err));
-        } catch (e) {
-            console.error('[Boot] Background Systems Error', e);
-        }
+        setInterval(runCleanup, 10 * 60 * 1000);
+
+        console.log('[Boot] Starting Worker...');
+        startWorker().catch(err => console.error('[Worker] Failed to start:', err));
 
     } catch (err) {
         console.error('[Boot] FATAL ERROR', err);
