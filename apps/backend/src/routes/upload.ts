@@ -141,7 +141,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 await uploadState.set(uploadId, { status: 'failed', error: 'Upload aborted', errorCode: 'NETWORK_ABORT' });
             });
 
-            const { streamToR2 } = await import('../services/storage');
+            const { pipeline } = await import('stream/promises');
 
             for await (const part of parts) {
                 if (part.type === 'file') {
@@ -153,20 +153,19 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                     }
 
                     const safeName = part.filename.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
+                    const tempFilePath = path.join(os.tmpdir(), `upload-${uploadId}-${safeName}`);
 
-                    req.log.info({ msg: `Streaming part to storage`, filename: safeName, uploadId });
+                    req.log.info({ msg: `Buffering to local disk`, filename: safeName, tempPath: tempFilePath, uploadId });
 
                     try {
-                        // Stream directly to R2/S3 (or local via abstraction)
-                        // This waits until THIS file is uploaded, but doesn't block other logic significantly
-                        const key = await streamToR2(part.file, safeName, part.mimetype);
-                        uploadedKeys.push({ filename: safeName, key: key });
+                        // Stream to local disk (Fast & Reliable for Mobile)
+                        await pipeline(part.file, fs.createWriteStream(tempFilePath));
+                        uploadedKeys.push({ filename: safeName, key: tempFilePath });
                     } catch (err: any) {
+                        req.log.error({ msg: "Local Buffer Failed", error: err });
                         if (err.message === 'File too large') throw { code: 'UPLOAD_FILE_TOO_LARGE' };
                         throw err;
                     }
-
-                    // Magic Byte check REMOVED - moved to Worker
                 } else {
                     if (part.fieldname === 'toolId') toolId = part.value as string;
                     else if (part.fieldname === 'data') {
@@ -182,7 +181,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
 
             if (!toolId || toolId === 'default') {
                 // If we uploaded files but got no toolID, we should probably delete them? 
-                // For now, let's just fail. S3 Lifecycle rules should clean up orphaned files.
+                // For now, let's just fail. local temp files will be cleaned up by OS eventually or we can add cleanup.
                 req.log.error({ msg: 'Missing or Invalid Tool ID', uploadId, toolId });
                 await uploadState.set(uploadId, { status: 'failed', error: 'Missing Tool ID', errorCode: 'INVALID_REQUEST' });
                 return reply.code(400).send({ error: "Tool ID is required", code: "MISSING_TOOL_ID" });
@@ -197,17 +196,16 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 return reply.code(400).send({ error: "No files uploaded" });
             }
 
-            req.log.info({ msg: 'Upload completed (All streams finished)', uploadId, fileCount: uploadedKeys.length });
+            req.log.info({ msg: 'Upload completed (Buffered Locally)', uploadId, fileCount: uploadedKeys.length });
 
             // Create Job
             req.log.info({ msg: 'Creating Job...', uploadId, toolId });
 
-            // Note: inputFiles now contains KEYS not PATHS
-            // We pass them as {filename, path: key} to reuse the shape and flag storageMode
+            // Note: inputFiles now contains LOCAL PATHS
             const job = await createJob({
                 toolId,
-                inputFiles: uploadedKeys.map(k => ({ filename: k.filename, path: k.key })), // Pass Key in Path field
-                storageMode: 's3', // Correct placement: Top Level
+                inputFiles: uploadedKeys.map(k => ({ filename: k.filename, path: k.key })),
+                storageMode: 'local', // Explicitly Local
                 data: jobData
             });
             req.log.info({ msg: 'Job Created', uploadId, jobId: job.id });
