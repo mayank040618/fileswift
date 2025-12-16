@@ -54,7 +54,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
     // --- Status Endpoint ---
     fastify.get("/api/upload-status/:uploadId", async (req, reply) => {
         const uploadId = (req.params as any).uploadId;
-        const state = uploadState.get(uploadId);
+        const state = await uploadState.get(uploadId);
 
         if (!state) {
             return reply.code(404).send({ error: "Upload session not found" });
@@ -69,7 +69,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
     // --- Download Endpoint (Secure) ---
     fastify.get("/api/download/:token", async (req, reply) => {
         const token = (req.params as any).token;
-        const filePath = uploadState.verifyDownloadToken(token);
+        const filePath = await uploadState.verifyDownloadToken(token);
 
         console.log(`[Download] Token: ${token}, Path: ${filePath}, Exists: ${filePath ? fs.existsSync(filePath) : 'N/A'}`);
 
@@ -120,7 +120,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
         const uploadId = uuidv4();
 
         // Initialize State
-        uploadState.set(uploadId, {
+        await uploadState.set(uploadId, {
             status: 'uploading',
             progress: 0
         });
@@ -136,9 +136,9 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
             const parts = req.parts();
 
             // Handle Client Abort
-            req.raw.on('aborted', () => {
+            req.raw.on('aborted', async () => {
                 req.log.warn({ msg: 'Upload aborted by client', uploadId });
-                uploadState.set(uploadId, { status: 'failed', error: 'Upload aborted', errorCode: 'NETWORK_ABORT' });
+                await uploadState.set(uploadId, { status: 'failed', error: 'Upload aborted', errorCode: 'NETWORK_ABORT' });
             });
 
             const { streamToR2 } = await import('../services/storage');
@@ -184,7 +184,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 // If we uploaded files but got no toolID, we should probably delete them? 
                 // For now, let's just fail. S3 Lifecycle rules should clean up orphaned files.
                 req.log.error({ msg: 'Missing or Invalid Tool ID', uploadId, toolId });
-                uploadState.set(uploadId, { status: 'failed', error: 'Missing Tool ID', errorCode: 'INVALID_REQUEST' });
+                await uploadState.set(uploadId, { status: 'failed', error: 'Missing Tool ID', errorCode: 'INVALID_REQUEST' });
                 return reply.code(400).send({ error: "Tool ID is required", code: "MISSING_TOOL_ID" });
             }
 
@@ -193,7 +193,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
             }
 
             if (uploadedKeys.length === 0) {
-                uploadState.set(uploadId, { status: 'failed', error: 'No files', errorCode: 'NO_FILES' });
+                await uploadState.set(uploadId, { status: 'failed', error: 'No files', errorCode: 'NO_FILES' });
                 return reply.code(400).send({ error: "No files uploaded" });
             }
 
@@ -213,7 +213,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
             req.log.info({ msg: 'Job Created', uploadId, jobId: job.id });
 
             // Update State
-            uploadState.set(uploadId, {
+            await uploadState.set(uploadId, {
                 status: 'processing',
                 jobId: job.id,
                 progress: 100
@@ -252,7 +252,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 msg = "Network interruption during upload";
             }
 
-            uploadState.set(uploadId, { status: 'failed', error: msg, errorCode: code });
+            await uploadState.set(uploadId, { status: 'failed', error: msg, errorCode: code });
             return reply.code(status).send({ error: msg, code });
         }
     });
@@ -293,7 +293,7 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                         } else {
                             // Local File Path -> Generate Secure Token
                             finalPath = result.resultKey;
-                            const token = uploadState.createDownloadToken(finalPath);
+                            const token = await uploadState.createDownloadToken(finalPath);
                             const apiUrl = (process.env.PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
                             downloadUrl = `${apiUrl}/api/download/${token}`;
                         }
