@@ -223,12 +223,18 @@ export default function ToolClient() {
         } catch (e: any) {
             console.error("Upload error", e);
             setStatus('failed');
+
+            let displayMsg = e.message;
             try {
+                // Try to parse JSON error from backend if possible
                 const errorData = JSON.parse(e.message);
-                alert(errorData.error || "Upload failed");
+                displayMsg = errorData.error || e.message;
             } catch {
-                alert("Upload failed: " + e.message);
+                // Raw message
             }
+
+            setErrorMessage(displayMsg); // Show in the Red Box
+            // alert(displayMsg); // Optional: keep alert or remove it
         }
     };
 
