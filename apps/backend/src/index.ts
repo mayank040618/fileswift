@@ -1,119 +1,86 @@
+
 import './config/env';
-import Fastify, { FastifyInstance } from "fastify";
+import Fastify from "fastify";
 
-// STRICT: No other top-level imports that could block or side-effect
-console.log('[Boot] Initializing Fastify...');
-
-// Initialize Fastify
-const server: FastifyInstance = Fastify({
+// STRICT FAIL-OPEN ARCHITECTURE
+// 1. Initialize Server
+const server = Fastify({
     logger: true,
     connectionTimeout: 180000,
     bodyLimit: 10485760,
 });
 
-// 1. STRICT LIVENESS PROBE (Must be first, no deps, synchronous)
+// 2. LIVENESS PROBE (Synchronous, Zero Deps)
+// This MUST be available immediately.
 server.get('/health', (_req, reply) => {
-    reply.code(200).send({ ok: true });
+    reply.send({ status: 'ok', timestamp: Date.now() });
 });
 
 const start = async () => {
     try {
-        // 2. LOAD PLUGINS & ROUTES
-        // Fastify requires all plugins to be registered BEFORE listening.
-        // We relied on the Lazy Queue fix to ensure these registers are instant.
-        console.log('[Boot] Loading plugins & routes...');
+        console.log('[Boot] Initializing...');
 
-        // Register Middleware
-        const cors = (await import("@fastify/cors")).default;
-        await server.register(cors, {
+        // 3. REGISTER PLUGINS (Non-Blocking / Parallel)
+        // We do NOT await these one-by-one to maximize boot speed.
+        // Fastify will resolve them in parallel before opening the port.
+
+        // precise import order is less important than speed here, 
+        // validating that we are "Fail Open" means we listen ASAP.
+
+        server.register(import("@fastify/cors"), {
             origin: [
                 'https://fileswift.in',
                 'https://www.fileswift.in',
                 'https://fileswift-app.vercel.app',
                 'http://localhost:3000',
-                'http://127.0.0.1:3000'
             ],
-            methods: ['POST', 'GET', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Content-Length', 'X-Upload-Id', 'Content-Range'],
             credentials: true,
         });
 
-        const multipart = (await import("@fastify/multipart")).default;
-        const maxUploadSize = process.env.MAX_UPLOAD_FILESIZE
-            ? parseInt(process.env.MAX_UPLOAD_FILESIZE)
-            : (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024);
-
-        await server.register(multipart, {
+        server.register(import("@fastify/multipart"), {
             limits: {
-                fileSize: maxUploadSize,
-                fieldNameSize: 100,
-                fieldSize: 10 * 1024 * 1024,
-                files: parseInt(process.env.MAX_UPLOAD_FILES || '100'),
-                headerPairs: 2000
+                fileSize: (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50') * 1024 * 1024),
+                files: 100
             }
         });
 
-        const helmet = (await import('@fastify/helmet')).default;
-        await server.register(helmet, {
-            contentSecurityPolicy: {
-                directives: {
-                    defaultSrc: ["'self'"],
-                    scriptSrc: ["'self'", "'unsafe-inline'"],
-                    styleSrc: ["'self'", "'unsafe-inline'"],
-                    imgSrc: ["'self'", "data:", "blob:"],
-                }
-            },
-            global: true
-        });
+        server.register(import('@fastify/helmet'), { global: true });
 
-        // Rate Limit
-        const { rateLimitMiddleware } = await import('./middleware/rateLimit');
-        server.addHook('preHandler', rateLimitMiddleware);
+        // Middleware
+        import('./middleware/rateLimit').then(m => server.addHook('preHandler', m.rateLimitMiddleware));
 
-        // Routes
-        const { healthRoutes } = await import('./routes/health');
-        await server.register(healthRoutes);
+        // Routes - Registering promises allows Fastify to boot while loading IO
+        server.register(import('./routes/health').then(m => ({ default: m.healthRoutes })));
+        server.register(import('./routes/health-gs').then(m => ({ default: m.healthGsRoutes })));
+        server.register(import('./routes/download').then(m => ({ default: m.downloadRoutes })));
+        server.register(import('./routes/upload')); // default export
+        server.register(import('./routes/upload-chunk')); // default export
+        server.register(import('./routes/upload-direct')); // default export
+        server.register(import('./routes/tools')); // default export
+        server.register(import('./routes/waitlist')); // default export
+        server.register(import('./routes/feedback')); // default export
 
-        const { healthGsRoutes } = await import('./routes/health-gs');
-        await server.register(healthGsRoutes);
-
-        const { downloadRoutes } = await import('./routes/download');
-        await server.register(downloadRoutes);
-
-        const uploadRoutes = (await import('./routes/upload')).default;
-        await server.register(uploadRoutes);
-
-        const { default: uploadDirectRoutes } = await import('./routes/upload-direct');
-        await server.register(uploadDirectRoutes);
-
-        const chunkUploadRoutes = (await import("./routes/upload-chunk")).default;
-        await server.register(chunkUploadRoutes);
-
-        const toolRoutes = (await import('./routes/tools')).default;
-        await server.register(toolRoutes);
-
-        const waitlistRoutes = (await import('./routes/waitlist')).default;
-        await server.register(waitlistRoutes);
-
-        const feedbackRoutes = (await import('./routes/feedback')).default;
-        await server.register(feedbackRoutes);
-
-        // Schedules
-        const { runCleanup } = await import('./services/cleanup');
-        setInterval(runCleanup, 10 * 60 * 1000);
-
-        console.log('[Boot] App Ready (All routes loaded)');
-
-        // 4. LISTEN (Now that everything is registered)
+        // 4. LISTEN (The Barrier)
+        // Fastify waits for the plugin graph to resolve, then opens the port.
+        // Since our plugins are lazy (no DB connect), this happens in <100ms.
         const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
         await server.listen({ port, host: '0.0.0.0' });
-        console.log(`[Boot] Server listening on ${port}`);
 
-        // 5. START WORKER
+        console.log(`[Boot] Server listening on ${port} (Ready for Traffic)`);
+
+        // 5. BACKGROUND SYSTEMS (Post-Listen)
+        // These MUST start AFTER the server is taking traffic.
+
+        // Cleanup Service
+        import('./services/cleanup').then(({ runCleanup }) => {
+            setInterval(runCleanup, 10 * 60 * 1000);
+        });
+
+        // Worker Service (Detached)
         import('./worker').then(({ startWorker }) => {
-            console.log('[Boot] Starting worker process...');
-            startWorker().catch(err => console.error('[Startup] Worker failed to start', err));
-        }).catch(err => console.error('[Startup] Failed to load worker module', err));
+            console.log('[Boot] Starting Background Worker...');
+            startWorker().catch(err => console.error('[Worker] Start failed', err));
+        });
 
     } catch (err) {
         server.log.error(err);
