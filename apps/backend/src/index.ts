@@ -18,14 +18,9 @@ server.get('/health', (_req, reply) => {
 
 const start = async () => {
     try {
-        const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
-
-        // 2. LISTEN IMMEDIATELY
-        // This ensures the container passes healthchecks instantly.
-        await server.listen({ port, host: '0.0.0.0' });
-        console.log(`[Boot] Server listening on ${port} (Liveness /health active)`);
-
-        // 3. LOAD PLUGINS & ROUTES (After Listen)
+        // 2. LOAD PLUGINS & ROUTES
+        // Fastify requires all plugins to be registered BEFORE listening.
+        // We relied on the Lazy Queue fix to ensure these registers are instant.
         console.log('[Boot] Loading plugins & routes...');
 
         // Register Middleware
@@ -109,7 +104,12 @@ const start = async () => {
 
         console.log('[Boot] App Ready (All routes loaded)');
 
-        // 4. START WORKER
+        // 4. LISTEN (Now that everything is registered)
+        const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
+        await server.listen({ port, host: '0.0.0.0' });
+        console.log(`[Boot] Server listening on ${port}`);
+
+        // 5. START WORKER
         import('./worker').then(({ startWorker }) => {
             console.log('[Boot] Starting worker process...');
             startWorker().catch(err => console.error('[Startup] Worker failed to start', err));
