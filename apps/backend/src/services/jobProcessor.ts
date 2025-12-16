@@ -15,6 +15,7 @@ export interface JobData {
     path?: string; // Local temp path
     inputFiles?: { filename: string; path: string }[]; // New bulk input
     data?: any;
+    storageMode?: 's3' | 'local';
 }
 
 const errorCounts: Record<string, { count: number, resetAt: number }> = {};
@@ -81,33 +82,75 @@ export const executeJob = async (job: IJob) => {
         const inputPaths: string[] = [];
 
         // 1. Prepare Input(s)
+        // 1. Prepare Input(s)
         if (job.data.inputFiles && job.data.inputFiles.length > 0) {
-            // New Bulk Flow
             // New Bulk Flow - Parallelized
             const inputFilesPromises = job.data.inputFiles.map(async (file, index) => {
                 const safeName = path.basename(file.filename);
-                // Append index to avoid "dest already exists" if user uploads duplicate filenames
                 const fileInputPath = path.join(workDir, `input-${index}-${safeName}`);
 
-                if (await fs.pathExists(file.path)) {
-                    await fs.move(file.path, fileInputPath, { overwrite: true });
-                    return fileInputPath;
+                // Check for S3 Mode (either explicit flag or heuristic)
+                const isS3 = job.data.storageMode === 's3' || (job.data as any).s3Keys === true;
+
+                if (isS3) {
+                    // file.path IS the Key
+                    try {
+                        const buffer = await getFileBuffer(file.path);
+                        await fs.writeFile(fileInputPath, buffer);
+                    } catch (e) {
+                        console.error(`[Job] Failed to download input key ${file.path}`, e);
+                        throw new Error(`Failed to download input file: ${file.filename}`);
+                    }
+                } else {
+                    // Legacy Local Move
+                    if (await fs.pathExists(file.path)) {
+                        await fs.move(file.path, fileInputPath, { overwrite: true });
+                    } else {
+                        // If file not found locally, maybe it failed?
+                        console.error(`[Job] Local input missing ${file.path}`);
+                        return null;
+                    }
                 }
-                return null;
+
+                // VALIDATION: PDF Magic Bytes
+                // We do this here to avoid blocking the upload request
+                // Only check for PDF extension
+                if (file.filename.toLowerCase().endsWith('.pdf')) {
+                    try {
+                        const fd = await fs.open(fileInputPath, 'r');
+                        const buffer = Buffer.alloc(4);
+                        await fs.read(fd, buffer, 0, 4, 0);
+                        await fs.close(fd);
+                        if (buffer.toString() !== '%PDF') {
+                            throw new Error(`Invalid PDF magic bytes for ${file.filename}`);
+                        }
+                    } catch (e) {
+                        throw new Error(`Validation failed for ${file.filename}: ${(e as Error).message}`);
+                    }
+                }
+
+                return fileInputPath;
             });
 
             const results = await Promise.all(inputFilesPromises);
             const validPaths = results.filter((p): p is string => p !== null);
             inputPaths.push(...validPaths);
 
-            if (inputPaths.length === 0) throw new Error("All input files missing or failed to move");
-        } else if (inputTempPath && await fs.pathExists(inputTempPath)) {
-            // Legacy/Single Flow
-            await fs.move(inputTempPath, inputPath);
-            inputPaths.push(inputPath);
-            console.log(`[Job] Moved input from ${inputTempPath} to ${inputPath}`);
+            if (inputPaths.length === 0) throw new Error("All input files missing or failed to download/validate");
+        } else if (inputTempPath) {
+            // Legacy Single File Flow compatibility
+            if (await fs.pathExists(inputTempPath)) {
+                await fs.move(inputTempPath, inputPath);
+                inputPaths.push(inputPath);
+            } else if (job.data.storageMode === 's3' || key) {
+                // S3 Fallback for single file legacy structure
+                const k = key || inputTempPath; // inputTempPath might be key in legacy usage?
+                const buffer = await getFileBuffer(k);
+                await fs.writeFile(inputPath, buffer);
+                inputPaths.push(inputPath);
+            }
         } else if (key) {
-            // R2/S3 Flow
+            // Explicit R2/S3 Flow (Legacy)
             const fileBuffer = await getFileBuffer(key);
             await fs.writeFile(inputPath, fileBuffer);
             inputPaths.push(inputPath);

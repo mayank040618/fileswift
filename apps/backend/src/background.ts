@@ -14,22 +14,9 @@ import toolRoutes from './routes/tools';
 import waitlistRoutes from './routes/waitlist';
 import feedbackRoutes from './routes/feedback';
 
-export async function initBackgroundServices(server: FastifyInstance) {
-    console.log('[BOOT] Initializing background services...');
-
-    // 1. Redis (Critical for Queue, but non-blocking for partial functionality)
-    // We start the connection loop, but we don't necessarily await it strictly if we want routes to work partly? 
-    // BUT the user said "Redis exists but must NEVER block HTTP startup".
-    // And "Redis can be down and app still boots".
-    // So we await the connection loop? The user's template awaits `connectRedisWithRetry()`.
-    // Since `connectRedisWithRetry` loops forever until success, awaiting it means we block *other background services* (like Worker) until Redis is up.
-    // That is fine, as long as `listen()` has already happened.
-
-    // We probably want to register routes *first* so API is usable (returning errors) instead of 404s.
-    // Wait, if I register routes *after* listen, they are live immediately.
-
+export async function registerAppRoutes(server: FastifyInstance) {
     console.log('[BOOT] Registering Routes...');
-    // Register Routes (These are fast)
+    // Register Routes (These are fast and MUST be before listen)
     await server.register(healthRoutes);
     await server.register(healthGsRoutes);
     await server.register(downloadRoutes);
@@ -40,9 +27,16 @@ export async function initBackgroundServices(server: FastifyInstance) {
     await server.register(waitlistRoutes);
     await server.register(feedbackRoutes);
     console.log('[BOOT] Routes Registered.');
+}
+
+export async function startBackgroundServices() {
+    console.log('[BOOT] Initializing background infra...');
 
     // 2. Heavy IO Services
     console.log('[BOOT] Connecting to Infra...');
+    // connectRedisWithRetry handles its own non-throw loop
+    // We await it if we want to ensure Redis is up before Worker starts
+    // But since this is post-listen, it's fine.
     await connectRedisWithRetry();
 
     // 3. Worker

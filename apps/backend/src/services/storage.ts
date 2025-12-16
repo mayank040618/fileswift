@@ -1,7 +1,9 @@
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Upload } from "@aws-sdk/lib-storage";
 import fs from 'fs-extra';
 import path from 'path';
+import { Readable } from 'stream';
 
 const PROVIDER = process.env.STORAGE_PROVIDER || 'local';
 const LOCAL_UPLOAD_DIR = path.join(__dirname, '../../uploads');
@@ -13,14 +15,14 @@ if (PROVIDER === 'local') {
 
 const s3 = (PROVIDER === 's3' || PROVIDER === 'r2') ? new S3Client({
     region: process.env.S3_REGION || 'auto',
-    endpoint: process.env.S3_ENDPOINT, // Optional for real AWS S3, required for R2/Minio
+    endpoint: process.env.S3_ENDPOINT || process.env.R2_ENDPOINT,
     credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
+        accessKeyId: process.env.S3_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY || '',
     },
 }) : null;
 
-const BUCKET = process.env.S3_BUCKET || 'fileswift';
+const BUCKET = process.env.S3_BUCKET || process.env.R2_BUCKET_NAME || 'fileswift';
 
 export const uploadToR2 = async (fileBuffer: Buffer, filename: string, mimeType: string) => {
     const key = `${Date.now()}-${filename}`;
@@ -37,6 +39,35 @@ export const uploadToR2 = async (fileBuffer: Buffer, filename: string, mimeType:
     }
 
     return key;
+};
+
+// New: Stream directly to S3/R2
+export const streamToR2 = async (stream: Readable, filename: string, mimeType: string): Promise<string> => {
+    const key = `${Date.now()}-${filename}`;
+
+    if (s3) {
+        const parallelUploads3 = new Upload({
+            client: s3,
+            params: {
+                Bucket: BUCKET,
+                Key: key,
+                Body: stream,
+                ContentType: mimeType,
+            },
+        });
+
+        await parallelUploads3.done();
+        return key;
+    } else {
+        // Fallback to local FS stream
+        const writeStream = fs.createWriteStream(path.join(LOCAL_UPLOAD_DIR, key));
+        return new Promise((resolve, reject) => {
+            stream.pipe(writeStream);
+            stream.on('error', reject);
+            writeStream.on('finish', () => resolve(key));
+            writeStream.on('error', reject);
+        });
+    }
 };
 
 export const getDownloadUrl = async (key: string) => {

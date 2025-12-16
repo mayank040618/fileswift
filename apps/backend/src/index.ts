@@ -6,7 +6,7 @@ import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import helmet from "@fastify/helmet";
 import { rateLimitMiddleware } from './middleware/rateLimit';
-import { initBackgroundServices } from './background';
+import { registerAppRoutes, startBackgroundServices } from './background';
 
 // 1. Initialize Server (Bare metal)
 const server = Fastify({
@@ -19,6 +19,11 @@ const server = Fastify({
 // ❗ RULE: Nothing async is allowed before app.listen()
 server.get('/health', async () => {
     return { status: 'ok' }; // Standardized response
+});
+
+// Root route for default load balancer checks
+server.get('/', async () => {
+    return { status: 'fileswift-backend-online' };
 });
 
 const start = async () => {
@@ -49,6 +54,9 @@ const start = async () => {
             await rateLimitMiddleware(req, reply);
         });
 
+        // 3.5 Register App Routes (MUST BE BEFORE LISTEN)
+        await registerAppRoutes(server);
+
         // 4. BIND TO PORT FIRST (NON-NEGOTIABLE)
         // 🚨 CRITICAL: bind FIRST
         await server.listen({ port: PORT, host: '0.0.0.0' });
@@ -56,7 +64,7 @@ const start = async () => {
 
         // 5. START BACKGROUND SERVICES (Async / Non-Blocking)
         // ⬇️ EVERYTHING below must be async & non-blocking
-        initBackgroundServices(server).catch(err => {
+        startBackgroundServices().catch(err => {
             console.error('[BOOT] Background init failed', err);
         });
 

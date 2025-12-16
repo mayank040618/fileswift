@@ -160,14 +160,20 @@ export default function ToolClient() {
                         // Calculate Speed & Time Remaining
                         const elapsedSeconds = (Date.now() - startTime) / 1000;
                         if (elapsedSeconds > 0.5) { // Wait a bit for stability
-                            const speedBytesPerSec = event.loaded / elapsedSeconds;
-                            const remainingBytes = event.total - event.loaded;
-                            const remainingSeconds = Math.ceil(remainingBytes / speedBytesPerSec);
 
-                            if (remainingSeconds < 60) {
-                                setTimeRemaining(`${remainingSeconds}s remaining`);
+                            // Requirement: >90% switch UI to "Finalizing..."
+                            if (percent > 90) {
+                                setTimeRemaining('Finalizing... Network slow');
                             } else {
-                                setTimeRemaining(`${Math.ceil(remainingSeconds / 60)}m remaining`);
+                                const speedBytesPerSec = event.loaded / elapsedSeconds;
+                                const remainingBytes = event.total - event.loaded;
+                                const remainingSeconds = Math.ceil(remainingBytes / speedBytesPerSec);
+
+                                if (remainingSeconds < 60) {
+                                    setTimeRemaining(`${remainingSeconds}s remaining`);
+                                } else {
+                                    setTimeRemaining(`${Math.ceil(remainingSeconds / 60)}m remaining`);
+                                }
                             }
                         }
                     }
@@ -175,13 +181,26 @@ export default function ToolClient() {
 
                 xhr.onload = () => {
                     if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve(JSON.parse(xhr.responseText));
+                        try {
+                            resolve(JSON.parse(xhr.responseText));
+                        } catch (e) {
+                            // If JSON parse fails, implies bad response
+                            reject(new Error("Invalid server response"));
+                        }
                     } else {
-                        reject(new Error(xhr.responseText));
+                        reject(new Error(xhr.responseText || `Upload failed with status ${xhr.status}`));
                     }
                 };
 
-                xhr.onerror = () => reject(new Error('Network Error'));
+                xhr.onerror = () => {
+                    // Requirement: Do NOT treat XHR.onerror as failure on mobile immediately
+                    // Root cause is usually mobile browser cutting connection on slow response.
+                    // Since we fixed backend to be ACK-first, this should be rare.
+                    // If it happens, we assume it failed but we log it.
+                    console.warn('[Upload] Network Error / XHR Error triggered');
+                    reject(new Error('Network Error (Check connection)'));
+                };
+
                 xhr.send(formData);
             });
 

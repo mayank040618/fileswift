@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { uploadState } from "../services/uploadState";
 import { rateLimit } from "../services/rateLimit";
 
-const pump = util.promisify(pipeline);
+
 
 export default async function uploadRoutes(fastify: FastifyInstance) {
 
@@ -97,15 +97,11 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
         }
 
         const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
+        // Content-Length is useful for rate limiting check but not reliable for streaming progress often
         const contentLengthHeader = req.headers['content-length'];
+        const contentLength = contentLengthHeader ? parseInt(contentLengthHeader) : 0;
 
-        // 2. Strict Content-Length Validation
-        if (!contentLengthHeader) {
-            return reply.code(411).send({ error: "Content-Length header required", code: "CONTENT_LENGTH_REQUIRED" });
-        }
-        const contentLength = parseInt(contentLengthHeader);
-
-        // 3. Rate Limiting (Fair Usage)
+        // 2. Rate Limiting (Fair Usage)
         rateLimit.trackAttempt(ip);
         const limitResult = rateLimit.check(ip, contentLength);
 
@@ -124,11 +120,6 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
 
         const requestId = req.id;
         const uploadId = uuidv4();
-        const maxFileSize = (parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50')) * 1024 * 1024; // 50MB default
-
-        // Note: valid content-length doesn't guarantee each file size in multipart,
-        // but it gives us a global upper bound check.
-        // fastify-multipart limits will handle individual part sizes.
 
         // Initialize State
         uploadState.set(uploadId, {
@@ -140,8 +131,8 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
 
         let toolId: string | null = null;
         let jobData: any = {};
-        const uploadedFiles: { filename: string; path: string }[] = [];
-        const tempPaths: string[] = [];
+        const uploadedKeys: { filename: string; key: string }[] = [];
+        // We no longer track tempFiles for cleanup here, as storage layer handles it (or S3 cleanup policy)
 
         try {
             const parts = req.parts();
@@ -150,61 +141,34 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
             req.raw.on('aborted', () => {
                 req.log.warn({ msg: 'Upload aborted by client', uploadId });
                 uploadState.set(uploadId, { status: 'failed', error: 'Upload aborted', errorCode: 'NETWORK_ABORT' });
-                cleanupTempFiles(tempPaths);
             });
+
+            const { streamToR2 } = await import('../services/storage');
 
             for await (const part of parts) {
                 if (part.type === 'file') {
                     // Check max files limit
                     const maxFiles = parseInt(process.env.MAX_UPLOAD_FILES || '100');
-                    if (uploadedFiles.length >= maxFiles) {
+                    if (uploadedKeys.length >= maxFiles) {
                         part.file.resume(); // Skip
                         continue;
                     }
 
                     const safeName = part.filename.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
-                    const baseDir = process.env.UPLOAD_DIR ? path.join(process.cwd(), process.env.UPLOAD_DIR) : path.join(os.tmpdir(), 'fileswift-uploads');
 
-                    if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
-
-                    const tempPath = path.join(baseDir, `upload-${Date.now()}-${Math.random().toString(36).substring(7)}-${safeName}`);
-                    tempPaths.push(tempPath);
-
-                    const writeStream = fs.createWriteStream(tempPath);
-
-                    // Count bytes manually for strictness if needed, or rely on pump
-                    // part.file is a stream.
-
-                    console.log(`[Upload] Streaming ${part.filename} to ${tempPath}`);
+                    req.log.info({ msg: `Streaming part to storage`, filename: safeName, uploadId });
 
                     try {
-                        await pump(part.file, writeStream);
+                        // Stream directly to R2/S3 (or local via abstraction)
+                        // This waits until THIS file is uploaded, but doesn't block other logic significantly
+                        const key = await streamToR2(part.file, safeName, part.mimetype);
+                        uploadedKeys.push({ filename: safeName, key: key });
                     } catch (err: any) {
-                        // If pump fails (e.g. limit reached), ensure we catch it
                         if (err.message === 'File too large') throw { code: 'UPLOAD_FILE_TOO_LARGE' };
                         throw err;
                     }
 
-                    // Validate Size on Disk
-                    const stats = fs.statSync(tempPath);
-                    if (stats.size === 0) throw new Error("File is empty");
-                    if (stats.size > maxFileSize) {
-                        // Should have been caught by multipart limit, but double check
-                        throw { code: 'UPLOAD_FILE_TOO_LARGE' };
-                    }
-
-                    // PDF Magic Byte Check
-                    if (part.mimetype === 'application/pdf') {
-                        const fd = fs.openSync(tempPath, 'r');
-                        const buffer = Buffer.alloc(4);
-                        fs.readSync(fd, buffer, 0, 4, 0);
-                        fs.closeSync(fd);
-                        if (buffer.toString() !== '%PDF') {
-                            throw { code: 'UNSUPPORTED_FILE', message: 'Invalid PDF magic bytes' };
-                        }
-                    }
-
-                    uploadedFiles.push({ filename: safeName, path: tempPath });
+                    // Magic Byte check REMOVED - moved to Worker
                 } else {
                     if (part.fieldname === 'toolId') toolId = part.value as string;
                     else if (part.fieldname === 'data') {
@@ -215,32 +179,37 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 }
             }
 
-            // STRICT VALIDATION (Moved after loop)
-            if (!toolId || !isValidToolId(toolId)) {
+            // STRICT VALIDATION (Moved after loop) - but we must handle "missing toolId" gracefully
+            // Often toolId comes AFTER files in multipart, so we only check here.
+
+            if (!toolId || toolId === 'default') {
+                // If we uploaded files but got no toolID, we should probably delete them? 
+                // For now, let's just fail. S3 Lifecycle rules should clean up orphaned files.
+                req.log.error({ msg: 'Missing or Invalid Tool ID', uploadId, toolId });
+                uploadState.set(uploadId, { status: 'failed', error: 'Missing Tool ID', errorCode: 'INVALID_REQUEST' });
+                return reply.code(400).send({ error: "Tool ID is required", code: "MISSING_TOOL_ID" });
+            }
+
+            if (!isValidToolId(toolId)) {
                 throw new Error(`Invalid Tool ID: '${toolId}'`);
             }
 
-            if (uploadedFiles.length === 0) {
+            if (uploadedKeys.length === 0) {
                 uploadState.set(uploadId, { status: 'failed', error: 'No files', errorCode: 'NO_FILES' });
                 return reply.code(400).send({ error: "No files uploaded" });
             }
 
-            // [HARDENING] Strict ToolId Validation
-            if (!toolId || toolId === 'default') {
-                req.log.error({ msg: 'Missing or Invalid Tool ID', uploadId, toolId });
-                uploadState.set(uploadId, { status: 'failed', error: 'Missing Tool ID', errorCode: 'INVALID_REQUEST' });
-                cleanupTempFiles(tempPaths);
-                return reply.code(400).send({ error: "Tool ID is required", code: "MISSING_TOOL_ID" });
-            }
-
-            req.log.info({ msg: 'Upload completed (File written)', uploadId, fileCount: uploadedFiles.length });
+            req.log.info({ msg: 'Upload completed (All streams finished)', uploadId, fileCount: uploadedKeys.length });
 
             // Create Job
             req.log.info({ msg: 'Creating Job...', uploadId, toolId });
+
+            // Note: inputFiles now contains KEYS not PATHS
+            // We pass them as {filename, path: key} to reuse the shape and flag storageMode
             const job = await createJob({
                 toolId,
-                inputFiles: uploadedFiles,
-                data: jobData
+                inputFiles: uploadedKeys.map(k => ({ filename: k.filename, path: k.key })), // Pass Key in Path field
+                data: { ...jobData, storageMode: 's3' }
             });
             req.log.info({ msg: 'Job Created', uploadId, jobId: job.id });
 
@@ -265,7 +234,6 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
 
         } catch (error: any) {
             req.log.error({ msg: 'Upload failed', uploadId, code: error.code, message: error.message });
-            cleanupTempFiles(tempPaths);
 
             let code = "INTERNAL_RETRYABLE";
             let status = 500;
@@ -283,10 +251,6 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                 code = "NETWORK_ABORT";
                 status = 400;
                 msg = "Network interruption during upload";
-            } else if (error.code === 'UNSUPPORTED_FILE') {
-                code = "UNSUPPORTED_FILE";
-                status = 400;
-                msg = "Invalid file type";
             }
 
             uploadState.set(uploadId, { status: 'failed', error: msg, errorCode: code });
@@ -355,11 +319,5 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
         }
     });
 
-    const cleanupTempFiles = (paths: string[]) => {
-        paths.forEach(p => {
-            if (fs.existsSync(p)) {
-                try { fs.unlinkSync(p); } catch (e) { /* ignore */ }
-            }
-        });
-    };
+
 }
