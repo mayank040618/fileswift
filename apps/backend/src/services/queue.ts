@@ -107,7 +107,7 @@ const initializeQueue = async () => {
 export const getFileQueue = async () => initializeQueue();
 
 // Wrapper for job creation (this will trigger init if needed)
-export const createJob = async (data: { toolId: string; inputFiles?: { filename: string; path: string }[]; key?: string | null; filename?: string; path?: string; data?: any }) => {
+export const createJob = async (data: { toolId: string; inputFiles?: { filename: string; path: string }[]; key?: string | null; filename?: string; path?: string; data?: any; storageMode?: 's3' | 'local' }) => {
     const queue = await getFileQueue();
     return await queue.add('process-file', data);
 };

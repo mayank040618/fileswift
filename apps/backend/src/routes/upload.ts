@@ -207,7 +207,8 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
             const job = await createJob({
                 toolId,
                 inputFiles: uploadedKeys.map(k => ({ filename: k.filename, path: k.key })), // Pass Key in Path field
-                data: { ...jobData, storageMode: 's3' }
+                storageMode: 's3', // Correct placement: Top Level
+                data: jobData
             });
             req.log.info({ msg: 'Job Created', uploadId, jobId: job.id });
 
