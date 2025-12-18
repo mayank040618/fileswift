@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { FileText } from 'lucide-react';
+import Image from 'next/image';
 
 export const SplashScreen = () => {
     const [isVisible, setIsVisible] = useState(true);
@@ -47,9 +47,15 @@ export const SplashScreen = () => {
                                 ease: "easeInOut",
                                 times: [0, 0.2, 1]
                             }}
-                            className="bg-blue-600 p-6 rounded-3xl shadow-2xl shadow-blue-500/30 mb-6"
+                            className="rounded-3xl shadow-2xl shadow-blue-500/30 mb-6 overflow-hidden"
                         >
-                            <FileText className="text-white w-16 h-16" strokeWidth={1.5} />
+                            <Image
+                                src="/icons/icon-512x512.png"
+                                alt="FileSwift Logo"
+                                width={100}
+                                height={100}
+                                priority
+                            />
                         </motion.div>
 
                         {/* Text Animation */}

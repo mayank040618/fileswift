@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Footer() {
     return (
@@ -6,8 +7,17 @@ export function Footer() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="col-span-1 md:col-span-2">
-                        <Link href="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                            FileSwift
+                        <Link href="/" className="flex items-center gap-2.5">
+                            <Image
+                                src="/icons/icon-192x192.png"
+                                alt="FileSwift Logo"
+                                width={32}
+                                height={32}
+                                className="rounded-lg"
+                            />
+                            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                                FileSwift
+                            </span>
                         </Link>
                         <p className="mt-4 text-sm text-slate-600 dark:text-slate-400 max-w-xs">
                             Free, secure, and fast online file tools. Compress PDF, convert images, and more directly in your browser.
