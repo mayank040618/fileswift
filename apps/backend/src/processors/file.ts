@@ -478,14 +478,25 @@ export const pdfToWordProcessor: ToolProcessor = {
             }
         }
 
+        // Split text into paragraphs for better editability
+        const lines = finalContent.split('\n').filter(line => line.trim() !== '');
+        const paragraphs = lines.map(line =>
+            new Paragraph({
+                children: [new TextRun({ text: line, font: 'Arial', size: 24 })], // 12pt = 24 half-points
+            })
+        );
+
+        // If no paragraphs, add a placeholder
+        if (paragraphs.length === 0) {
+            paragraphs.push(new Paragraph({
+                children: [new TextRun({ text: '[Empty document]', font: 'Arial', size: 24 })],
+            }));
+        }
+
         const doc = new Document({
             sections: [{
                 properties: {},
-                children: [
-                    new Paragraph({
-                        children: [new TextRun(finalContent)],
-                    }),
-                ],
+                children: paragraphs,
             }],
         });
 
