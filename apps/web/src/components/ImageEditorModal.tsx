@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import React, { useState, useRef, useCallback } from 'react';
+import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { getCroppedImg } from '@/utils/canvasUtils';
 import { X, Check, RotateCw } from 'lucide-react';
@@ -11,43 +11,33 @@ interface ImageEditorModalProps {
     onSave: (croppedImageBlob: Blob) => void;
 }
 
-// Helper to center the crop initially
-function centerAspectCrop(
-    mediaWidth: number,
-    mediaHeight: number,
-    aspect?: number,
-) {
-    return centerCrop(
-        makeAspectCrop(
-            {
-                unit: '%',
-                width: 90,
-            },
-            aspect || 16 / 9,
-            mediaWidth,
-            mediaHeight,
-        ),
-        mediaWidth,
-        mediaHeight,
-    )
-}
-
 export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, isOpen, onClose, onSave }) => {
-    const [crop, setCrop] = useState<Crop>();
+    // Initialize with full image selection (no aspect ratio constraint)
+    const [crop, setCrop] = useState<Crop>({
+        unit: '%',
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+    });
     const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
     const [rotation, setRotation] = useState(0);
     const imgRef = useRef<HTMLImageElement>(null);
 
-    // Initial Crop when image loads
-    function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-        const { width, height } = e.currentTarget;
-        setCrop(centerAspectCrop(width, height));
-    }
+    // Reset crop to full image when a new image loads
+    const onImageLoad = useCallback(() => {
+        setCrop({
+            unit: '%',
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 100,
+        });
+    }, []);
 
     const handleSave = async () => {
         if (completedCrop && imgRef.current) {
             try {
-                // We need to account for the image scaling (displayed vs natural)
                 const image = imgRef.current;
                 const scaleX = image.naturalWidth / image.width;
                 const scaleY = image.naturalHeight / image.height;
@@ -71,8 +61,6 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
                 console.error(e);
             }
         } else {
-            // If no crop, just save original (maybe rotated?)
-            // For now, require crop or just save original
             onClose();
         }
     };
@@ -81,22 +69,26 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-2xl h-[85vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl animate-in zoom-in duration-200">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl animate-in zoom-in duration-200">
                 {/* Header */}
-                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 z-10">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 z-10 shrink-0">
                     <h3 className="font-bold text-lg dark:text-white">Edit Image</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500">
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500"
+                        title="Close"
+                    >
                         <X size={20} />
                     </button>
                 </div>
 
-                {/* Cropper Area */}
-                <div className="relative flex-1 bg-slate-100 dark:bg-black/50 overflow-auto flex items-center justify-center p-4">
+                {/* Cropper Area - Adobe-style: image fits within, fully selectable */}
+                <div className="flex-1 min-h-0 bg-slate-100 dark:bg-black/50 flex items-center justify-center p-4 overflow-hidden">
                     <ReactCrop
                         crop={crop}
                         onChange={(_, percentCrop) => setCrop(percentCrop)}
                         onComplete={(c) => setCompletedCrop(c)}
-                        className="max-h-full"
+                        style={{ maxHeight: '100%', maxWidth: '100%' }}
                     >
                         <img
                             ref={imgRef}
@@ -107,15 +99,14 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
                                 transform: `rotate(${rotation}deg)`,
                                 maxHeight: '60vh',
                                 maxWidth: '100%',
-                                objectFit: 'contain'
+                                display: 'block',
                             }}
                         />
                     </ReactCrop>
                 </div>
 
                 {/* Controls */}
-                <div className="p-4 bg-white dark:bg-slate-900 space-y-4 border-t border-slate-200 dark:border-slate-800 z-10">
-
+                <div className="p-4 bg-white dark:bg-slate-900 space-y-4 border-t border-slate-200 dark:border-slate-800 z-10 shrink-0">
                     {/* Rotation Controls */}
                     <div className="flex justify-center">
                         <div className="flex items-center gap-2">
@@ -123,6 +114,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
                             <button
                                 onClick={() => setRotation((r) => (r + 90) % 360)}
                                 className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                title="Rotate 90°"
                             >
                                 <RotateCw size={16} />
                                 <span>Rotate</span>
