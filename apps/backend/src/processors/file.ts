@@ -352,14 +352,30 @@ export const pdfToWordProcessor: ToolProcessor = {
         console.log('[pdf-to-word] Using Node.js fallback...');
         const dataBuffer = await fs.readFile(localPath);
 
-        let pdfLib: any;
+        let pdfParse: any;
         try {
             // Lazy load to prevent startup crash (DOMMatrix error)
-            const mod = await import('pdf-parse');
-            // Handle various export shapes (CJS/ESM)
-            pdfLib = mod.default || mod;
-            if (typeof pdfLib !== 'function' && (pdfLib as any).default) {
-                pdfLib = (pdfLib as any).default;
+            // pdf-parse is a CJS module, handle various import shapes
+            const mod: any = await import('pdf-parse');
+
+            // Try different property paths for the callable function
+            if (typeof mod === 'function') {
+                pdfParse = mod;
+            } else if (typeof mod.default === 'function') {
+                pdfParse = mod.default;
+            } else if (mod.default && typeof mod.default.default === 'function') {
+                pdfParse = mod.default.default;
+            } else if (mod.pdfParse && typeof mod.pdfParse === 'function') {
+                pdfParse = mod.pdfParse;
+            } else {
+                // Log what we got for debugging
+                console.error('[pdf-to-word] pdf-parse module shape:', {
+                    type: typeof mod,
+                    keys: Object.keys(mod),
+                    defaultType: typeof mod.default,
+                    defaultKeys: mod.default ? Object.keys(mod.default) : []
+                });
+                throw new Error("pdf-parse module not callable");
             }
         } catch (e) {
             console.error('[pdf-to-word] Failed to load pdf-parse', e);
@@ -369,7 +385,7 @@ export const pdfToWordProcessor: ToolProcessor = {
         // Execute parsing
         let rawText = "";
         try {
-            const data = await pdfLib(dataBuffer);
+            const data = await pdfParse(dataBuffer);
             rawText = data.text || "";
         } catch (e: any) {
             console.error('[pdf-to-word] Parsing failed', e);
