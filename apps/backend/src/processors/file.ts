@@ -396,8 +396,86 @@ export const pdfToWordProcessor: ToolProcessor = {
         const sanitizedText = rawText.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F]/g, '');
 
         let finalContent = sanitizedText;
+
+        // OCR fallback if no text found
         if (!sanitizedText.trim()) {
-            finalContent = "[NO TEXT FOUND] This document appears to be an image-based or scanned PDF. No selectable text was found to extract.";
+            console.log('[pdf-to-word] No text found, attempting OCR...');
+            const hasTesseract = await hasBinary('tesseract');
+            const hasGs = await hasBinary('gs');
+
+            if (hasTesseract && hasGs) {
+                try {
+                    // Create temp dir for OCR work
+                    const tempDir = await makeTempDir(`ocr-work-${Date.now()}`);
+                    const ocrTexts: string[] = [];
+
+                    try {
+                        // Load PDF to get page count
+                        const pdfDoc = await PDFDocument.load(dataBuffer, { ignoreEncryption: true });
+                        const pageCount = pdfDoc.getPageCount();
+                        console.log(`[pdf-to-word] OCR: Processing ${pageCount} pages...`);
+
+                        // Process each page
+                        for (let i = 0; i < pageCount; i++) {
+                            // Extract single page to temp PDF
+                            const singlePagePdf = await PDFDocument.create();
+                            const [page] = await singlePagePdf.copyPages(pdfDoc, [i]);
+                            singlePagePdf.addPage(page);
+
+                            const tempPdfPath = path.join(tempDir, `page-${i}.pdf`);
+                            const tempImagePath = path.join(tempDir, `page-${i}.png`);
+                            const tempTextPath = path.join(tempDir, `page-${i}`);
+
+                            await fs.writeFile(tempPdfPath, await singlePagePdf.save());
+
+                            // Convert PDF page to image using Ghostscript
+                            const gsRes = await spawnWithTimeout('gs', [
+                                '-dQUIET', '-dSAFER', '-dBATCH', '-dNOPAUSE',
+                                '-sDEVICE=png16m', '-r300',
+                                `-sOutputFile=${tempImagePath}`,
+                                tempPdfPath
+                            ], {}, 30000);
+
+                            if (gsRes.code === 0 && await fs.pathExists(tempImagePath)) {
+                                // Run Tesseract OCR on the image
+                                const ocrRes = await spawnWithTimeout('tesseract', [
+                                    tempImagePath,
+                                    tempTextPath, // Output base (tesseract adds .txt)
+                                    '-l', 'eng',
+                                    '--oem', '3',
+                                    '--psm', '3'
+                                ], {}, 60000);
+
+                                if (ocrRes.code === 0) {
+                                    const textFile = `${tempTextPath}.txt`;
+                                    if (await fs.pathExists(textFile)) {
+                                        const pageText = await fs.readFile(textFile, 'utf-8');
+                                        if (pageText.trim()) {
+                                            ocrTexts.push(`--- Page ${i + 1} ---\n${pageText.trim()}`);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (ocrTexts.length > 0) {
+                            finalContent = ocrTexts.join('\n\n');
+                            console.log(`[pdf-to-word] OCR extracted text from ${ocrTexts.length} pages`);
+                        } else {
+                            finalContent = "[OCR FAILED] Could not extract text from this scanned PDF. The image quality may be too low or the text is not recognizable.";
+                        }
+                    } finally {
+                        // Cleanup temp dir
+                        await removeDir(tempDir);
+                    }
+                } catch (ocrError) {
+                    console.error('[pdf-to-word] OCR failed:', ocrError);
+                    finalContent = "[OCR ERROR] An error occurred while attempting to extract text using OCR.";
+                }
+            } else {
+                console.log('[pdf-to-word] OCR not available (tesseract or gs missing)');
+                finalContent = "[NO TEXT FOUND] This document appears to be an image-based or scanned PDF. OCR is not available in this environment.";
+            }
         }
 
         const doc = new Document({
