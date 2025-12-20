@@ -78,12 +78,28 @@ export async function downloadRoutes(fastify: FastifyInstance) {
 
         // Create a safe ASCII filename for fallback
         // Remove non-ascii and unsafe chars
-        const safeFilename = filename.replace(/[^\x20-\x7E]|[\",;]/g, '_');
+        const safeFilename = filename.replace(/[^\x20-\x7E]|[",;]/g, '_');
+
+        // Determine MIME type based on extension
+        const ext = path.extname(filename).toLowerCase();
+        const mimeTypes: Record<string, string> = {
+            '.pdf': 'application/pdf',
+            '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            '.doc': 'application/msword',
+            '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            '.zip': 'application/zip',
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.gif': 'image/gif',
+            '.webp': 'image/webp',
+        };
+        const contentType = mimeTypes[ext] || 'application/octet-stream';
 
         reply
             .header('Content-Disposition', `attachment; filename="${safeFilename}"; filename*=UTF-8''${encodeURIComponent(filename)}`)
             .header('Content-Length', stats.size)
-            .header('Content-Type', 'application/octet-stream');
+            .header('Content-Type', contentType);
 
         const stream = fs.createReadStream(filePath);
         return reply.send(stream);
