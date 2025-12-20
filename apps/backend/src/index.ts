@@ -26,6 +26,20 @@ server.get('/', async () => {
     return { status: 'fileswift-backend-online' };
 });
 
+// Silently handle ad network static file requests to prevent 404 log clutter
+// These routes catch requests from ad scripts trying to load resources from the API domain
+server.all('/js/*', async () => {
+    return ''; // 204 No Content
+});
+
+server.all('/css/*', async () => {
+    return ''; // 204 No Content
+});
+
+server.all('/favicon.ico', async () => {
+    return ''; // 204 No Content
+});
+
 const start = async () => {
     try {
         const PORT = Number(process.env.PORT || 8080);
