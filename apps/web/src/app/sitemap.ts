@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { TOOLS } from '@/config/tools';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://fileswift.in';
+    const baseUrl = 'https://www.fileswift.in';
     const lastModified = new Date();
 
     const staticPaths = [
