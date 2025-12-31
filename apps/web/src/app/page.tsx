@@ -55,7 +55,7 @@ export default function Home() {
             </motion.div>
           ))}
 
-          {/* Coming Soon / Waitlist Card */}
+          {/* Coming Soon / Waitlist Card - Hidden for AdSense
           <motion.div
             variants={item}
             onClick={() => setIsWaitlistOpen(true)}
@@ -81,6 +81,7 @@ export default function Home() {
               Join Waitlist <span className="ml-1">→</span>
             </div>
           </motion.div>
+          */}
         </motion.div>
       </div>
 
