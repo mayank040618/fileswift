@@ -528,6 +528,8 @@ Word documents can shift layout depending on the version of Office being used. P
     },
 
     // --- AI / Coming Soon Tools (Hidden or Muted) ---
+    // NOTE: Hiding these temporarily to pass AdSense Review (avoiding "Under Construction" flag)
+    /*
     {
         id: 'ai-chat',
         title: 'Chat with PDF',
@@ -638,4 +640,5 @@ Word documents can shift layout depending on the version of Office being used. P
         ai: true,
         comingSoon: true
     }
+    */
 ];
