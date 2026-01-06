@@ -23,7 +23,7 @@ const item = {
     show: { opacity: 1, y: 0 }
 };
 
-export default function ToolsPage() {
+export default function ToolsPage(): JSX.Element {
     const activeTools = TOOLS.filter(t => !t.comingSoon);
     const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
 

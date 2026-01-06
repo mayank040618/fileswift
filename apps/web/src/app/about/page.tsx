@@ -1,5 +1,5 @@
 
-export default function About() {
+export default function About(): JSX.Element {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-20 px-4">
             <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">

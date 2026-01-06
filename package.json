@@ -31,7 +31,11 @@
       "msgpackr-extract",
       "@parcel/watcher",
       "unrs-resolver"
-    ]
+    ],
+    "overrides": {
+      "@types/react": "18.2.79",
+      "@types/react-dom": "18.2.25"
+    }
   },
   "dependencies": {
     "pnpm": "^10.25.0"

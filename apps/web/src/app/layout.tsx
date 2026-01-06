@@ -16,11 +16,11 @@ export const metadata: Metadata = {
     openGraph: {
         title: "FileSwift - AI Powered File Tools",
         description: "Compress PDF, Convert to Word, Remove Backgrounds and more.",
-        url: 'https://fileswift.in',
+        url: 'https://www.fileswift.in',
         siteName: 'FileSwift',
         images: [
             {
-                url: 'https://fileswift.in/og-image.png', // We will need to create this later or use a default
+                url: 'https://www.fileswift.in/og-image.png', // We will need to create this later or use a default
                 width: 1200,
                 height: 630,
             },
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         title: "FileSwift - AI Powered File Tools",
         description: "Compress, convert, and edit files with AI precision.",
-        images: ['https://fileswift.in/og-image.png'],
+        images: ['https://www.fileswift.in/og-image.png'],
     },
     verification: {
         google: '9I9NOWPy481Ul2kqc1rXvdRF2KjfbMMw4TlfxW6p5L0',
@@ -85,7 +85,7 @@ export default function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
-}>) {
+}>): JSX.Element {
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
@@ -119,7 +119,7 @@ export default function RootLayout({
                             "@context": "https://schema.org",
                             "@type": "WebApplication",
                             "name": "FileSwift",
-                            "url": "https://fileswift.in",
+                            "url": "https://www.fileswift.in",
                             "applicationCategory": "ProductivityApplication",
                             "operatingSystem": "Any",
                             "offers": {
@@ -128,7 +128,7 @@ export default function RootLayout({
                                 "priceCurrency": "USD"
                             },
                             "featureList": "PDF Compression, Image Resizing, Format Conversion",
-                            "screenshot": "https://fileswift.in/og-image.png"
+                            "screenshot": "https://www.fileswift.in/og-image.png"
                         })
                     }}
                 />

@@ -14,6 +14,11 @@ const nextConfig = {
                 destination: '/tools/image-resizer',
                 permanent: true,
             },
+            {
+                source: '/bulk-image-resizer',
+                destination: '/tools/bulk-image-resizer',
+                permanent: true,
+            },
         ];
     },
 };

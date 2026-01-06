@@ -25,7 +25,7 @@ const item = {
 
 import { SeoSection } from '@/components/SeoSection';
 
-export default function Home() {
+export default function Home(): JSX.Element {
   const activeTools = TOOLS.filter(t => !t.comingSoon);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
 

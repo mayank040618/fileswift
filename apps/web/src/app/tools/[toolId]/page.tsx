@@ -43,13 +43,13 @@ export async function generateMetadata({ params }: { params: { toolId: string } 
         description: description,
         keywords: keywordList,
         alternates: {
-            canonical: `https://fileswift.in/tools/${params.toolId}`,
+            canonical: `https://www.fileswift.in/tools/${params.toolId}`,
         },
         openGraph: {
             title: title,
             description: description,
             type: 'website',
-            url: `https://fileswift.in/tools/${params.toolId}`,
+            url: `https://www.fileswift.in/tools/${params.toolId}`,
             siteName: 'FileSwift',
         },
         twitter: {
