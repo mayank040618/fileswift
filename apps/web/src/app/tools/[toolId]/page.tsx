@@ -134,6 +134,8 @@ export default function Page({ params }: { params: { toolId: string } }) {
 
     const schemas = getJsonLd(tool);
 
+    return (
+        <>
             {schemas.map((schema, idx) => (
                 <script
                     key={idx}
