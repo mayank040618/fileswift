@@ -43,6 +43,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: 'monthly',
             priority: 0.5,
         },
+        {
+            url: `${baseUrl}/use-cases`,
+            lastModified,
+            changeFrequency: 'weekly',
+            priority: 0.7,
+        },
     ] as const;
 
     const toolPaths = TOOLS

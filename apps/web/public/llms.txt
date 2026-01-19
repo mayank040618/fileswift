@@ -18,6 +18,9 @@ FileSwift is a privacy-first platform offering free online tools to manage your 
 - [Image Compressor](https://www.fileswift.in/tools/image-compressor): Reduce image size (JPG, PNG, WEBP) without quality loss.
 - [Image to PDF](https://www.fileswift.in/tools/image-to-pdf): Convert photos to a single PDF document.
 
+## Solutions
+- [Use Cases](https://www.fileswift.in/use-cases): Specialized guides for Students, Professionals, and Creators.
+
 ## Why Use FileSwift?
 - **Free**: No hidden costs or limits.
 - **Secure**: 256-bit SSL encryption and auto-deletion policy.

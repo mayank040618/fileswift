@@ -6,17 +6,32 @@ export default function About(): JSX.Element {
                 <h1 className="text-3xl font-bold mb-6 dark:text-white">About FileSwift</h1>
                 <div className="prose dark:prose-invert max-w-none">
                     <p className="text-lg text-slate-600 dark:text-slate-400 mb-6">
-                        FileSwift is a privacy-focused, high-performance online file tool suite designed to make document management easy and accessible for everyone.
+                        FileSwift is a free online file tools platform that allows users to compress, convert, and edit PDF and image files directly in the browser. It is designed to provide fast, secure, and privacy-first document processing without requiring software installation or user registration.
                     </p>
 
-                    <h2 className="text-xl font-semibold mt-6 mb-3">Our Mission</h2>
-                    <p>To provide fast, secure, and free tools for PDF compression, conversion, and editing without compromising user privacy.</p>
+                    <h2 className="text-xl font-semibold mt-6 mb-3">What is FileSwift?</h2>
+                    <p>
+                        FileSwift is a web-based utility suite optimized for productivity and security. It offers a collection of tools to handle common file tasks such as reducing PDF size for email, converting scanned PDFs to editable Word documents, and resizing images for social media usage.
+                    </p>
 
-                    <h2 className="text-xl font-semibold mt-6 mb-3">Why Choose Us?</h2>
+                    <h2 className="text-xl font-semibold mt-6 mb-3">Who is FileSwift for?</h2>
                     <ul className="list-disc pl-5 space-y-2">
-                        <li><strong>Fast:</strong> We process files in parallel using advanced cloud infrastructure.</li>
-                        <li><strong>Secure:</strong> Your files are encrypted and automatically deleted.</li>
-                        <li><strong>Free:</strong> No hidden costs or premium subscriptions required for basic tools.</li>
+                        <li><strong>Students:</strong> For compressing assignments and converting research papers.</li>
+                        <li><strong>Professionals:</strong> For editing contracts, organizing reports, and optimizing shared documents.</li>
+                        <li><strong>Content Creators:</strong> For batch resizing images and creating portfolios.</li>
+                        <li><strong>Remote Teams:</strong> For quick file manipulation without needing enterprise software.</li>
+                    </ul>
+
+                    <h2 className="text-xl font-semibold mt-6 mb-3">Privacy & Security</h2>
+                    <p>
+                        We operate on a strict privacy-first policy. FileSwift processes files securely using 256-bit SSL encryption. All uploaded files are automatically and permanently deleted from our servers after 1 hour to ensure user data protection.
+                    </p>
+
+                    <h2 className="text-xl font-semibold mt-6 mb-3">Key Features</h2>
+                    <ul className="list-disc pl-5 space-y-2">
+                        <li><strong>100% Free:</strong> No hidden charges or subscription walls.</li>
+                        <li><strong>No Signup:</strong> Instant access to all tools without creating an account.</li>
+                        <li><strong>Browser-Based:</strong> Works on Chrome, Safari, Edge, and Firefox on any operating system (Windows, Mac, Linux, Android, iOS).</li>
                     </ul>
                 </div>
             </div>
