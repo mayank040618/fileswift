@@ -78,6 +78,7 @@ import { AdFooter } from '@/components/AdSense/AdFooter';
 import { Footer } from '@/components/Footer';
 import { ConsentBanner } from '@/components/ConsentBanner';
 import { SplashScreen } from '@/components/SplashScreen';
+import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 
 import { GoogleAnalytics } from '@/components/Analytics';
 
@@ -110,6 +111,7 @@ export default function RootLayout({
                 <SpeedInsights />
                 <SplashScreen />
                 <GoogleAnalytics />
+                <ServiceWorkerRegister />
 
                 {/* JSON-LD Structured Data for SEO */}
                 <script

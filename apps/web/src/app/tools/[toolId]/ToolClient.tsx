@@ -14,6 +14,20 @@ import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { ToolCard } from '@/components/ToolCard';
 import ReactMarkdown from 'react-markdown';
 
+// Client-side processors
+import {
+    isClientSideTool,
+    mergePDFs,
+    rotatePDF,
+    splitPDF,
+    imagesToPDF,
+    compressImage,
+    compressImages,
+    resizeImage,
+    resizeImages,
+    type ProcessorResult
+} from '@/lib/processors';
+
 export default function ToolClient() {
     const params = useParams();
     const toolId = params.toolId as string;
@@ -107,6 +121,126 @@ export default function ToolClient() {
             });
         }
     }, status === 'processing' ? 2000 : null);
+
+    // Client-side processing for applicable tools
+    const handleClientSideProcess = async () => {
+        if (files.length === 0) return;
+        setStatus('processing');
+        setProcessingStartTime(Date.now());
+        setProcessingProgress(0);
+        setTimeRemaining('Processing locally...');
+
+        try {
+            let processorResult: ProcessorResult | null = null;
+
+            // Get options from form
+            const angleInput = document.getElementById('rotate-angle') as HTMLSelectElement;
+            const angle = angleInput?.value ? parseInt(angleInput.value) as 90 | 180 | 270 : 90;
+
+            const qInput = document.getElementById('compress-q') as HTMLInputElement;
+            const quality = qInput?.value ? parseInt(qInput.value) : compressionQuality;
+
+            const wInput = document.getElementById('resize-w') as HTMLInputElement;
+            const hInput = document.getElementById('resize-h') as HTMLInputElement;
+            const width = wInput?.value ? parseInt(wInput.value) : undefined;
+            const height = hInput?.value ? parseInt(hInput.value) : undefined;
+
+            // Route to appropriate processor
+            switch (tool.id) {
+                case 'merge-pdf':
+                    processorResult = await mergePDFs(files, setProcessingProgress);
+                    break;
+                case 'rotate-pdf':
+                    processorResult = await rotatePDF(files[0], angle, setProcessingProgress);
+                    break;
+                case 'split-pdf':
+                    processorResult = await splitPDF(files[0], setProcessingProgress);
+                    break;
+                case 'image-to-pdf':
+                    processorResult = await imagesToPDF(files, setProcessingProgress);
+                    break;
+                case 'image-compressor':
+                    if (files.length === 1) {
+                        processorResult = await compressImage(files[0], quality, setProcessingProgress);
+                    } else {
+                        processorResult = await compressImages(files, quality, setProcessingProgress);
+                    }
+                    break;
+                case 'image-resizer':
+                    if (files.length === 1) {
+                        processorResult = await resizeImage(files[0], width, height, setProcessingProgress);
+                    } else {
+                        processorResult = await resizeImages(files, width, height, setProcessingProgress);
+                    }
+                    break;
+                default:
+                    throw new Error('Unknown client-side tool');
+            }
+
+            if (!processorResult || !processorResult.success) {
+                throw new Error(processorResult?.error || 'Processing failed');
+            }
+
+            setProcessingProgress(100);
+
+            // Handle single file result
+            if (processorResult.blob) {
+                const url = URL.createObjectURL(processorResult.blob);
+                setResult({
+                    downloadUrl: url,
+                    isClientSide: true,
+                    filename: processorResult.filename,
+                    result: {
+                        metadata: {
+                            originalSize: processorResult.originalSize,
+                            finalSize: processorResult.finalSize,
+                            action: processorResult.finalSize && processorResult.originalSize && processorResult.finalSize < processorResult.originalSize ? 'compressed' : 'processed'
+                        }
+                    }
+                });
+                setStatus('completed');
+            }
+            // Handle multiple file results
+            else if (processorResult.blobs && processorResult.blobs.length > 0) {
+                // For now, just use the first blob - in future could zip them
+                const url = URL.createObjectURL(processorResult.blobs[0]);
+                setResult({
+                    downloadUrl: url,
+                    isClientSide: true,
+                    filename: processorResult.filenames?.[0],
+                    result: {
+                        metadata: {
+                            originalSize: processorResult.originalSize,
+                            finalSize: processorResult.finalSize,
+                            action: 'processed',
+                            count: processorResult.blobs.length
+                        }
+                    },
+                    // Store all blobs for download
+                    allBlobs: processorResult.blobs,
+                    allFilenames: processorResult.filenames
+                });
+                setStatus('completed');
+            }
+            else {
+                throw new Error('No output generated');
+            }
+
+        } catch (error: any) {
+            console.error('Client-side processing error:', error);
+            setStatus('failed');
+            setErrorMessage(error.message || 'Processing failed');
+        }
+    };
+
+    // Decide which handler to use based on tool
+    const handleProcess = () => {
+        if (isClientSideTool(tool.id)) {
+            handleClientSideProcess();
+        } else {
+            handleUpload();
+        }
+    };
 
     const handleUpload = async () => {
         if (files.length === 0) return;
@@ -355,10 +489,13 @@ export default function ToolClient() {
                                     )}
 
                                     <button
-                                        onClick={handleUpload}
+                                        onClick={handleProcess}
                                         className="w-full mt-6 bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
                                     >
                                         {files.length > 1 ? `Process ${files.length} Files` : 'Process File'}
+                                        {isClientSideTool(tool.id) && (
+                                            <span className="ml-2 text-xs opacity-80">⚡ Instant</span>
+                                        )}
                                     </button>
                                 </div>
                             )}
