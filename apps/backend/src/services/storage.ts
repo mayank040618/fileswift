@@ -13,9 +13,13 @@ if (PROVIDER === 'local') {
     fs.ensureDirSync(LOCAL_UPLOAD_DIR);
 }
 
+const r2Endpoint = process.env.R2_ENDPOINT || (process.env.R2_ACCOUNT_ID ? `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com` : undefined);
+const endpoint = process.env.S3_ENDPOINT || r2Endpoint;
+
 const s3 = (PROVIDER === 's3' || PROVIDER === 'r2') ? new S3Client({
     region: process.env.S3_REGION || 'auto',
-    endpoint: process.env.S3_ENDPOINT || process.env.R2_ENDPOINT,
+    endpoint,
+    forcePathStyle: true, // Required for R2 compat
     credentials: {
         accessKeyId: process.env.S3_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID || '',
         secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY || '',
