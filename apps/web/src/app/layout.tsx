@@ -9,8 +9,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     metadataBase: new URL('https://www.fileswift.in'),
-    title: "FileSwift - AI Powered File Tools",
-    description: "Compress PDF, Convert to Word, Remove Backgrounds and more. Free online AI file tools.",
+    title: "FileSwift - Free Online PDF Compressor, Converter & Editor",
+    description: "FileSwift is a free, privacy-first online platform to compress PDFs, resize images, and convert files securely. No signup required, fast processing.",
     keywords: ["pdf compressor", "pdf to word", "remove background", "ai file tools", "image to pdf"],
     authors: [{ name: "FileSwift" }],
     openGraph: {
@@ -81,6 +81,7 @@ import { SplashScreen } from '@/components/SplashScreen';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 
 import { GoogleAnalytics } from '@/components/Analytics';
+import JsonLd from '@/components/JsonLd';
 
 export default function RootLayout({
     children,
@@ -114,26 +115,7 @@ export default function RootLayout({
                 <ServiceWorkerRegister />
 
                 {/* JSON-LD Structured Data for SEO */}
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{
-                        __html: JSON.stringify({
-                            "@context": "https://schema.org",
-                            "@type": "WebApplication",
-                            "name": "FileSwift",
-                            "url": "https://www.fileswift.in",
-                            "applicationCategory": "ProductivityApplication",
-                            "operatingSystem": "Any",
-                            "offers": {
-                                "@type": "Offer",
-                                "price": "0",
-                                "priceCurrency": "USD"
-                            },
-                            "featureList": "PDF Compression, Image Resizing, Format Conversion",
-                            "screenshot": "https://www.fileswift.in/og-image.png"
-                        })
-                    }}
-                />
+                <JsonLd />
 
             </body>
         </html>

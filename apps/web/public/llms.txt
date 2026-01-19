@@ -1,0 +1,29 @@
+# FileSwift
+
+> Free online file tools for compression, conversion, and editing. Secure, fast, and no signup required.
+
+## About
+FileSwift is a privacy-first platform offering free online tools to manage your PDF, Image, and Document files. All processing happens securely, and files are automatically deleted after 1 hour.
+
+## Top Tools
+
+### PDF Tools
+- [Compress PDF](https://www.fileswift.in/tools/compress-pdf): Reduce PDF file size efficiently for email or upload limits.
+- [PDF to Word](https://www.fileswift.in/tools/pdf-to-word): Convert PDF documents to editable Word (DOCX) files.
+- [Merge PDF](https://www.fileswift.in/tools/merge-pdf): Combine multiple PDF files into one.
+- [PDF to Image](https://www.fileswift.in/tools/pdf-to-image): Extract pages from PDF as JPG or PNG images.
+
+### Image Tools
+- [Image Resizer](https://www.fileswift.in/tools/image-resizer): Resize images by pixel dimensions or percentage.
+- [Image Compressor](https://www.fileswift.in/tools/image-compressor): Reduce image size (JPG, PNG, WEBP) without quality loss.
+- [Image to PDF](https://www.fileswift.in/tools/image-to-pdf): Convert photos to a single PDF document.
+
+## Why Use FileSwift?
+- **Free**: No hidden costs or limits.
+- **Secure**: 256-bit SSL encryption and auto-deletion policy.
+- **Fast**: Optimized algorithms for quick processing in the browser.
+- **No Signup**: Use all tools instantly without creating an account.
+
+## Technical Details
+- **URL**: https://www.fileswift.in
+- **Sitemap**: https://www.fileswift.in/sitemap.xml

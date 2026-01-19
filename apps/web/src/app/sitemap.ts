@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { TOOLS } from '@/config/tools';
+import { SEO_PAGES } from '@/config/seo-pages';
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = 'https://www.fileswift.in';
@@ -53,5 +54,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.8,
         }));
 
-    return [...staticPaths, ...toolPaths];
+    const seoPaths = SEO_PAGES.map((page) => ({
+        url: `${baseUrl}/tools/${page.id}`,
+        lastModified,
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+    }));
+
+    return [...staticPaths, ...toolPaths, ...seoPaths];
 }
