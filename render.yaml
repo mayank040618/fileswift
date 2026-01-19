@@ -26,6 +26,8 @@ services:
         sync: false
       - key: R2_BUCKET_NAME
         value: fileswift-prod
+      - key: PUBLIC_API_URL
+        value: https://fileswift-backend.onrender.com
 
   - type: redis
     name: fileswift-redis

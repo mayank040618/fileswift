@@ -77,7 +77,7 @@ export const compressPdfProcessor: ToolProcessor = {
             const finalOutputPath = path.join(outputDir, outputFilename);
 
             // 0. CHECK MINIMUM SIZE
-            if (inputSize < 500 * 1024) { // 500 KB
+            if (inputSize < 10 * 1024) { // 10 KB (Lowered from 500KB for better testing)
                 console.log(`[compress-pdf] Skipping ${baseName} (Too small: ${inputSize} bytes)`);
                 await fs.copy(input, finalOutputPath);
                 return {
