@@ -204,6 +204,8 @@ export default function ToolClient() {
             else if (processorResult.blobs && processorResult.blobs.length > 0) {
                 // For now, just use the first blob - in future could zip them
                 const url = URL.createObjectURL(processorResult.blobs[0]);
+                const isCompressed = processorResult.originalSize && processorResult.finalSize && processorResult.finalSize < processorResult.originalSize;
+
                 setResult({
                     downloadUrl: url,
                     isClientSide: true,
@@ -212,7 +214,7 @@ export default function ToolClient() {
                         metadata: {
                             originalSize: processorResult.originalSize,
                             finalSize: processorResult.finalSize,
-                            action: 'processed',
+                            action: isCompressed ? 'compressed' : 'processed',
                             count: processorResult.blobs.length
                         }
                     },
@@ -587,7 +589,7 @@ export default function ToolClient() {
 
                                     <h3 className="text-xl font-bold dark:text-white mb-2">Processing Complete!</h3>
 
-                                    {tool.id === 'compress-pdf' ? (
+                                    {tool.id === 'compress-pdf' || tool.id === 'image-compressor' ? (
                                         <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 mb-8 border border-slate-200 dark:border-slate-700">
                                             {/* Smart Message Logic */}
                                             {result?.result?.metadata?.action === 'compressed' ? (
@@ -596,9 +598,13 @@ export default function ToolClient() {
                                                         Saved {Math.round((1 - (result.result.metadata.finalSize / result.result.metadata.originalSize)) * 100)}%
                                                     </span>
                                                     <p className="text-2xl font-bold dark:text-white mb-1">
-                                                        {(result.result.metadata.finalSize / 1024 / 1024).toFixed(2)} MB
+                                                        {result.result.metadata.finalSize < 1024 * 1024
+                                                            ? `${(result.result.metadata.finalSize / 1024).toFixed(0)} KB`
+                                                            : `${(result.result.metadata.finalSize / 1024 / 1024).toFixed(2)} MB`}
                                                         <span className="text-base font-normal text-slate-400 line-through ml-2">
-                                                            {(result.result.metadata.originalSize / 1024 / 1024).toFixed(2)} MB
+                                                            {result.result.metadata.originalSize < 1024 * 1024
+                                                                ? `${(result.result.metadata.originalSize / 1024).toFixed(0)} KB`
+                                                                : `${(result.result.metadata.originalSize / 1024 / 1024).toFixed(2)} MB`}
                                                         </span>
                                                     </p>
                                                     <p className="text-slate-500 text-sm">
