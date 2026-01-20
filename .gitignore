@@ -6,6 +6,7 @@ node_modules
 # Build outputs
 dist
 build
+android-build
 .next
 .expo
 web-build
