@@ -25,7 +25,9 @@ import {
     compressImages,
     resizeImage,
     resizeImages,
-    type ProcessorResult
+    summarizePDF,
+    type ProcessorResult,
+    type SummaryMode
 } from '@/lib/processors';
 
 export default function ToolClient() {
@@ -48,6 +50,11 @@ export default function ToolClient() {
     const [chatInput, setChatInput] = useState('');
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    // AI Summarizer State
+    const [summaryMode, setSummaryMode] = useState<SummaryMode>('brief');
+    const [summaryResult, setSummaryResult] = useState<string | null>(null);
+    const [summaryStatus, setSummaryStatus] = useState<string>('');
 
     // Debugging: Log errors to console (also ensures variable is 'used' for linter)
     useEffect(() => {
@@ -173,6 +180,22 @@ export default function ToolClient() {
                         processorResult = await resizeImages(files, width, height, setProcessingProgress);
                     }
                     break;
+                case 'summarize-pdf':
+                    // Special handling for AI summarizer
+                    const summaryResult = await summarizePDF(
+                        files[0],
+                        summaryMode,
+                        (status) => setSummaryStatus(status)
+                    );
+                    if (summaryResult.success && summaryResult.summary) {
+                        setProcessingProgress(100);
+                        setSummaryResult(summaryResult.summary);
+                        setResult({ isSummary: true, isMock: summaryResult.isMock });
+                        setStatus('completed');
+                    } else {
+                        throw new Error(summaryResult.error || 'Failed to summarize PDF');
+                    }
+                    return; // Early return - don't process like other tools
                 default:
                     throw new Error('Unknown client-side tool');
             }
@@ -424,7 +447,7 @@ export default function ToolClient() {
                                 files={files}
                                 onFilesChange={setFiles}
                                 accept={tool.type === 'image' || tool.id === 'image-to-pdf'
-                                    ? { 'image/*': ['.png', '.jpg', '.jpeg', '.webp'] }
+                                    ? { 'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tiff', '.tif', '.heic', '.heif'] }
                                     : tool.id === 'doc-to-pdf'
                                         ? {
                                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
@@ -487,6 +510,35 @@ export default function ToolClient() {
                                                 <option value="180">180°</option>
                                                 <option value="270">90° Counter-Clockwise</option>
                                             </select>
+                                        </div>
+                                    )}
+
+                                    {tool.id === 'summarize-pdf' && (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                            <h3 className="font-semibold mb-3 dark:text-white">Summary Mode</h3>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {(['brief', 'detailed', 'bullets'] as const).map((mode) => (
+                                                    <button
+                                                        key={mode}
+                                                        onClick={() => setSummaryMode(mode)}
+                                                        className={clsx(
+                                                            "py-3 px-4 rounded-lg text-sm font-medium transition-all",
+                                                            summaryMode === mode
+                                                                ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25"
+                                                                : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-600"
+                                                        )}
+                                                    >
+                                                        {mode === 'brief' && '📝 Brief'}
+                                                        {mode === 'detailed' && '📄 Detailed'}
+                                                        {mode === 'bullets' && '• Bullets'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-3">
+                                                {summaryMode === 'brief' && 'Get a 2-3 sentence overview of the main points.'}
+                                                {summaryMode === 'detailed' && 'Get a comprehensive multi-paragraph summary.'}
+                                                {summaryMode === 'bullets' && 'Get 5-10 bullet points with key takeaways.'}
+                                            </p>
                                         </div>
                                     )}
 
@@ -581,7 +633,64 @@ export default function ToolClient() {
                                 </div>
                             )}
 
-                            {status === 'completed' && tool.id !== 'ai-chat' && (
+                            {status === 'completed' && tool.id === 'summarize-pdf' && summaryResult && (
+                                <div className="py-6">
+                                    <div className="flex items-center justify-center gap-2 mb-6">
+                                        <div className="w-12 h-12 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                                            <Icons.ListChecks className="w-6 h-6" />
+                                        </div>
+                                        <div className="text-left">
+                                            <h3 className="text-lg font-bold dark:text-white">Summary Ready!</h3>
+                                            {result?.isMock && (
+                                                <span className="text-xs text-amber-600 dark:text-amber-400">Demo mode - API key not configured</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 mb-6 border border-slate-200 dark:border-slate-700 text-left">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-xs font-medium text-violet-600 dark:text-violet-400 bg-violet-100 dark:bg-violet-900/30 px-2 py-1 rounded">
+                                                {summaryMode === 'brief' ? '📝 Brief Summary' : summaryMode === 'detailed' ? '📄 Detailed Summary' : '• Bullet Points'}
+                                            </span>
+                                            <button
+                                                onClick={() => navigator.clipboard.writeText(summaryResult)}
+                                                className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1"
+                                            >
+                                                <Icons.Copy className="w-3 h-3" /> Copy
+                                            </button>
+                                        </div>
+                                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                                            <ReactMarkdown>{summaryResult}</ReactMarkdown>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-center gap-4">
+                                        <button
+                                            onClick={() => {
+                                                const blob = new Blob([summaryResult], { type: 'text/plain' });
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = `${files[0]?.name?.replace('.pdf', '') || 'document'}-summary.txt`;
+                                                a.click();
+                                                URL.revokeObjectURL(url);
+                                            }}
+                                            className="flex items-center gap-2 bg-violet-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-violet-700 transition-all shadow-lg shadow-violet-500/25"
+                                        >
+                                            <Icons.Download className="w-4 h-4" />
+                                            Download Summary
+                                        </button>
+                                        <button
+                                            onClick={() => { setFiles([]); setStatus('idle'); setResult(null); setSummaryResult(null); }}
+                                            className="px-6 py-3 text-slate-500 hover:text-slate-700 font-medium"
+                                        >
+                                            Summarize Another
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {status === 'completed' && tool.id !== 'ai-chat' && tool.id !== 'summarize-pdf' && (
                                 <div className="text-center py-10">
                                     <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
                                         <Icons.ListChecks className="w-8 h-8" />

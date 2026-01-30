@@ -71,8 +71,8 @@ export const viewport: Viewport = {
     userScalable: false,
 };
 
-// import { Analytics } from "@vercel/analytics/next";
-// import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Providers } from './providers';
 import { AdFooter } from '@/components/AdSense/AdFooter';
 import { Footer } from '@/components/Footer';
@@ -108,8 +108,8 @@ export default function RootLayout({
                     <Footer />
                 </Providers>
                 <ConsentBanner />
-                {/* <Analytics /> */}
-                {/* <SpeedInsights /> */}
+                <Analytics />
+                <SpeedInsights />
                 <SplashScreen />
                 <GoogleAnalytics />
                 <ServiceWorkerRegister />
