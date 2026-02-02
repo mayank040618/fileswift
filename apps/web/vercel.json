@@ -1,0 +1,54 @@
+{
+    "redirects": [
+        {
+            "source": "/compress-pdf",
+            "destination": "https://www.fileswift.in/tools/compress-pdf",
+            "permanent": true
+        },
+        {
+            "source": "/merge-pdf",
+            "destination": "https://www.fileswift.in/tools/merge-pdf",
+            "permanent": true
+        },
+        {
+            "source": "/rotate-pdf",
+            "destination": "https://www.fileswift.in/tools/rotate-pdf",
+            "permanent": true
+        },
+        {
+            "source": "/pdf-to-word",
+            "destination": "https://www.fileswift.in/tools/pdf-to-word",
+            "permanent": true
+        },
+        {
+            "source": "/pdf-to-image",
+            "destination": "https://www.fileswift.in/tools/pdf-to-image",
+            "permanent": true
+        },
+        {
+            "source": "/doc-to-pdf",
+            "destination": "https://www.fileswift.in/tools/doc-to-pdf",
+            "permanent": true
+        },
+        {
+            "source": "/image-to-pdf",
+            "destination": "https://www.fileswift.in/tools/image-to-pdf",
+            "permanent": true
+        },
+        {
+            "source": "/image-compressor",
+            "destination": "https://www.fileswift.in/tools/image-compressor",
+            "permanent": true
+        },
+        {
+            "source": "/image-resizer",
+            "destination": "https://www.fileswift.in/tools/image-resizer",
+            "permanent": true
+        },
+        {
+            "source": "/bulk-image-resizer",
+            "destination": "https://www.fileswift.in/tools/bulk-image-resizer",
+            "permanent": true
+        }
+    ]
+}
