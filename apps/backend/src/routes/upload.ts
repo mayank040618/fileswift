@@ -282,14 +282,19 @@ export default async function uploadRoutes(fastify: FastifyInstance) {
                         // If using Cloud Storage, prefer the pre-calculated downloadUrl (Signed URL)
                         const isCloudStorage = process.env.STORAGE_PROVIDER === 's3' || process.env.STORAGE_PROVIDER === 'r2';
 
-                        if (isCloudStorage && result.downloadUrl && result.downloadUrl.startsWith('http')) {
+                        // FIX: Always use downloadUrl if provided by processor (it handles local/cloud logic correctly)
+                        if (result.downloadUrl) {
+                            downloadUrl = result.downloadUrl;
+                        }
+                        else if (isCloudStorage && result.downloadUrl && result.downloadUrl.startsWith('http')) {
                             downloadUrl = result.downloadUrl;
                         }
                         // If resultKey is explicitly a URL (legacy/external), use it
                         else if (result.resultKey.startsWith('http')) {
                             downloadUrl = result.resultKey;
                         } else {
-                            // Local File Path -> Generate Secure Token
+                            // Legacy Local File Path -> Generate Secure Token
+                            // Only needed if processor didn't give us a URL
                             finalPath = result.resultKey;
                             const token = await uploadState.createDownloadToken(finalPath);
                             const apiUrl = (process.env.PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');

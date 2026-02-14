@@ -421,7 +421,7 @@ FileSwift allows you to resize multiple images in a single step. Instead of edit
         color: 'bg-cyan-500',
         slug: '/tools/pdf-to-image',
         type: 'file',
-        keywords: ['pdf to image', 'pdf to jpg', 'pdf to png', 'convert pdf pages to images', 'extract images from pdf'],
+        keywords: ['pdf to image', 'pdf to jpg', 'pdf to png', 'convert pdf pages to images', 'extract images from pdf', 'image to jpg', 'image to png', 'convert image to jpg', 'convert image to png'],
         content: {
             features: [
                 'Page Extraction: Converts every page of the PDF into a separate image.',

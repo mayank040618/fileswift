@@ -47,7 +47,7 @@ const start = async () => {
 
         // 3. Register Critical Middleware (Fast & Required for security)
         await server.register(cors, {
-            origin: true, // Allow all origins for debugging (TEMPORARY)
+            origin: true,
             credentials: true,
         });
         await server.register(multipart, {
