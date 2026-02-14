@@ -1,5 +1,5 @@
 'use client';
-// AdSense Configured ✅
+// AdSense Auto Ads handles placement — this component only renders if a real slot ID is provided.
 
 import React, { useEffect } from 'react';
 
@@ -12,13 +12,16 @@ export const AdBanner = React.memo(function AdBanner({ dataAdSlot }: { dataAdSlo
             setIsDev(true);
             return;
         }
-        try {
-            // @ts-ignore
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (e) {
-            console.error("AdSense Error:", e);
+        // Only push ad if we have a real slot ID
+        if (dataAdSlot) {
+            try {
+                // @ts-ignore
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.error("AdSense Error:", e);
+            }
         }
-    }, []);
+    }, [dataAdSlot]);
 
     if (isDev) {
         return (
@@ -28,12 +31,15 @@ export const AdBanner = React.memo(function AdBanner({ dataAdSlot }: { dataAdSlo
         );
     }
 
+    // Don't render empty boxes when no real slot ID is provided — Auto Ads handles placement
+    if (!dataAdSlot) return null;
+
     return (
         <div className="mx-auto my-6 flex justify-center overflow-hidden min-h-[90px]">
             <ins className="adsbygoogle"
                 style={{ display: 'block', width: '100%', maxWidth: '728px', height: '90px' }}
                 data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-5583723279396814"}
-                data-ad-slot={dataAdSlot || "0000000000"}
+                data-ad-slot={dataAdSlot}
                 data-ad-format="auto"
                 data-full-width-responsive="true"></ins>
         </div>
