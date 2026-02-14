@@ -44,6 +44,10 @@ export const metadata: Metadata = {
     },
     alternates: {
         canonical: './',
+        languages: {
+            'en-US': 'https://www.fileswift.in',
+            'x-default': 'https://www.fileswift.in',
+        },
     },
     robots: {
         index: true,

@@ -13,6 +13,10 @@ export default function robots(): MetadataRoute.Robots {
             {
                 userAgent: ['GPTBot', 'Google-Extended', 'CCBot', 'Claude-Web'],
                 allow: '/',
+            },
+            {
+                userAgent: 'Mediapartners-Google',
+                allow: '/',
             }
         ],
         sitemap: `${baseUrl}/sitemap.xml`,

@@ -7,6 +7,7 @@ export { splitPDF } from './pdf-split';
 export { imagesToPDF } from './image-to-pdf';
 export { compressImage, compressImages } from './image-compress';
 export { resizeImage, resizeImages } from './image-resize';
+export { summarizePDF, extractTextFromPDF, type SummaryMode, type SummarizeResult } from './pdf-summarize';
 
 // Types
 export interface ProcessorResult {
@@ -28,6 +29,7 @@ export const CLIENT_SIDE_TOOLS = [
     'image-to-pdf',
     'image-compressor',
     'image-resizer',
+    'summarize-pdf',
 ] as const;
 
 export type ClientSideTool = typeof CLIENT_SIDE_TOOLS[number];
@@ -35,3 +37,4 @@ export type ClientSideTool = typeof CLIENT_SIDE_TOOLS[number];
 export function isClientSideTool(toolId: string): toolId is ClientSideTool {
     return CLIENT_SIDE_TOOLS.includes(toolId as ClientSideTool);
 }
+

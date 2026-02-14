@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { TOOLS } from '@/config/tools';
 import { SEO_PAGES } from '@/config/seo-pages';
+import { BLOG_POSTS } from '@/config/blog-posts';
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = 'https://www.fileswift.in';
@@ -67,5 +68,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: 0.7,
     }));
 
-    return [...staticPaths, ...toolPaths, ...seoPaths];
+    const blogPaths = BLOG_POSTS.map((post) => ({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: new Date(post.updatedDate),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+    }));
+
+    const blogIndex = {
+        url: `${baseUrl}/blog`,
+        lastModified,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+    };
+
+    return [...staticPaths, ...toolPaths, ...seoPaths, blogIndex, ...blogPaths];
 }

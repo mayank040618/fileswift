@@ -4,6 +4,8 @@ import { SEO_PAGES } from '@/config/seo-pages';
 import dynamic from 'next/dynamic';
 import { Tool } from '@/config/tools';
 import ReactMarkdown from 'react-markdown';
+import { AdBanner } from '@/components/ads/AdBanner';
+import { AdSquare } from '@/components/ads/AdSquare';
 
 const ToolClient = dynamic(() => import('./ToolClient'), { ssr: false });
 
@@ -97,8 +99,9 @@ export async function generateMetadata({ params }: { params: { toolId: string } 
     };
 }
 
-function getJsonLd(tool: Tool) {
+function getJsonLd(tool: Tool, toolId: string) {
     const schemas: any[] = [];
+    const baseUrl = 'https://www.fileswift.in';
 
     // 1. SoftwareApplication Schema
     schemas.push({
@@ -132,6 +135,52 @@ function getJsonLd(tool: Tool) {
             }))
         });
     }
+
+    // 3. HowTo Schema (for rich snippets)
+    if (tool.content?.howTo && tool.content.howTo.length > 0) {
+        schemas.push({
+            '@context': 'https://schema.org',
+            '@type': 'HowTo',
+            name: `How to ${tool.title.replace('Online', '').replace('Converter', '').trim()}`,
+            description: tool.description,
+            step: tool.content.howTo.map((step, index) => ({
+                '@type': 'HowToStep',
+                position: index + 1,
+                text: step,
+                name: `Step ${index + 1}`
+            })),
+            tool: {
+                '@type': 'HowToTool',
+                name: 'FileSwift Online Tool'
+            }
+        });
+    }
+
+    // 4. BreadcrumbList Schema (for navigation display)
+    schemas.push({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Home',
+                item: baseUrl
+            },
+            {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Tools',
+                item: `${baseUrl}/tools`
+            },
+            {
+                '@type': 'ListItem',
+                position: 3,
+                name: tool.title,
+                item: `${baseUrl}/tools/${toolId}`
+            }
+        ]
+    });
 
     return schemas;
 }
@@ -183,7 +232,7 @@ export default function Page({ params }: { params: { toolId: string } }) {
     const displayLongDescription = seoPage ? seoPage.longDescription : tool.longDescription;
     const displayTitle = seoPage ? seoPage.title : tool.title;
 
-    const schemas = getJsonLd(tool);
+    const schemas = getJsonLd(tool, params.toolId);
 
     return (
         <>
@@ -249,6 +298,11 @@ export default function Page({ params }: { params: { toolId: string } }) {
                     </section>
                 )}
 
+                {/* Mid-Content Ad */}
+                <div className="my-4">
+                    <AdBanner />
+                </div>
+
                 {/* 3. Long Description (Markdown) */}
                 {tool.longDescription && (
                     <section className="prose dark:prose-invert max-w-none prose-slate prose-lg">
@@ -289,6 +343,11 @@ export default function Page({ params }: { params: { toolId: string } }) {
                         </div>
                     </section>
                 )}
+
+                {/* Bottom Ad */}
+                <div className="mt-8">
+                    <AdSquare />
+                </div>
             </div>
         </>
     );
