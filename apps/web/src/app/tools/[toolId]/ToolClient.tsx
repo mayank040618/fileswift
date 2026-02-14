@@ -296,7 +296,8 @@ export default function ToolClient() {
         const angleInput = document.getElementById('rotate-angle') as HTMLSelectElement;
         if (angleInput?.value) data.angle = angleInput.value;
 
-        if (tool.id === 'pdf-to-image') data.format = 'png';
+        const formatInput = document.getElementById('output-format') as HTMLSelectElement;
+        if (tool.id === 'pdf-to-image') data.format = formatInput?.value || 'png';
         if (tool.id === 'image-to-pdf') data.format = 'pdf';
 
         formData.append('data', JSON.stringify(data));
@@ -510,6 +511,17 @@ export default function ToolClient() {
                                                 <option value="180">180°</option>
                                                 <option value="270">90° Counter-Clockwise</option>
                                             </select>
+                                        </div>
+                                    )}
+
+                                    {tool.id === 'pdf-to-image' && (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                            <h3 className="font-semibold mb-3 dark:text-white">Output Format</h3>
+                                            <select id="output-format" title="Select output image format" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
+                                                <option value="png">PNG — Lossless, best quality</option>
+                                                <option value="jpg">JPG — Smaller file size</option>
+                                            </select>
+                                            <p className="text-xs text-slate-500 mt-2">PNG preserves sharp text. JPG is better for photos and smaller files.</p>
                                         </div>
                                     )}
 

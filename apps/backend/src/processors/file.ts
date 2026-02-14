@@ -634,6 +634,12 @@ export const pdfToImageProcessor: ToolProcessor = {
         const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
         const outputFiles: string[] = [];
 
+        // Read user-selected format (default: png)
+        const { format: rawFormat } = job.data.data || {};
+        const format = rawFormat === 'jpg' || rawFormat === 'jpeg' ? 'jpg' : 'png';
+        const gsDevice = format === 'jpg' ? 'jpeg' : 'png16m';
+        const sipsFormat = format === 'jpg' ? 'jpeg' : 'png';
+
         // Check if we have standard GS or Mac SIPS
         const hasGs = await hasBinary('gs');
         const hasSips = await hasBinary('sips');
@@ -642,7 +648,7 @@ export const pdfToImageProcessor: ToolProcessor = {
             throw new Error("PDF to Image extraction requires Ghostscript (gs) or macOS sips, which are missing in this environment.");
         }
 
-        console.log(`[pdf-to-image] Using ${hasGs ? 'Ghostscript' : 'SIPS'}...`);
+        console.log(`[pdf-to-image] Using ${hasGs ? 'Ghostscript' : 'SIPS'} | Format: ${format.toUpperCase()}`);
 
         for (const input of inputs) {
             const buffer = await fs.readFile(input);
@@ -661,17 +667,19 @@ export const pdfToImageProcessor: ToolProcessor = {
                 const tempPdfPath = path.join(outputDir, tempPdfName);
                 await fs.writeFile(tempPdfPath, await newPdf.save());
 
-                // 2. Convert temp PDF to PNG
-                const outputName = `${baseName}-page-${i + 1}.png`;
+                // 2. Convert temp PDF to image (user-selected format)
+                const outputName = `${baseName}-page-${i + 1}.${format}`;
                 const outputPath = path.join(outputDir, outputName);
 
                 try {
                     if (hasGs) {
-                        // GS Command - Increased to 300 DPI for better quality
-                        await execAsync(`gs -dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -sDEVICE=png16m -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -r300 -sOutputFile="${outputPath}" "${tempPdfPath}"`);
+                        // GS Command - 300 DPI for high quality
+                        const gsArgs = `-dQUIET -dSAFER -dBATCH -dNOPAUSE -dNOPROMPT -sDEVICE=${gsDevice} -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -r300`;
+                        const jpgQuality = format === 'jpg' ? ' -dJPEGQ=90' : '';
+                        await execAsync(`gs ${gsArgs}${jpgQuality} -sOutputFile="${outputPath}" "${tempPdfPath}"`);
                     } else if (hasSips) {
                         // SIPS Command (Mac) - Force high resolution (max dimension 3000px, approx 300dpi for A4)
-                        await execAsync(`sips -s format png --resampleHeightWidthMax 3000 "${tempPdfPath}" --out "${outputPath}"`);
+                        await execAsync(`sips -s format ${sipsFormat} --resampleHeightWidthMax 3000 "${tempPdfPath}" --out "${outputPath}"`);
                     }
 
                     if (await fs.pathExists(outputPath)) {
