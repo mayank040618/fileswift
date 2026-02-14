@@ -60,7 +60,7 @@ export function AdFooter() {
                 </div>
                 <ins className="adsbygoogle"
                     style={{ display: 'inline-block', width: '728px', height: '90px' }}
-                    data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-0000000000000000"}
+                    data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-5583723279396814"}
                     data-ad-slot="0000000000"></ins>
             </div>
         </div>
