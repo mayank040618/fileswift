@@ -8,11 +8,27 @@ import fs from 'fs-extra';
 import path from 'path';
 import { spawnWithTimeout } from '../utils/spawnWithTimeout';
 
-// Mock OpenAI if key missing or AI disabled
+// Configure AI Client
+const sarvamKey = process.env.SARVAM_API_KEY;
+const openaiKey = process.env.OPENAI_API_KEY;
 const enableAI = process.env.ENABLE_AI !== 'false';
-const openai = (enableAI && process.env.OPENAI_API_KEY)
-    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-    : null;
+
+let openai: OpenAI | null = null;
+let aiModel = "gpt-4o-mini";
+
+if (enableAI) {
+    if (sarvamKey) {
+        openai = new OpenAI({
+            apiKey: sarvamKey,
+            baseURL: "https://api.sarvam.ai/v1"
+        });
+        aiModel = "sarvam-m";
+    } else if (openaiKey) {
+        openai = new OpenAI({
+            apiKey: openaiKey
+        });
+    }
+}
 
 // Helper to extract text
 const extractText = async (filePath: string): Promise<string> => {
@@ -80,7 +96,7 @@ export const summarizeProcessor: ToolProcessor = {
                     { role: "system", content: "You are a helpful summarizer. Return a JSON with keys: tldr, bullets, and paragraph." },
                     { role: "user", content: `Summarize this text:\n\n${truncated}` }
                 ],
-                model: "gpt-4o-mini",
+                model: aiModel,
                 response_format: { type: "json_object" }
             });
             const content = completion.choices[0].message.content;
