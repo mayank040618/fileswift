@@ -1,8 +1,7 @@
-'use client';
-
 import React, { useCallback, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, X, File as FileIcon, Camera, Pencil } from 'lucide-react';
+import Image from 'next/image';
 import { ImageEditorModal } from './ImageEditorModal';
 
 interface BulkUploaderProps {
@@ -180,11 +179,13 @@ export function BulkUploader({ files, onFilesChange, accept, maxFiles = 100, max
                                 {/* Thumbnail */}
                                 <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center text-slate-500 overflow-hidden relative">
                                     {file.type.startsWith('image/') ? (
-                                        <img
+                                        <Image
                                             src={URL.createObjectURL(file)}
                                             alt={file.name}
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            className="object-cover"
                                             onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                                            unoptimized // Blob URLs are local
                                         />
                                     ) : (
                                         <FileIcon size={20} />

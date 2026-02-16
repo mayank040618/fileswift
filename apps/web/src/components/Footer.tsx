@@ -25,11 +25,15 @@ export function Footer() {
                     </div>
 
                     <div>
-                        <h4 className="font-semibold text-slate-900 dark:text-white mb-4">Tools</h4>
+                        <h4 className="font-semibold text-slate-900 dark:text-white mb-4">Popular Tools</h4>
                         <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                            {/* Statically list key tools for best SEO structure */}
                             <li><Link href="/tools/compress-pdf" className="hover:text-blue-600 transition-colors">Compress PDF</Link></li>
                             <li><Link href="/tools/pdf-to-word" className="hover:text-blue-600 transition-colors">PDF to Word</Link></li>
+                            <li><Link href="/tools/merge-pdf" className="hover:text-blue-600 transition-colors">Merge PDF</Link></li>
                             <li><Link href="/tools/image-resizer" className="hover:text-blue-600 transition-colors">Image Resizer</Link></li>
+                            <li><Link href="/tools/image-to-pdf" className="hover:text-blue-600 transition-colors">Image to PDF</Link></li>
+                            <li><Link href="/tools/remove-background" className="hover:text-blue-600 transition-colors">Remove Background</Link></li>
                         </ul>
                     </div>
 

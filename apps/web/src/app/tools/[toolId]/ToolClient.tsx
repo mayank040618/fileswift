@@ -61,10 +61,12 @@ export default function ToolClient() {
         if (errorMessage) console.error('[ToolClient] Error:', errorMessage);
     }, [errorMessage]);
 
-    if (!tool) return <div className="p-10 text-center">Tool not found</div>;
-
     useInterval(async () => {
-        if (status === 'processing' && jobId && tool.id !== 'ai-chat') {
+        // Only run if processing and check internal conditions
+        if (status !== 'processing' || !tool) return;
+
+        // Polling logic
+        if (jobId && tool.id !== 'ai-chat') {
             try {
                 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
                 const res = await fetch(`${API_BASE}/api/jobs/${jobId}/status`);
@@ -94,7 +96,7 @@ export default function ToolClient() {
         }
 
         // Processing Timer Update
-        if (status === 'processing' && processingStartTime) {
+        if (processingStartTime) {
             const elapsed = Math.round((Date.now() - processingStartTime) / 1000);
             setTimeRemaining(`${elapsed}s elapsed`);
 
@@ -127,7 +129,9 @@ export default function ToolClient() {
                 return Math.min(prev + increment, 95);
             });
         }
-    }, status === 'processing' ? 2000 : null);
+    }, 2000);
+
+    if (!tool) return <div className="p-10 text-center">Tool not found</div>;
 
     // Client-side processing for applicable tools
     const handleClientSideProcess = async () => {
@@ -591,11 +595,18 @@ export default function ToolClient() {
                             </div>
 
                             {(status === 'processing' || status === 'uploading') && (
-                                <ProgressBar
-                                    status={status}
-                                    progress={status === 'uploading' ? uploadProgress : processingProgress}
-                                    timeRemaining={timeRemaining}
-                                />
+                                <div className="w-full">
+                                    <ProgressBar
+                                        status={status}
+                                        progress={status === 'uploading' ? uploadProgress : processingProgress}
+                                        timeRemaining={timeRemaining}
+                                    />
+                                    {summaryStatus && (
+                                        <p className="text-xs text-center text-slate-500 mt-2 animate-pulse">
+                                            {summaryStatus}
+                                        </p>
+                                    )}
+                                </div>
                             )}
 
                             {status === 'failed' && (

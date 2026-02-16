@@ -90,6 +90,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ imageSrc, is
                         onComplete={(c) => setCompletedCrop(c)}
                         style={{ maxHeight: '100%', maxWidth: '100%' }}
                     >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             ref={imgRef}
                             src={imageSrc}
