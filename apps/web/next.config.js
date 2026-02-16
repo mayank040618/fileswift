@@ -1,12 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
     transpilePackages: ["@fileswift/ui"],
     typescript: {
         ignoreBuildErrors: true,
     },
-    eslint: {
-        ignoreDuringBuilds: true,
+    experimental: {
+        optimizePackageImports: ['lucide-react', 'date-fns', 'lodash', 'framer-motion', '@headlessui/react'],
     },
     webpack: (config, { isServer }) => {
         // Handle pdfjs-dist canvas dependency
