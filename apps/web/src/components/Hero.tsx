@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 export function Hero() {
@@ -21,19 +20,13 @@ export function Hero() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
                 <div className="text-center max-w-3xl mx-auto">
 
-                    {/* <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
+                    {/* <div
                         className="mb-6 inline-flex items-center rounded-full bg-blue-50 dark:bg-slate-800 px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-slate-700 hover:bg-blue-100 transition-colors"
                     >
                         <span>✨ New AI Features Available</span>
-                    </motion.div> */}
+                    </div> */}
 
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
+                    <h1
                         className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-6xl mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300"
                     >
                         Master Your Files with <br className="hidden sm:block" />
@@ -43,22 +36,16 @@ export function Hero() {
                                 <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
                             </svg>
                         </span>
-                    </motion.h1>
+                    </h1>
 
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
+                    <p
                         className="text-lg leading-8 text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto"
                     >
                         Compress, merge, and convert PDFs securely in your browser.
                         Free online tools for all your document needs.
-                    </motion.p>
+                    </p>
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.3 }}
+                    <div
                         className="flex items-center justify-center gap-x-6"
                     >
                         <Link
@@ -68,12 +55,9 @@ export function Hero() {
                             Get Started for Free
                         </Link>
 
-                    </motion.div>
+                    </div>
 
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.5 }}
+                    <div
                         className="mt-10 flex items-center justify-center gap-6 text-sm text-slate-500 dark:text-slate-400"
                     >
                         <div className="flex items-center gap-2">
@@ -94,7 +78,7 @@ export function Hero() {
                             </svg>
                             Mobile ready
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>

@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: fileswift-backend
+    env: docker
+    dockerContext: .
+    dockerfilePath: apps/backend/Dockerfile
+    plan: free
+    region: oregon
+    numInstances: 1
+    healthCheckPath: /api/health/gs
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: fileswift-redis
+          property: connectionString
+      - key: STORAGE_PROVIDER
+        value: r2
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        value: fileswift-prod
+      - key: PUBLIC_API_URL
+        value: https://fileswift-backend.onrender.com
+
+  - type: redis
+    name: fileswift-redis
+    region: oregon
+    plan: free
+    ipAllowList: [] # Only allow internal access
