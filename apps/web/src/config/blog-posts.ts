@@ -584,4 +584,279 @@ If you have access to the source document, enable "subset fonts" when exporting 
             'Additional tools (Split PDF, Image Compressor) for advanced size reduction',
         ],
     },
+    // ===== SILO 2: IMAGE FORMATS =====
+    {
+        slug: 'heic-vs-jpg-vs-png-guide',
+        title: 'HEIC vs JPG vs PNG: Which Image Format Should You Use?',
+        metaTitle: 'HEIC vs JPG vs PNG – Best Image Format Guide 2026 | FileSwift',
+        description: 'Understand the difference between HEIC, JPG, and PNG. Learn which format is best for websites, photography, and printing.',
+        keywords: ['heic vs jpg', 'jpg vs png', 'best image format for website', 'heic vs jpg quality', 'png vs jpg difference', 'image format guide'],
+        date: '2026-02-17',
+        updatedDate: '2026-02-17',
+        readingTime: 6,
+        primaryToolId: 'image-compressor',
+        relatedToolIds: ['pdf-to-image', 'image-resizer'],
+        relatedSlugs: ['compress-image-for-email', 'resize-image-for-instagram'],
+        sections: [
+            {
+                heading: 'The Big Three: HEIC, JPG, PNG',
+                content: `We deal with these three formats every day, but do you know when to use which?
+                
+**JPG (JPEG)**: The universal standard. Great for photos, small file size, but lossy compression.
+**PNG**: The quality king. Supports transparency, lossless quality, but larger file size.
+**HEIC**: The modern challenger. Apple's format that offers better quality than JPG at half the size, but has compatibility issues.`
+            },
+            {
+                heading: 'When to Use JPG',
+                content: `Use JPG for:
+*   **Photography**: Digital cameras and phones (non-Apple) default to this.
+*   **Web Images**: Great for blog posts and ecommerce product photos where speed matters.
+*   **Emailing**: Small size makes it perfect for attachments.`
+            },
+            {
+                heading: 'When to Use PNG',
+                content: `Use PNG for:
+*   **Logos & Icons**: Essential for transparent backgrounds.
+*   **Screenshots**: Keeps text sharp and readable.
+*   **Digital Art**: Preserves crisp lines and solid colors.`
+            },
+            {
+                heading: 'When to Use HEIC',
+                content: `Use HEIC for:
+*   **iPhone Storage**: Saves massive space on your device.
+*   **High-Quality Archives**: Better color depth than JPG.
+**Problem**: Windows and Android often can't open HEIC files natively. You'll likely need to convert them to JPG before sharing.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Is HEIC better than JPG?',
+                answer: 'Technically yes. HEIC offers better quality at smaller file sizes. However, JPG wins on compatibility—it opens on everything.'
+            },
+            {
+                question: 'Does converting JPG to PNG improve quality?',
+                answer: 'No. You cannot add quality that isn\'t there. Converting a low-quality JPG to PNG just creates a larger file with the same blurry image.'
+            }
+        ],
+        whyFileswift: [
+            'Convert HEIC to JPG instantly',
+            'Compress PNGs without losing transparency',
+            'Resize any format for social media'
+        ]
+    },
+    // ===== SILO 3: SPECIFIC USE CASES =====
+    {
+        slug: 'reduce-pdf-size-for-irctc-govt-portals',
+        title: 'How to Reduce PDF Size for IRCTC & Government Portals',
+        metaTitle: 'Reduce PDF Size for IRCTC & Govt Portals – < 300KB | FileSwift',
+        description: 'Compress PDF documents for IRCTC, Aadhaar, PAN card, and other government portals. Hit strict 200KB-500KB limits easily.',
+        keywords: ['irctc pdf size limit', 'compress pdf for aadhaar', 'reduce pdf size for pan card', 'central government upload limit', 'compress pdf 300kb'],
+        date: '2026-02-17',
+        updatedDate: '2026-02-17',
+        readingTime: 5,
+        primaryToolId: 'compress-pdf',
+        relatedToolIds: ['split-pdf', 'image-to-pdf'],
+        relatedSlugs: ['compress-pdf-to-100kb-200kb-500kb', 'compress-pdf-for-bank-statement'],
+        sections: [
+            {
+                heading: 'The Struggle with Government Uploads',
+                content: `Applying for a passport, updating Aadhaar, or filing a ticket claim on IRCTC? You've likely hit the "File Too Large" error. Government servers are notoriously strict, often capping uploads at **300KB** or strictly **PDF format**.`
+            },
+            {
+                heading: 'Common Size Limits in India',
+                content: `*   **IRCTC Claims**: Max 300KB per file
+*   **Passport Seva**: Max 1MB (black & white preferred)
+*   **UPSC/SSC**: Max 200KB for documents
+*   **Income Tax Portal**: Max 2-5MB`
+            },
+            {
+                heading: 'How to Fix It Fast',
+                content: `1.  **Scan in Grey Scale**: If you are scanning physical papers, set your scanner to "Grayscale" or "Black & White". Color scans are 3x larger.
+2.  **Use FileSwift Compression**: Upload your color PDF to FileSwift and select **"High Compression"**. This usually reduces a 2MB file to under 200KB.
+3.  **Split the File**: If you have a 10-page PDF but only need the first page, use our Split PDF tool to extract just that page.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Why does IRCTC reject my PDF?',
+                answer: 'Usually because it exceeds the 300KB limit or contains special characters in the filename. Rename your file to `ticket.pdf` and compress it.'
+            },
+            {
+                question: 'How do I make a PDF under 200KB?',
+                answer: 'Use the "Max Compression" setting on FileSwift. If it fails, try converting the PDF to images, resizing them smaller, and converting back to PDF.'
+            }
+        ],
+        whyFileswift: [
+            'Target specific small sizes (100KB, 200KB)',
+            'Secure client-side processing for ID documents',
+            'No watermarks on official documents'
+        ]
+    },
+    {
+        slug: 'top-free-tools-for-students',
+        title: 'Top 5 Free Tools Every Student Needs for Assignments',
+        metaTitle: '5 Essential Free PDF Tools for Students 2026 | FileSwift',
+        description: 'Boost your productivity with these free student tools. Merge assignments, compress reports, and organize class notes effortlessly.',
+        keywords: ['student pdf tools', 'merge assignments pdf', 'free scanner to pdf', 'compress thesis pdf', 'student productivity tools'],
+        date: '2026-02-17',
+        updatedDate: '2026-02-17',
+        readingTime: 6,
+        primaryToolId: 'merge-pdf',
+        relatedToolIds: ['compress-pdf', 'image-to-pdf'],
+        relatedSlugs: ['how-to-compress-pdf-without-losing-quality', 'merge-images-to-pdf'],
+        sections: [
+            {
+                heading: '1. Merge PDF: Combining Assignments',
+                content: `Professors often want a single file submission. Use the **Merge PDF** tool to combine your cover page, essay, and bibliography into one neat document.`
+            },
+            {
+                heading: '2. Image to PDF: Digitizing Handwritten Notes',
+                content: `Took photos of your friend's notes? Don't scroll through your gallery. Select all those photos and run them through **Image to PDF** to create a single, scrollable lecture document.`
+            },
+            {
+                heading: '3. Compress PDF: Submitting on LMS',
+                content: `Blackboard, Canvas, and Moodle often have annoying upload limits (like 10MB). Use **Compress PDF** to shrink your final project without losing graph/chart quality.`
+            },
+            {
+                heading: '4. Split PDF: Extracting Reading Material',
+                content: `Have a massive 500-page textbook PDF but only need Chapter 4? Use **Split PDF** to extract just pages 102-145 and save space on your tablet.`
+            },
+            {
+                heading: '5. PDF to Word: Editing Old Papers',
+                content: `Lost your original Word doc? Convert your PDF back to editable text with **PDF to Word** so you can make those last-minute changes.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Is FileSwift free for students?',
+                answer: 'Yes! FileSwift is completely free with no daily limits, making it perfect for student budgets (aka zero).'
+            },
+            {
+                question: 'Can I use it on my phone during class?',
+                answer: 'Absolutely. It runs in your mobile browser, so you can merge or compress files right from your smartphone.'
+            }
+        ],
+        whyFileswift: [
+            'Completely free',
+            'No registration needed',
+            'Mobile friendly'
+        ]
+    },
+    // ===== SILO 4: SECURITY & TROUBLESHOOTING =====
+    {
+        slug: 'is-online-pdf-compression-safe',
+        title: 'Is it Safe to Compress PDFs Online? (Security Guide)',
+        metaTitle: 'Is Online PDF Compression Safe? Security Guide 2026 | FileSwift',
+        description: 'Are online PDF tools safe for confidential documents? Learn why client-side processing makes FileSwift the secure choice for sensitive data.',
+        keywords: ['safe pdf compressor', 'online pdf security', 'is ilovepdf safe', 'secure pdf tools', 'client side pdf processing'],
+        date: '2026-02-17',
+        updatedDate: '2026-02-17',
+        readingTime: 8,
+        primaryToolId: 'compress-pdf',
+        relatedToolIds: ['pdf-to-word', 'merge-pdf'],
+        relatedSlugs: ['how-to-compress-pdf-without-losing-quality'],
+        sections: [
+            {
+                heading: 'The Hidden Risk of Online Tools',
+                content: `Most "free" online PDF tools work by uploading your file to their server. They process it there and send it back. While reputable sites delete these files eventually, your data **leaves your device**. This is a risk for specific documents:
+*   Bank Statements
+*   Medical Records
+*   Legal Contracts
+*   Personal IDs`
+            },
+            {
+                heading: 'The FileSwift Difference: Client-Side Processing',
+                content: `FileSwift is different. We use advanced WebAssembly technology to run the compression code **directly inside your browser**.
+                
+**What does this mean?**
+1.  You select a file.
+2.  Your browser (Chrome/Edge/Safari) does the work using your computer's power.
+3.  The file **never uploads** to our server.
+4.  Even if you disconnect usage internet after loading the page, it still works!`
+            },
+            {
+                heading: 'How to Verify Security',
+                content: `1.  **Check the URL**: Ensures it uses HTTPS.
+2.  **Read the Privacy Policy**: Look for "no server uploads".
+3.  **Test Airplane Mode**: Load the tool, turn off WiFi, and process a file. If it works (like FileSwift does), it's truly local and secure.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Does FileSwift store my files?',
+                answer: 'No. Since we process files on your device and never upload them, we couldn\'t store them even if we wanted to.'
+            },
+            {
+                question: 'Is it GDPR compliant?',
+                answer: 'Yes. Because no personal data is collected or transmitted, we are naturally compliant with strict data privacy regulations.'
+            }
+        ],
+        whyFileswift: [
+            'Files never leave your device',
+            'Zero risk of data breaches during transfer',
+            'Works offline (PWA support)'
+        ]
+    },
+    {
+        slug: 'fix-file-too-large-gmail-outlook',
+        title: 'How to Fix "File Too Large" Error in Gmail and Outlook',
+        metaTitle: 'Fix "File Too Large" Error in Gmail & Outlook – 3 Solutions | FileSwift',
+        description: 'Unable to send email due to large attachments? Learn 3 quick ways to bypass the 25MB limit in Gmail, Outlook, and Yahoo.',
+        keywords: ['email attachment limit', 'gmail file too large', 'outlook attachment size limit', 'send large pdf via email', 'compress email attachment'],
+        date: '2026-02-17',
+        updatedDate: '2026-02-17',
+        readingTime: 5,
+        primaryToolId: 'compress-pdf',
+        relatedToolIds: ['image-compressor', 'split-pdf'],
+        relatedSlugs: ['how-to-reduce-pdf-size-for-email', 'compress-pdf-to-100kb-200kb-500kb'],
+        sections: [
+            {
+                heading: 'The 25MB Hard Limit',
+                content: `It's the digital world's most annoying speed bump. You hit "Send" and get stopped: "Attachment size exceeds the limit."
+                
+**The Limits:**
+*   **Gmail**: 25MB
+*   **Outlook**: 20MB
+*   **Yahoo**: 25MB
+*   **Corporate**: Often just 10MB!`
+            },
+            {
+                heading: 'Solution 1: Brutal Compression (Fastest)',
+                content: `If you are just a few MB over (e.g., 30MB file), this is the way.
+1.  Go to **FileSwift Compress PDF**.
+2.  Upload the file.
+3.  Choose **Max Compression**.
+4.  Download. It will likely shrink to 5-10MB without issue.`
+            },
+            {
+                heading: 'Solution 2: Split and Conquer',
+                content: `If you have a 100MB ultra-high-res report, compression might not be enough.
+1.  Use **FileSwift Split PDF**.
+2.  Split the document into "Part 1" and "Part 2".
+3.  Send two separate emails. (A bit clumsy, but it works)`
+            },
+            {
+                heading: 'Solution 3: Cloud Links',
+                content: `For massive files (video files, raw images):
+1.  Upload to Google Drive or Dropbox.
+2.  Get a "Share Link".
+3.  Paste the link in your email body.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Why does a 22MB file fail in Outlook (20MB limit)?',
+                answer: 'Email encoding adds about 33% overhead. So a 20MB "limit" actually means you can only attach a file around 15-16MB.'
+            },
+            {
+                question: 'Can I change the limit?',
+                answer: 'No, these are set by the email providers to protect their servers. You must compress or link.'
+            }
+        ],
+        whyFileswift: [
+            'Compress specifically for email limits',
+            'Split huge files easily',
+            'No signup required'
+        ]
+    }
 ];

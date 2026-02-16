@@ -587,5 +587,267 @@ Make a professional impression with perfectly sized LinkedIn photos.FileSwift he
             -   Dress in ** professional attire **
                 -   Make sure your face is ** clearly visible ** (takes up ~60 % of frame)
 `
+    },
+    // 12. Resize Image for YouTube Thumbnail
+    {
+        id: 'resize-image-for-youtube-thumbnail',
+        targetToolId: 'image-resizer',
+        title: 'Resize Image for YouTube Thumbnail (1280x720)',
+        description: 'Resize images to 1280x720 pixels for YouTube Thumbnails. Free online resizer for YouTube cover photos and thumbnails.',
+        keywords: ['youtube thumbnail size', 'resize image for youtube', '1280x720 image converter', 'youtube thumbnail resizer', 'create youtube thumbnail size', 'resize picture for youtube'],
+        content: {
+            features: [
+                'Perfect Size: One-click resize to 1280x720 pixels.',
+                'High Quality: Keeps your thumbnail sharp and clear.',
+                'No Cropping: Fit your entire image into the thumbnail frame.',
+                'Fast Processing: Get your thumbnail ready in seconds.'
+            ],
+            howTo: [
+                'Upload your image file.',
+                'Enter 1280 for width and 720 for height.',
+                'Click Process Image.',
+                'Download your perfect YouTube thumbnail.'
+            ],
+            benefits: [
+                'Increase click-through rates with professional thumbnails.',
+                'Meet YouTube\'s exact size requirements.',
+                'Avoid black bars or stretched images.'
+            ],
+            faq: [
+                {
+                    question: 'What is the best size for YouTube thumbnails?',
+                    answer: 'The ideal size is **1280 x 720 pixels** (with a minimum width of 640 pixels). The aspect ratio should be 16:9.'
+                },
+                {
+                    question: 'What file formats does YouTube accept?',
+                    answer: 'YouTube accepts JPG, GIF, BMP, or PNG image formats. The file size must be under 2MB.'
+                }
+            ]
+        },
+        longDescription: `
+## Resize Image for YouTube Thumbnail
+
+Create the perfect YouTube thumbnail every time. FileSwift helps you resize any image to the recommended 1280x720 dimensions.
+
+### Why Thumbnail Size Matters
+*   **Visibility**: Correctly sized thumbnails look crisp on all devices
+*   **CTR**: Professional thumbnails get more clicks
+*   **Standards**: Meets standard 16:9 aspect ratio requirements
+
+### YouTube Requirements
+*   **Resolution**: 1280x720 (with min width of 640)
+*   **Formats**: JPG, GIF, BMP, or PNG
+*   **Size**: Under 2MB limit
+*   **Ratio**: 16:9 is the best choice
+`
+    },
+    // 13. Compress PDF for Bank Statement
+    {
+        id: 'compress-pdf-for-bank-statement',
+        targetToolId: 'compress-pdf',
+        title: 'Compress PDF for Bank Statement & Loan Application',
+        description: 'Reduce PDF size for bank statements, loan applications, and financial documents. Secure, private compression for sensitive files.',
+        keywords: ['compress bank statement pdf', 'reduce pdf size for loan', 'compress pdf for sbi', 'compress pdf for hdfc', 'financial document compressor', 'secure pdf compression'],
+        content: {
+            features: [
+                '100% Private: Files processed locally in browser.',
+                'High Compression: Reduce large statement files by up to 90%.',
+                'Readable Text: Numbers and text remain crystal clear.',
+                'Bank Ready: Ideal for SBI, HDFC, ICICI, and other bank uploads.'
+            ],
+            howTo: [
+                'Select your bank statement PDF.',
+                'Choose "Medium" or "High" compression.',
+                'Wait for the secure local processing.',
+                'Download the smaller file for upload.'
+            ],
+            benefits: [
+                'Safely compress sensitive financial data.',
+                'Upload easily to banking and loan portals.',
+                'Keep records organized with smaller file sizes.'
+            ],
+            faq: [
+                {
+                    question: 'Is it safe to compress bank statements online?',
+                    answer: 'With FileSwift, yes. We use **client-side processing**, meaning your file never leaves your computer. It is not uploaded to any server, ensuring 100% privacy.'
+                },
+                {
+                    question: 'Will the numbers remain readable?',
+                    answer: 'Absolutely. Our text optimization ensures that all numbers, dates, and transaction details remain sharp and legible.'
+                }
+            ]
+        },
+        longDescription: `
+## Compress PDF Bank Statements Securely
+
+Uploading bank statements for loans, visas, or tax returns? Portals often reject large PDF files. FileSwift allows you to compress these sensitive documents safely.
+
+### Why Use FileSwift for Banking Docs?
+*   **Privacy First**: Unlike other tools, we do NOT upload your file to a cloud server. Processing happens right on your device.
+*   **High Clarity**: Financial documents need to be legible. We prioritize text sharpness.
+*   **Universal Compatibility**: Works for standard statements from all major banks.
+
+### Perfect For:
+*   Home Loan Applications
+*   Visa Financial Proofs
+*   Tax Filing Uploads
+*   KYC Documents
+`
+    },
+    // 14. Resize Photo for Resume/CV
+    {
+        id: 'resize-photo-for-resume',
+        targetToolId: 'image-resizer',
+        title: 'Resize Photo for Resume & CV Online',
+        description: 'Resize your professional photo for resumes and CVs. Create perfect square or passport-sized photos for job applications.',
+        keywords: ['resume photo size', 'resize image for cv', 'professional photo resizer', 'cv photo maker', 'resize picture for job application', 'passport size photo for resume'],
+        content: {
+            features: [
+                'Square Crop: Create 1:1 photos for modern resumes.',
+                'Passport Size: Standard dimension presets available.',
+                'Professional Look: Maintain high resolution.',
+                'Easy Edits: Resize and crop in seconds.'
+            ],
+            howTo: [
+                'Upload your professional headshot.',
+                'Enter desired dimensions (e.g., 200x200 or 300x300).',
+                'Process the image.',
+                'Add the perfectly sized photo to your CV.'
+            ],
+            benefits: [
+                'Make your resume look polished and professional.',
+                'Avoid stretched or pixelated images.',
+                'Fit photo placeholders perfectly.'
+            ],
+            faq: [
+                {
+                    question: 'What is the best photo size for a resume?',
+                    answer: 'A standard square size like **200x200 pixels** or **300x300 pixels** works best for most modern resume templates.'
+                },
+                {
+                    question: 'Should I include a photo on my resume?',
+                    answer: 'It depends on the country. In many European and Asian countries, a photo is expected. In the US/UK, it is generally not required unless you are in acting or modeling.'
+                }
+            ]
+        },
+        longDescription: `
+## Resize Photos for Professional Resumes
+
+A blurry or badly cropped photo can ruin a great resume. Ensure your professional headshot looks its best with FileSwift.
+
+### Recommended Sizes
+*   **Square**: 300x300 px (Most common for digital CVs)
+*   **Passport**: 35x45 mm (Standard for official documents)
+*   **Small**: 150x150 px (For minimal templates)
+
+### Tips for a Great Resume Photo
+*   Wear professional attire
+*   Use a neutral background
+*   Smile naturally
+*   Ensure good lighting on your face
+`
+    },
+    // 15. Compress PDF to 1MB
+    {
+        id: 'compress-pdf-to-1mb',
+        targetToolId: 'compress-pdf',
+        title: 'Compress PDF to 1MB - Reduce File Size',
+        description: 'Compress PDF files to under 1MB. High-quality compression for documents that need to meet 1MB upload limits.',
+        keywords: ['compress pdf to 1mb', 'reduce pdf under 1mb', 'pdf compressor 1mb', 'shrink pdf 1mb', 'compress pdf file to 1mb', 'pdf size reducer 1mb'],
+        content: {
+            features: [
+                'Target 1MB: Optimize files to fit under the 1MB limit.',
+                'Balanced Compression: Good quality with significant size reduction.',
+                'Fast & Free: Unlimited compressions.',
+                'Works on Mobile: Compress directly from your phone.'
+            ],
+            howTo: [
+                'Upload your PDF file.',
+                'Select "Medium" or "High" compression.',
+                'Check if the result is under 1MB.',
+                'Download the optimized file.'
+            ],
+            benefits: [
+                'Upload to portals with strict 1MB limits.',
+                'Share easier via email and chat apps.',
+                'Save space on your device.'
+            ],
+            faq: [
+                {
+                    question: 'Can I compress a 10MB file to 1MB?',
+                    answer: 'It is often possible, especially if the file contains high-resolution images. Use the "High" compression setting for the best chance.'
+                },
+                {
+                    question: 'Does this remove pages?',
+                    answer: 'No, this tool only compresses the data (images, fonts). It keeps all pages intact. If you need to remove pages, use our Split PDF tool.'
+                }
+            ]
+        },
+        longDescription: `
+## Compress PDF to Under 1MB
+
+Many corporate portals, university submission sites, and email forms have a **1MB file size limit**. FileSwift makes it easy to shrink your documents to meet this requirement.
+
+### How we achieve 1MB
+*   **Image Downsampling**: Reducing excessive resolution of embedded photos
+*   **Stream Compression**: Efficiently packing the PDF data structure
+*   **Metadata Removal**: Stripping unseen data that adds weight
+
+### Success Tips
+*   Start with **Medium Compression** to preserve quality
+*   If still over 1MB, switch to **High Compression**
+*   For scanned docs, this works exceptionally well
+`
+    },
+    // 16. Compress PDF to 2MB
+    {
+        id: 'compress-pdf-to-2mb',
+        targetToolId: 'compress-pdf',
+        title: 'Compress PDF to 2MB - Online PDF Reducer',
+        description: 'Reduce PDF file size to under 2MB. Perfect for application forms and portals with 2MB or 5MB limits.',
+        keywords: ['compress pdf to 2mb', 'reduce pdf size 2mb', 'pdf under 2mb', 'shrink pdf to 2mb', 'pdf compressor 2mb', 'resize pdf 2mb'],
+        content: {
+            features: [
+                'Versatile Target: Get files under the common 2MB limit.',
+                'High Quality: Often indistinguishable from original.',
+                'No Watermark: Professional output for free.',
+                'Batch Capable: Compress multiple files (coming soon).'
+            ],
+            howTo: [
+                'Upload your PDF document.',
+                'Choose "Balanced" compression.',
+                'Verify the size is under 2MB.',
+                'Download and use.'
+            ],
+            benefits: [
+                'Perfect for most government and corporate forms.',
+                'Retain excellent image quality.',
+                'Quick fix for "File Too Large" errors.'
+            ],
+            faq: [
+                {
+                    question: 'Is 2MB a common limit?',
+                    answer: 'Yes, 2MB is a very standard limit for job applications, visa forms, and university portals.'
+                },
+                {
+                    question: 'What if my file is still larger than 2MB?',
+                    answer: 'Try increasing the compression level to "High". If that fails, consider splitting the document into two parts.'
+                }
+            ]
+        },
+        longDescription: `
+## Compress PDF to Under 2MB
+
+The **2MB limit** is arguably the most common restriction on the web for document uploads. FileSwift's compression algorithm is tuned to help you hit this target without sacrificing document quality.
+
+### Why 2MB?
+Many systems set a 2MB cap to ensure fast server performance and prevent storage overload.
+
+### What compresses well?
+*   Reports with photos
+*   Scanned documents
+*   Presentation slides exported to PDF
+*   Brochures and flyers
+`
     }
 ];
