@@ -12,7 +12,8 @@ import {
     bulkImageResizerProcessor,
     imageToPdfProcessor,
     removeBgProcessor,
-    heicToJpgProcessor
+    heicToJpgProcessor,
+    formatConverterProcessor
 } from '../processors/image';
 import {
     compressPdfProcessor,
@@ -40,6 +41,8 @@ export const TOOL_PROCESSORS: Record<string, ToolProcessor> = {
     'image-to-pdf': imageToPdfProcessor,
     'remove-bg': removeBgProcessor,
     'heic-to-jpg': heicToJpgProcessor,
+    'jpg-to-png': formatConverterProcessor,
+    'png-to-jpg': formatConverterProcessor,
 
     // AI Tools
     'ai-summary': summarizeProcessor,

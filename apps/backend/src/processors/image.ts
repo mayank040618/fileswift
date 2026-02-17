@@ -271,6 +271,43 @@ export const heicToJpgProcessor: ToolProcessor = {
 };
 
 
+
+export const formatConverterProcessor: ToolProcessor = {
+    id: 'format-converter',
+    process: async ({ job, localPath, inputPaths, outputDir }) => {
+        const sharp = (await import('sharp')).default;
+        const toolId = job.data.toolId; // 'jpg-to-png' or 'png-to-jpg'
+        const targetFormat = toolId === 'jpg-to-png' ? 'png' : 'jpeg';
+
+        const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
+        const outputFiles = await pMap(inputs, async (input) => {
+            const ext = targetFormat === 'png' ? '.png' : '.jpg';
+            const outputFilename = `${path.basename(input, path.extname(input))}${ext}`;
+            const outputPath = path.join(outputDir, outputFilename);
+
+            const pipeline = sharp(input);
+            if (targetFormat === 'jpeg') {
+                // JPEG doesn't support transparency, flatten with white background
+                pipeline.flatten({ background: { r: 255, g: 255, b: 255 } })
+                    .toFormat('jpeg', { quality: 90 });
+            } else {
+                pipeline.toFormat('png');
+            }
+
+            await pipeline.toFile(outputPath);
+            return outputPath;
+        }, 5);
+
+        if (outputFiles.length === 1) {
+            return { resultKey: path.basename(outputFiles[0]) };
+        } else {
+            const zipName = `converted-${targetFormat}-${job.id}.zip`;
+            await zipFiles(outputFiles, outputDir, zipName);
+            return { resultKey: zipName };
+        }
+    }
+};
+
 // Placeholder for remove-bg (Coming Soon)
 export const removeBgProcessor: ToolProcessor = {
     id: 'remove-bg',
@@ -285,5 +322,6 @@ export const imageProcessors: ToolProcessor[] = [
     imageResizerProcessor,
     bulkImageResizerProcessor,
     removeBgProcessor,
-    heicToJpgProcessor
+    heicToJpgProcessor,
+    formatConverterProcessor
 ];
