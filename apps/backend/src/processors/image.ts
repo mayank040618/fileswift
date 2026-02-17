@@ -243,6 +243,33 @@ export const imageToPdfProcessor: ToolProcessor = {
     }
 };
 
+export const heicToJpgProcessor: ToolProcessor = {
+    id: 'heic-to-jpg',
+    process: async ({ job, localPath, inputPaths, outputDir }) => {
+        const sharp = (await import('sharp')).default;
+        const inputs = inputPaths && inputPaths.length > 0 ? inputPaths : [localPath];
+        const outputFiles = await pMap(inputs, async (input) => {
+            const outputFilename = `${path.basename(input, path.extname(input))}.jpg`;
+            const outputPath = path.join(outputDir, outputFilename);
+
+            // Convert to JPEG with high quality
+            await sharp(input)
+                .toFormat('jpeg', { quality: 92 })
+                .toFile(outputPath);
+
+            return outputPath;
+        }, 5);
+
+        if (outputFiles.length === 1) {
+            return { resultKey: path.basename(outputFiles[0]) };
+        } else {
+            const zipName = `converted-heic-${job.id}.zip`;
+            await zipFiles(outputFiles, outputDir, zipName);
+            return { resultKey: zipName };
+        }
+    }
+};
+
 
 // Placeholder for remove-bg (Coming Soon)
 export const removeBgProcessor: ToolProcessor = {
@@ -257,5 +284,6 @@ export const imageProcessors: ToolProcessor[] = [
     imageToPdfProcessor,
     imageResizerProcessor,
     bulkImageResizerProcessor,
-    removeBgProcessor
+    removeBgProcessor,
+    heicToJpgProcessor
 ];

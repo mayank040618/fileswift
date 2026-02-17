@@ -41,7 +41,7 @@ export const CLIENT_SIDE_TOOLS = [
     // 'remove-background',
     'jpg-to-png',
     'png-to-jpg',
-    'heic-to-jpg',
+    // 'heic-to-jpg', // Moved to server
     'ai-chat',
 ] as const;
 
