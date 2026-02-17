@@ -1,8 +1,10 @@
-Bot, FileText, ListChecks, Notebook, PenTool, Languages,
+import {
+    Bot, FileText, ListChecks, Notebook, PenTool, Languages,
     ImageMinus, Scaling, Wand2, Palette, Minimize2, FileType2,
     Combine, RotateCw, Upload, Sun, Moon, File as LucideFile, Loader2, ArrowRight, Download, Check, X,
     CheckCircle, FileSymlink, Image as LucideImage, Images, Lock, Zap, CreditCard, Copy, Sparkles,
     Eraser, Scissors, ArrowRightLeft, Smartphone, Table, Video, UserCircle
+} from 'lucide-react';
 
 export const Icons = {
     Bot,
@@ -23,14 +25,14 @@ export const Icons = {
     Upload,
     Sun,
     Moon,
-    File,
+    File: LucideFile,
     Loader2,
     ArrowRight,
     Check,
     X,
     CheckCircle,
     FileSymlink,
-    Image,
+    Image: LucideImage,
     Images,
     Lock,
     Zap,
