@@ -38,7 +38,7 @@ export const CLIENT_SIDE_TOOLS = [
     // 'resize-image-for-instagram', // Moved to server
     // 'resize-image-for-linkedin', // Moved to server
     // 'resize-image-for-facebook', // Moved to server
-    'remove-background',
+    // 'remove-background',
     'jpg-to-png',
     'png-to-jpg',
     'heic-to-jpg',
