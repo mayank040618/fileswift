@@ -39,11 +39,24 @@ export const TOOL_PROCESSORS: Record<string, ToolProcessor> = {
     'image-to-pdf': imageToPdfProcessor,
     'remove-bg': removeBgProcessor,
 
-    // AI Tools (Coming Soon / placeholders)
+    // AI Tools
     'ai-summary': summarizeProcessor,
     'ai-notes': notesProcessor,
     'ai-rewrite': rewriteProcessor,
     'ai-translate': translateProcessor,
+
+    // Aliases: specialized tools mapped to parent processors
+    'compress-pdf-for-bank-statement': compressPdfProcessor,
+    'compress-pdf-for-email': compressPdfProcessor,
+    'compress-pdf-to-1mb': compressPdfProcessor,
+    'compress-pdf-under-200kb': compressPdfProcessor,
+    'resize-image-for-youtube-thumbnail': imageResizerProcessor,
+    'resize-photo-for-resume': imageResizerProcessor,
+    'resize-image-for-instagram': imageResizerProcessor,
+    'resize-image-for-linkedin': imageResizerProcessor,
+    'resize-image-for-facebook': imageResizerProcessor,
+    'convert-scanned-pdf-to-word': pdfToWordProcessor,
+    'convert-pdf-to-word-online': pdfToWordProcessor,
 
     // Explicitly NO 'default' key here.
     // If a tool is not in this list, it is INVALID.

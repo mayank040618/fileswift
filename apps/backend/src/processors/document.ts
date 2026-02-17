@@ -30,14 +30,84 @@ if (enableAI) {
     }
 }
 
-// Helper to extract text
-const extractText = async (filePath: string): Promise<string> => {
-    let pdf = require('pdf-parse');
-    if (typeof pdf !== 'function' && (pdf as any).default) pdf = (pdf as any).default;
+// Helper: Strip markdown code fences from AI responses before JSON.parse
+const cleanJsonResponse = (raw: string | null): string => {
+    if (!raw) return '{}';
+    let cleaned = raw.trim();
+    // Strip ```json ... ``` or ``` ... ```
+    if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+    }
+    return cleaned;
+};
 
+// Safely parse JSON, handling truncated responses from AI
+const safeParseJson = (raw: string | null, fallbackKeys?: Record<string, any>): any => {
+    const cleaned = cleanJsonResponse(raw);
+    try {
+        return JSON.parse(cleaned);
+    } catch (e) {
+        // Try to repair truncated JSON by closing open structures
+        let repaired = cleaned;
+        // Close any open strings
+        const quoteCount = (repaired.match(/(?<!\\)"/g) || []).length;
+        if (quoteCount % 2 !== 0) repaired += '"';
+        // Close open arrays and objects
+        const opens = (repaired.match(/[\[{]/g) || []).length;
+        const closes = (repaired.match(/[\]}]/g) || []).length;
+        for (let i = 0; i < opens - closes; i++) {
+            // Guess based on last opener
+            const lastOpen = repaired.lastIndexOf('[') > repaired.lastIndexOf('{') ? ']' : '}';
+            repaired += lastOpen;
+        }
+        try {
+            return JSON.parse(repaired);
+        } catch {
+            console.warn('[AI] Could not parse or repair JSON, using fallback');
+            return fallbackKeys || { error: 'AI response was truncated' };
+        }
+    }
+};
+
+// Helper to extract text using pdf-parse v2.x API
+const extractText = async (filePath: string): Promise<string> => {
     const dataBuffer = await fs.readFile(filePath);
-    const data = await pdf(dataBuffer);
-    return data.text;
+
+    try {
+        const pdfParseModule = require('pdf-parse');
+
+        // pdf-parse v2.x: class-based API with PDFParse constructor
+        if (pdfParseModule.PDFParse && pdfParseModule.VerbosityLevel) {
+            const { PDFParse, VerbosityLevel } = pdfParseModule;
+            const parser = new PDFParse({
+                verbosity: VerbosityLevel.ERRORS,
+                data: new Uint8Array(dataBuffer),
+            });
+            await parser.load();
+            const result = await parser.getText();
+            // v2.x getText() returns an object { text, pages, total }
+            const text = typeof result === 'string' ? result : (result?.text ?? String(result));
+            return text;
+        }
+
+        // pdf-parse v1.x fallback: direct function call
+        if (typeof pdfParseModule === 'function') {
+            const data = await pdfParseModule(dataBuffer);
+            return data.text;
+        }
+
+        // Default export fallback
+        const fn = pdfParseModule.default || pdfParseModule;
+        if (typeof fn === 'function') {
+            const data = await fn(dataBuffer);
+            return data.text;
+        }
+
+        throw new Error("No valid PDF parser found in pdf-parse module");
+    } catch (e: any) {
+        console.error(`[ExtractText] PDF parsing failed: ${e.message}`);
+        throw new Error(`Failed to extract text from PDF: ${e.message}`);
+    }
 };
 
 // --- Processors ---
@@ -209,22 +279,23 @@ export const notesProcessor: ToolProcessor = {
     id: 'ai-notes',
     process: async ({ job, localPath, outputDir }) => {
         const text = await extractText(localPath);
-        const truncated = text.slice(0, 15000);
+        const truncated = text.slice(0, 8000);
 
         if (!openai) throw new Error("OpenAI Key missing");
 
         const completion = await openai.chat.completions.create({
             messages: [
-                { role: "system", content: "You are a note-taking assistant. Generate structured notes. Return JSON with keys: title, topics (array of { heading, points })." },
+                { role: "system", content: "You are a note-taking assistant. Generate concise structured notes. Return JSON with keys: title (string), topics (array of { heading: string, points: string[] }). Keep it concise. Max 5 topics, max 5 points each." },
                 { role: "user", content: `Create notes for:\n\n${truncated}` }
             ],
-            model: "gpt-4o-mini",
+            model: aiModel,
+            max_tokens: 4096,
             response_format: { type: "json_object" }
         });
 
         const result = completion.choices[0].message.content;
         const outputPath = path.join(outputDir, `${job.id}-notes.json`);
-        await fs.writeJson(outputPath, JSON.parse(result || '{}'));
+        await fs.writeJson(outputPath, safeParseJson(result, { title: 'Notes', topics: [] }));
         return { resultKey: path.basename(outputPath), metadata: { type: 'json' } };
     }
 };
@@ -243,13 +314,14 @@ export const rewriteProcessor: ToolProcessor = {
                 { role: "system", content: `You are an editor. Rewrite the text in a ${tone} tone. Return JSON with key 'rewrittenText'.` },
                 { role: "user", content: `Rewrite this:\n\n${truncated}` }
             ],
-            model: "gpt-4o-mini",
+            model: aiModel,
+            max_tokens: 4096,
             response_format: { type: "json_object" }
         });
 
         const result = completion.choices[0].message.content;
         const outputPath = path.join(outputDir, `${job.id}-rewrite.json`);
-        await fs.writeJson(outputPath, JSON.parse(result || '{}'));
+        await fs.writeJson(outputPath, safeParseJson(result));
         return { resultKey: path.basename(outputPath), metadata: { type: 'json' } };
     }
 };
@@ -268,13 +340,14 @@ export const translateProcessor: ToolProcessor = {
                 { role: "system", content: `You are a translator. Translate the text to ${language}. Return JSON with key 'translatedText'.` },
                 { role: "user", content: `Translate this:\n\n${truncated}` }
             ],
-            model: "gpt-4o-mini",
+            model: aiModel,
+            max_tokens: 4096,
             response_format: { type: "json_object" }
         });
 
         const result = completion.choices[0].message.content;
         const outputPath = path.join(outputDir, `${job.id}-translate.json`);
-        await fs.writeJson(outputPath, JSON.parse(result || '{}'));
+        await fs.writeJson(outputPath, safeParseJson(result));
         return { resultKey: path.basename(outputPath), metadata: { type: 'json' } };
     }
 };

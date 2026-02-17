@@ -1,10 +1,11 @@
 import '../../polyfills/domMatrix';
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+// import { Inter } from "next/font/google"; // Disabled: network timeout blocks dev server
 import "./globals.css";
 
-
-const inter = Inter({ subsets: ["latin"], display: 'swap' });
+// Using system font stack instead of Google Fonts for dev
+// Revert to `next/font/google` Inter before deploying to production
+const inter = { className: 'font-sans' };
 
 
 export const metadata: Metadata = {

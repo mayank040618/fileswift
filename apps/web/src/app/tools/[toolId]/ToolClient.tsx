@@ -13,6 +13,7 @@ import { AdSquare } from '@/components/ads/AdSquare';
 import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { ToolCard } from '@/components/ToolCard';
 import ReactMarkdown from 'react-markdown';
+import { downloadNotesAsPdf, downloadTextAsPdf } from '@/lib/generatePdf';
 
 // Client-side processors
 import {
@@ -26,8 +27,10 @@ import {
     resizeImage,
     resizeImages,
     summarizePDF,
+    convertImageFormat,
     type ProcessorResult,
-    type SummaryMode
+    type SummaryMode,
+    extractTextFromPDF
 } from '@/lib/processors';
 
 export default function ToolClient() {
@@ -48,6 +51,7 @@ export default function ToolClient() {
     // Chat State
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai', content: string }[]>([]);
     const [chatInput, setChatInput] = useState('');
+    const [pdfContext, setPdfContext] = useState<string>(''); // Store extracted text
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -55,6 +59,9 @@ export default function ToolClient() {
     const [summaryMode, setSummaryMode] = useState<SummaryMode>('brief');
     const [summaryResult, setSummaryResult] = useState<string | null>(null);
     const [summaryStatus, setSummaryStatus] = useState<string>('');
+
+    // AI Tools Result State
+    const [aiResult, setAiResult] = useState<any>(null); // eslint-disable-line
 
     // Debugging: Log errors to console (also ensures variable is 'used' for linter)
     useEffect(() => {
@@ -76,6 +83,18 @@ export default function ToolClient() {
                     if (data.status === 'completed') {
                         setStatus('completed');
                         setResult(data);
+
+                        // Auto-fetch JSON for AI tools and display inline
+                        const aiTools = ['ai-notes', 'ai-rewrite', 'ai-translate'];
+                        if (aiTools.includes(tool.id) && data.downloadUrl) {
+                            try {
+                                const jsonRes = await fetch(data.downloadUrl);
+                                const jsonData = await jsonRes.json();
+                                setAiResult(jsonData);
+                            } catch (fetchErr) {
+                                console.error('[AI] Failed to fetch result JSON:', fetchErr);
+                            }
+                        }
                     } else if (data.status === 'failed') {
                         setStatus('failed');
                         setErrorMessage(data.error);
@@ -141,6 +160,26 @@ export default function ToolClient() {
         setProcessingProgress(0);
         setTimeRemaining('Processing locally...');
 
+        if (tool.id === 'ai-chat') {
+            // Extract text for chat context
+            try {
+                setTimeRemaining('Reading document...');
+                const extraction = await extractTextFromPDF(files[0]);
+                if (extraction.success && extraction.text) {
+                    setPdfContext(extraction.text);
+                    setChatMessages([{ role: 'ai', content: `I've read **${files[0].name}**. Ask me anything about it!` }]);
+                    setStatus('completed');
+                    setResult({ isChat: true });
+                } else {
+                    throw new Error(extraction.error || 'Failed to read PDF text');
+                }
+            } catch (e: any) {
+                setErrorMessage(e.message);
+                setStatus('failed');
+            }
+            return;
+        }
+
         try {
             let processorResult: ProcessorResult | null = null;
 
@@ -178,12 +217,33 @@ export default function ToolClient() {
                     }
                     break;
                 case 'image-resizer':
+                case 'resize-image-for-youtube-thumbnail':
+                case 'resize-photo-for-resume':
+                case 'resize-image-for-instagram':
+                case 'resize-image-for-linkedin':
+                case 'resize-image-for-facebook':
+                    // Hardcoded dimensions for specialized tools
+                    let targetW = width;
+                    let targetH = height;
+
+                    if (tool.id === 'resize-image-for-youtube-thumbnail') { targetW = 1280; targetH = 720; }
+                    else if (tool.id === 'resize-image-for-instagram') { targetW = 1080; targetH = 1080; }
+                    else if (tool.id === 'resize-image-for-linkedin') { targetW = 1200; targetH = 627; }
+                    else if (tool.id === 'resize-image-for-facebook') { targetW = 1200; targetH = 630; }
+                    else if (tool.id === 'resize-photo-for-resume') { targetW = 600; targetH = 600; }
+
                     if (files.length === 1) {
-                        processorResult = await resizeImage(files[0], width, height, setProcessingProgress);
+                        processorResult = await resizeImage(files[0], targetW, targetH, setProcessingProgress);
                     } else {
-                        processorResult = await resizeImages(files, width, height, setProcessingProgress);
+                        processorResult = await resizeImages(files, targetW, targetH, setProcessingProgress);
                     }
                     break;
+                case 'remove-background': {
+                    // Dynamic import to avoid bundling 21MB ONNX package on every page
+                    const { removeBackground } = await import('@/lib/processors/remove-background');
+                    processorResult = await removeBackground(files[0], setProcessingProgress);
+                    break;
+                }
                 case 'summarize-pdf':
                     // Special handling for AI summarizer
                     const summaryResult = await summarizePDF(
@@ -200,6 +260,15 @@ export default function ToolClient() {
                         throw new Error(summaryResult.error || 'Failed to summarize PDF');
                     }
                     return; // Early return - don't process like other tools
+                case 'jpg-to-png':
+                    processorResult = await convertImageFormat(files[0], 'png', undefined, setProcessingProgress);
+                    break;
+                case 'png-to-jpg':
+                    processorResult = await convertImageFormat(files[0], 'jpeg', 0.92, setProcessingProgress);
+                    break;
+                case 'heic-to-jpg':
+                    processorResult = await convertImageFormat(files[0], 'jpeg', 0.95, setProcessingProgress);
+                    break;
                 default:
                     throw new Error('Unknown client-side tool');
             }
@@ -299,6 +368,23 @@ export default function ToolClient() {
 
         const angleInput = document.getElementById('rotate-angle') as HTMLSelectElement;
         if (angleInput?.value) data.angle = angleInput.value;
+
+        // Specialized Tool Data Injection
+        if (tool.id === 'resize-image-for-youtube-thumbnail') { data.width = 1280; data.height = 720; }
+        else if (tool.id === 'resize-image-for-instagram') { data.width = 1080; data.height = 1080; }
+        else if (tool.id === 'resize-image-for-linkedin') { data.width = 1200; data.height = 627; }
+        else if (tool.id === 'resize-image-for-facebook') { data.width = 1200; data.height = 630; }
+        else if (tool.id === 'resize-photo-for-resume') { data.width = 600; data.height = 600; }
+        else if (tool.id === 'compress-pdf-to-1mb') { data.targetSize = 1024 * 1024; data.quality = 60; }
+        else if (tool.id === 'compress-pdf-under-200kb') { data.targetSize = 200 * 1024; data.quality = 40; }
+        else if (tool.id === 'ai-translate') {
+            const langInput = document.getElementById('target-language') as HTMLSelectElement;
+            data.language = langInput?.value || 'hindi';
+        }
+        else if (tool.id === 'ai-rewrite') {
+            const toneInput = document.getElementById('rewrite-tone') as HTMLSelectElement;
+            data.tone = toneInput?.value || 'professional';
+        }
 
         const formatInput = document.getElementById('output-format') as HTMLSelectElement;
         if (tool.id === 'pdf-to-image') data.format = formatInput?.value || 'png';
@@ -417,11 +503,11 @@ export default function ToolClient() {
         setChatInput('');
 
         try {
-            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-            const res = await fetch(`${API_BASE}/api/ai/chat-message`, {
+            // Chat API is a Next.js API route (not on backend)
+            const res = await fetch('/api/ai/chat-message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ jobId, message: userMsg })
+                body: JSON.stringify({ message: userMsg, context: pdfContext })
             });
             const data = await res.json();
             setChatMessages(prev => [...prev, { role: 'ai', content: data.response }]);
@@ -558,6 +644,37 @@ export default function ToolClient() {
                                         </div>
                                     )}
 
+                                    {tool.id === 'ai-translate' && (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                            <h3 className="font-semibold mb-3 dark:text-white">Target Language</h3>
+                                            <select id="target-language" title="Select target language" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
+                                                <option value="hindi">Hindi (हिंदी)</option>
+                                                <option value="marathi">Marathi (मराठी)</option>
+                                                <option value="tamil">Tamil (தமிழ்)</option>
+                                                <option value="telugu">Telugu (తెలుగు)</option>
+                                                <option value="bengali">Bengali (বাংলা)</option>
+                                                <option value="kannada">Kannada (ಕನ್ನಡ)</option>
+                                                <option value="gujarati">Gujarati (ગુજરાતી)</option>
+                                                <option value="spanish">Spanish</option>
+                                                <option value="french">French</option>
+                                                <option value="german">German</option>
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    {tool.id === 'ai-rewrite' && (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                            <h3 className="font-semibold mb-3 dark:text-white">Desired Tone</h3>
+                                            <select id="rewrite-tone" title="Select desired tone" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
+                                                <option value="professional">Professional & Polished</option>
+                                                <option value="casual">Casual & Friendly</option>
+                                                <option value="formal">Academic & Formal</option>
+                                                <option value="creative">Creative & Engaging</option>
+                                                <option value="simple">Simple & Easy to Read</option>
+                                            </select>
+                                        </div>
+                                    )}
+
                                     <button
                                         onClick={handleProcess}
                                         className="w-full mt-6 bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
@@ -637,7 +754,13 @@ export default function ToolClient() {
                                             <div key={idx} className={clsx("flex", msg.role === 'user' ? "justify-end" : "justify-start")}>
                                                 <div className={clsx("max-w-[80%] rounded-2xl px-4 py-3",
                                                     msg.role === 'user' ? "bg-blue-600 text-white rounded-br-none" : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-bl-none dark:text-slate-200")}>
-                                                    {msg.content}
+                                                    {msg.role === 'ai' ? (
+                                                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                                                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -713,7 +836,161 @@ export default function ToolClient() {
                                 </div>
                             )}
 
-                            {status === 'completed' && tool.id !== 'ai-chat' && tool.id !== 'summarize-pdf' && (
+                            {/* AI Notes Result Viewer */}
+                            {status === 'completed' && tool.id === 'ai-notes' && aiResult && (
+                                <div className="py-6">
+                                    <div className="flex items-center justify-center gap-2 mb-6">
+                                        <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                                            <Icons.FileText className="w-6 h-6" />
+                                        </div>
+                                        <div className="text-left">
+                                            <h3 className="text-lg font-bold dark:text-white">Notes Ready!</h3>
+                                            <p className="text-xs text-slate-500">Structured notes generated from your PDF</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 mb-6 border border-slate-200 dark:border-slate-700 text-left">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                                                {aiResult.title || 'Notes'}
+                                            </h2>
+                                            <button
+                                                onClick={() => {
+                                                    const text = (aiResult.topics || []).map((t: any) =>
+                                                        `## ${t.heading}\n${(t.points || []).map((p: string) => `- ${p}`).join('\n')}`
+                                                    ).join('\n\n');
+                                                    navigator.clipboard.writeText(`# ${aiResult.title || 'Notes'}\n\n${text}`);
+                                                }}
+                                                className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1 shrink-0"
+                                            >
+                                                <Icons.Copy className="w-3 h-3" /> Copy
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-5">
+                                            {(aiResult.topics || []).map((topic: any, idx: number) => (
+                                                <div key={idx}>
+                                                    <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
+                                                        <span className="w-6 h-6 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center text-xs font-bold">{idx + 1}</span>
+                                                        {topic.heading}
+                                                    </h3>
+                                                    <ul className="space-y-1.5 ml-8">
+                                                        {(topic.points || []).map((point: string, pIdx: number) => (
+                                                            <li key={pIdx} className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                                                                <span className="text-blue-400 mt-1.5 shrink-0">•</span>
+                                                                <span>{point}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-center gap-4">
+                                        <button
+                                            onClick={() => {
+                                                downloadNotesAsPdf(
+                                                    aiResult,
+                                                    `${files[0]?.name?.replace('.pdf', '') || 'document'}-notes.pdf`
+                                                );
+                                            }}
+                                            className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/25"
+                                        >
+                                            <Icons.Download className="w-4 h-4" />
+                                            Download Notes
+                                        </button>
+                                        <button
+                                            onClick={() => { setFiles([]); setStatus('idle'); setResult(null); setAiResult(null); }}
+                                            className="px-6 py-3 text-slate-500 hover:text-slate-700 font-medium"
+                                        >
+                                            Generate More Notes
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* AI Rewrite Result Viewer */}
+                            {status === 'completed' && tool.id === 'ai-rewrite' && aiResult && (
+                                <div className="py-6">
+                                    <div className="flex items-center justify-center gap-2 mb-6">
+                                        <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                                            <Icons.FileText className="w-6 h-6" />
+                                        </div>
+                                        <div className="text-left">
+                                            <h3 className="text-lg font-bold dark:text-white">Rewrite Complete!</h3>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 mb-6 border border-slate-200 dark:border-slate-700 text-left">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded">✍️ Rewritten Text</span>
+                                            <button onClick={() => navigator.clipboard.writeText(aiResult.rewrittenText || '')} className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1">
+                                                <Icons.Copy className="w-3 h-3" /> Copy
+                                            </button>
+                                        </div>
+                                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                                            <ReactMarkdown>{aiResult.rewrittenText || 'No content generated.'}</ReactMarkdown>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-center gap-4">
+                                        <button
+                                            onClick={() => {
+                                                downloadTextAsPdf(
+                                                    aiResult.rewrittenText || '',
+                                                    `${files[0]?.name?.replace('.pdf', '') || 'document'}-rewritten.pdf`,
+                                                    'Rewritten Document'
+                                                );
+                                            }}
+                                            className="flex items-center gap-2 bg-amber-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-amber-700 transition-all shadow-lg shadow-amber-500/25"
+                                        >
+                                            <Icons.Download className="w-4 h-4" /> Download Rewrite
+                                        </button>
+                                        <button onClick={() => { setFiles([]); setStatus('idle'); setResult(null); setAiResult(null); }} className="px-6 py-3 text-slate-500 hover:text-slate-700 font-medium">Rewrite Another</button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* AI Translate Result Viewer */}
+                            {status === 'completed' && tool.id === 'ai-translate' && aiResult && (
+                                <div className="py-6">
+                                    <div className="flex items-center justify-center gap-2 mb-6">
+                                        <div className="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                                            <Icons.FileText className="w-6 h-6" />
+                                        </div>
+                                        <div className="text-left">
+                                            <h3 className="text-lg font-bold dark:text-white">Translation Ready!</h3>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6 mb-6 border border-slate-200 dark:border-slate-700 text-left">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-xs font-medium text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/30 px-2 py-1 rounded">🌐 Translated Text</span>
+                                            <button onClick={() => navigator.clipboard.writeText(aiResult.translatedText || '')} className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1">
+                                                <Icons.Copy className="w-3 h-3" /> Copy
+                                            </button>
+                                        </div>
+                                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                                            <ReactMarkdown>{aiResult.translatedText || 'No content generated.'}</ReactMarkdown>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-center gap-4">
+                                        <button
+                                            onClick={() => {
+                                                downloadTextAsPdf(
+                                                    aiResult.translatedText || '',
+                                                    `${files[0]?.name?.replace('.pdf', '') || 'document'}-translated.pdf`,
+                                                    'Translated Document'
+                                                );
+                                            }}
+                                            className="flex items-center gap-2 bg-sky-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/25"
+                                        >
+                                            <Icons.Download className="w-4 h-4" /> Download Translation
+                                        </button>
+                                        <button onClick={() => { setFiles([]); setStatus('idle'); setResult(null); setAiResult(null); }} className="px-6 py-3 text-slate-500 hover:text-slate-700 font-medium">Translate Another</button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {status === 'completed' && tool.id !== 'ai-chat' && tool.id !== 'summarize-pdf' && tool.id !== 'ai-notes' && tool.id !== 'ai-rewrite' && tool.id !== 'ai-translate' && (
                                 <div className="text-center py-10">
                                     <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
                                         <Icons.ListChecks className="w-8 h-8" />

@@ -8,6 +8,9 @@ export { imagesToPDF } from './image-to-pdf';
 export { compressImage, compressImages } from './image-compress';
 export { resizeImage, resizeImages } from './image-resize';
 export { summarizePDF, extractTextFromPDF, type SummaryMode, type SummarizeResult } from './pdf-summarize';
+export { convertImageFormat } from './image-convert';
+// removeBackground is NOT exported here — it's dynamically imported in ToolClient
+// to avoid bundling the 21MB @imgly/background-removal package on every page
 
 // Types
 export interface ProcessorResult {
@@ -26,10 +29,20 @@ export const CLIENT_SIDE_TOOLS = [
     'merge-pdf',
     'rotate-pdf',
     'split-pdf',
-    'image-to-pdf',
+    // 'image-to-pdf', // Moved to server
     'image-compressor',
-    'image-resizer',
+    // 'image-resizer', // Moved to server
     'summarize-pdf',
+    // 'resize-image-for-youtube-thumbnail', // Moved to server
+    // 'resize-photo-for-resume', // Moved to server
+    // 'resize-image-for-instagram', // Moved to server
+    // 'resize-image-for-linkedin', // Moved to server
+    // 'resize-image-for-facebook', // Moved to server
+    'remove-background',
+    'jpg-to-png',
+    'png-to-jpg',
+    'heic-to-jpg',
+    'ai-chat',
 ] as const;
 
 export type ClientSideTool = typeof CLIENT_SIDE_TOOLS[number];

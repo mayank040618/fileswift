@@ -13,10 +13,9 @@ export interface SummarizeResult {
  */
 export async function extractTextFromPDF(file: File): Promise<{ success: boolean; text?: string; error?: string }> {
     try {
-        // Dynamic import to avoid SSR issues
         const pdfjsLib = await import('pdfjs-dist');
 
-        // Configure worker
+        // Configure worker for v3.x
         pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
         const arrayBuffer = await file.arrayBuffer();

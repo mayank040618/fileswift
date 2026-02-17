@@ -127,7 +127,7 @@ export const executeJob = async (job: IJob) => {
                     }
 
                     if (fileExists) {
-                        await fs.move(file.path, fileInputPath, { overwrite: true });
+                        await fs.copy(file.path, fileInputPath, { overwrite: true });
                     } else {
                         // Log detailed debug info
                         console.error(`[Job] CRITICAL: Local input missing after ${maxRetries} retries: ${file.path}`);
