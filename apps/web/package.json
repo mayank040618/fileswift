@@ -38,6 +38,9 @@
         "tailwind-merge": "^2.6.0",
         "tailwindcss-animate": "^1.0.7"
     },
+    "optionalDependencies": {
+        "@img/sharp-linux-x64": "^0.34.5"
+    },
     "devDependencies": {
         "@types/inquirer": "^9.0.9",
         "@types/node": "^20.0.0",
