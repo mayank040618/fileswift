@@ -78,9 +78,8 @@ export const viewport: Viewport = {
 
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import Script from "next/script";
+
 import { Providers } from './providers';
-import { AdFooter } from '@/components/ads/AdFooter';
 import { Footer } from '@/components/Footer';
 import { ConsentBanner } from '@/components/ConsentBanner';
 import { SplashScreen } from '@/components/SplashScreen';
@@ -100,10 +99,7 @@ export default function RootLayout({
             <body className={inter.className}>
                 <Providers>
                     {children}
-                    {/* Sticky Ad Footer */}
-                    <div className="hidden md:block">
-                        <AdFooter />
-                    </div>
+
                     <Footer />
                 </Providers>
                 <ConsentBanner />
@@ -116,13 +112,7 @@ export default function RootLayout({
                 {/* JSON-LD Structured Data for SEO */}
                 <JsonLd />
 
-                {/* Google AdSense */}
-                <Script
-                    async
-                    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5583723279396814"
-                    crossOrigin="anonymous"
-                    strategy="lazyOnload"
-                />
+
 
             </body>
         </html>

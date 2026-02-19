@@ -8,8 +8,6 @@ import { TOOLS } from '@/config/tools';
 import { Icons } from '@/components/Icons';
 import { useInterval } from '@/hooks/useInterval';
 import clsx from 'clsx';
-import { AdBanner } from '@/components/ads/AdBanner';
-import { AdSquare } from '@/components/ads/AdSquare';
 import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { ToolCard } from '@/components/ToolCard';
 import ReactMarkdown from 'react-markdown';
@@ -687,9 +685,7 @@ export default function ToolClient() {
                                 </div>
                             )}
 
-                            <div className="mt-8">
-                                <AdBanner />
-                            </div>
+
                         </>
                     ) : (
                         <div className="w-full">
@@ -1068,12 +1064,7 @@ export default function ToolClient() {
                                 </div>
                             )}
 
-                            {/* Ad Square */}
-                            {(status === 'completed' || status === 'failed') && (
-                                <div className="mt-8">
-                                    <AdSquare />
-                                </div>
-                            )}
+
                         </div>
                     )}
                     <FeedbackWidget toolId={tool.id} />

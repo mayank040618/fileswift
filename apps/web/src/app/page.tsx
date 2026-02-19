@@ -9,7 +9,7 @@ import { ComingSoonModal } from '@/components/ComingSoonModal';
 
 
 import { SeoSection } from '@/components/SeoSection';
-import { AdBanner } from '@/components/ads/AdBanner';
+
 
 export default function Home(): JSX.Element {
   const activeTools = TOOLS.filter(t => !t.comingSoon);
@@ -41,10 +41,7 @@ export default function Home(): JSX.Element {
         </div>
       </div>
 
-      {/* Ad Banner */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <AdBanner />
-      </div>
+
 
       {/* SEO Content Section */}
       <SeoSection />
