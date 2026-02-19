@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         } catch (importError: any) {
             console.error('[Image Resize] Failed to load sharp module:', importError);
             return NextResponse.json(
-                { error: 'Server configuration error: Image processor missing', details: importError.message },
+                { error: `Server configuration error: ${importError.message}` },
                 { status: 500 }
             );
         }
