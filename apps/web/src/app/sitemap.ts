@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { tools } from '@/config/tools';
+import { TOOLS } from '@/config/tools';
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fileswift.in';
 
@@ -19,8 +19,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: route === '' ? 1.0 : 0.8,
     }));
 
-    const toolPages = tools
-        .filter((tool) => tool.active)
+    const toolPages = TOOLS
+        .filter((tool) => !tool.comingSoon)
         .map((tool) => ({
             url: `${baseUrl}/tools/${tool.id}`,
             lastModified: new Date(),
