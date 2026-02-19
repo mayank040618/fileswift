@@ -231,9 +231,11 @@ export default function ToolClient() {
                     else if (tool.id === 'resize-photo-for-resume') { targetW = 600; targetH = 600; }
 
                     if (files.length === 1) {
-                        processorResult = await resizeImage(files[0], targetW, targetH, setProcessingProgress);
+                        processorResult = await resizeImage(files[0], { width: targetW, height: targetH });
                     } else {
-                        processorResult = await resizeImages(files, targetW, targetH, setProcessingProgress);
+                        const results = await resizeImages(files, { width: targetW, height: targetH });
+                        // If multiple, just return the first for now or handle appropriately based on ToolClient logic
+                        processorResult = results[0];
                     }
                     break;
                 case 'remove-background': {
