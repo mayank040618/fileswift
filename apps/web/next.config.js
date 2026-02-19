@@ -1,25 +1,6 @@
-const CopyPlugin = require('copy-webpack-plugin');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    experimental: {
-        serverComponentsExternalPackages: ['sharp'],
-    },
     webpack: (config, { isServer, dev }) => {
-        // Copy sharp linux binaries to the build output for Vercel
-        if (isServer && !dev) {
-            config.plugins.push(
-                new CopyPlugin({
-                    patterns: [
-                        {
-                            from: 'node_modules/@img/sharp-linux-x64/lib',
-                            to: '../', // Vercel Serverless environment root
-                            noErrorOnMissing: true,
-                        },
-                    ],
-                })
-            );
-        }
         // pdfjs-dist optionally imports 'canvas' (Node.js native module)
         // which isn't available in the browser. Mark it as external.
         config.resolve.alias.canvas = false;
