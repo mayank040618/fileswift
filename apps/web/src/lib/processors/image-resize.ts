@@ -1,14 +1,18 @@
 import { ProcessorResult } from './index';
+import { convertHeicToJpeg } from '@/utils/heicUtils';
 
 export const resizeImage = async (
-    file: File,
+    rawFile: File,
     options: {
         width?: number;
         height?: number;
     }
 ): Promise<ProcessorResult> => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
+            // Intercept and convert HEIC files
+            const file = await convertHeicToJpeg(rawFile);
+
             const currentUrl = URL.createObjectURL(file);
             const img = new Image();
 

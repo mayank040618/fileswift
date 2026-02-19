@@ -1,16 +1,22 @@
 import imageCompression from 'browser-image-compression';
+import { convertHeicToJpeg } from '@/utils/heicUtils';
 import type { ProcessorResult } from './index';
 
 /**
  * Compress a single image
  */
 export async function compressImage(
-    file: File,
+    rawFile: File,
     quality: number = 75,
     onProgress?: (progress: number) => void
 ): Promise<ProcessorResult> {
     try {
         onProgress?.(10);
+
+        // Intercept and convert HEIC files
+        const file = await convertHeicToJpeg(rawFile);
+
+        onProgress?.(20);
 
         // Map quality (0-100) to maxSizeMB
         // Higher quality = larger max size
@@ -21,7 +27,7 @@ export async function compressImage(
             maxSizeMB,
             maxWidthOrHeight,
             useWebWorker: true,
-            onProgress: (p: number) => onProgress?.(10 + Math.round(p * 0.8)),
+            onProgress: (p: number) => onProgress?.(20 + Math.round(p * 0.8)),
         };
 
         const compressedFile = await imageCompression(file, options);

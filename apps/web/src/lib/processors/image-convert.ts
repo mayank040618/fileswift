@@ -1,18 +1,22 @@
 // Client-side image format converter (JPG↔PNG, HEIC→JPG)
 import { type ProcessorResult } from './index';
+import { convertHeicToJpeg } from '@/utils/heicUtils';
 
 /**
  * Convert an image file to a target format using Canvas API.
  * Supports: jpg-to-png, png-to-jpg, heic-to-jpg
  */
 export async function convertImageFormat(
-    file: File,
+    rawFile: File,
     targetFormat: 'png' | 'jpeg',
     quality: number = 0.92,
     onProgress?: (progress: number) => void
 ): Promise<ProcessorResult> {
     try {
         onProgress?.(10);
+
+        // Intercept and convert HEIC files
+        const file = await convertHeicToJpeg(rawFile);
 
         // Create an image element
         const img = new Image();
