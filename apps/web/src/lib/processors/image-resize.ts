@@ -1,7 +1,7 @@
 import type { ProcessorResult } from './index';
 
 /**
- * Resize a single image using Canvas API
+ * Resize a single image using Server-Side API
  */
 export async function resizeImage(
     file: File,
@@ -9,95 +9,63 @@ export async function resizeImage(
     targetHeight?: number,
     onProgress?: (progress: number) => void
 ): Promise<ProcessorResult> {
-    return new Promise((resolve) => {
-        try {
-            onProgress?.(10);
+    try {
+        onProgress?.(10);
 
-            const img = new Image();
-            const url = URL.createObjectURL(file);
+        const formData = new FormData();
+        formData.append('file', file);
+        if (targetWidth) formData.append('width', targetWidth.toString());
+        if (targetHeight) formData.append('height', targetHeight.toString());
 
-            img.onload = async () => {
-                try {
-                    onProgress?.(30);
+        onProgress?.(30);
 
-                    let newWidth = targetWidth || img.width;
-                    let newHeight = targetHeight || img.height;
+        const response = await fetch('/api/process/image-resize', {
+            method: 'POST',
+            body: formData,
+        });
 
-                    // Maintain aspect ratio if only one dimension provided
-                    if (targetWidth && !targetHeight) {
-                        const ratio = img.height / img.width;
-                        newHeight = Math.round(targetWidth * ratio);
-                    } else if (targetHeight && !targetWidth) {
-                        const ratio = img.width / img.height;
-                        newWidth = Math.round(targetHeight * ratio);
-                    }
+        onProgress?.(60);
 
-                    onProgress?.(50);
-
-                    // Create canvas and draw resized image
-                    const canvas = document.createElement('canvas');
-                    canvas.width = newWidth;
-                    canvas.height = newHeight;
-
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) {
-                        resolve({ success: false, error: 'Failed to create canvas context' });
-                        return;
-                    }
-
-                    // Use high quality scaling
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
-
-                    onProgress?.(70);
-
-                    // Determine output format
-                    const mimeType = file.type || 'image/jpeg';
-                    const quality = mimeType === 'image/png' ? undefined : 0.92;
-
-                    canvas.toBlob(
-                        (blob) => {
-                            URL.revokeObjectURL(url);
-
-                            if (!blob) {
-                                resolve({ success: false, error: 'Failed to create image blob' });
-                                return;
-                            }
-
-                            onProgress?.(100);
-
-                            const ext = file.name.split('.').pop() || 'jpg';
-                            const baseName = file.name.replace(/\.[^/.]+$/, '');
-                            const filename = `${baseName}_${newWidth}x${newHeight}.${ext}`;
-
-                            resolve({
-                                success: true,
-                                blob,
-                                filename,
-                                originalSize: file.size,
-                                finalSize: blob.size
-                            });
-                        },
-                        mimeType,
-                        quality
-                    );
-                } catch (error: any) {
-                    URL.revokeObjectURL(url);
-                    resolve({ success: false, error: error.message || 'Failed to resize image' });
-                }
-            };
-
-            img.onerror = () => {
-                URL.revokeObjectURL(url);
-                resolve({ success: false, error: 'Failed to load image' });
-            };
-
-            img.src = url;
-        } catch (error: any) {
-            resolve({ success: false, error: error.message || 'Failed to resize image' });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Server processing failed');
         }
-    });
+
+        const blob = await response.blob();
+        if (!blob) throw new Error('Empty response from server');
+
+        // Get filename from header or generate one
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = file.name;
+        if (contentDisposition) {
+            const match = contentDisposition.match(/filename="(.+)"/);
+            if (match && match[1]) {
+                filename = match[1];
+            }
+        }
+
+        // If filename from server is just "resized-image.png" or similar generic, maybe stick to derived name?
+        // But let's rely on server or client naming. 
+        // Client-side code in ToolClient usually ignores filename from result if it generates its own?
+        // But result.filename is used.
+
+        // Generate filename if server didn't provide specific one based on dims (API set it to resized-filename)
+        // Let's refine it here if needed, or trust API.
+
+        onProgress?.(100);
+
+        return {
+            success: true,
+            blob,
+            filename,
+            originalSize: file.size,
+            finalSize: blob.size
+        };
+
+    } catch (error: any) {
+        console.error('Resize error:', error);
+        return { success: false, error: error.message || 'Failed to resize image' };
+    }
 }
 
 /**
@@ -115,6 +83,8 @@ export async function resizeImages(
         let totalOriginal = 0;
         let totalFinal = 0;
 
+        // Process sequentially to avoid overwhelming server or parallel with limit?
+        // Sequential is safer for progress tracking.
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const result = await resizeImage(file, targetWidth, targetHeight, (p) => {
