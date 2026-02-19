@@ -7,13 +7,15 @@ const nextConfig = {
         config.resolve.alias.encoding = false;
 
         // Configuration for onnxruntime-web and @imgly/background-removal
-        config.resolve.fallback = {
-            ...config.resolve.fallback,
-            fs: false,
-            path: false,
-            crypto: false,
-            module: false, // Add module fallback
-        };
+        if (!isServer) {
+            config.resolve.fallback = {
+                ...config.resolve.fallback,
+                fs: false,
+                path: false,
+                crypto: false,
+                module: false, // Add module fallback
+            };
+        }
 
         // Force usage of the browser bundle to avoid Node.js specific code (createRequire)
         try {
