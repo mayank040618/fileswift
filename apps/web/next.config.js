@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    experimental: {
+        serverComponentsExternalPackages: ['sharp'],
+    },
     webpack: (config, { isServer }) => {
         // pdfjs-dist optionally imports 'canvas' (Node.js native module)
         // which isn't available in the browser. Mark it as external.
