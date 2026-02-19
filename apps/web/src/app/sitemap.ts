@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { TOOLS } from '@/config/tools';
+import { BLOG_POSTS } from '@/config/blog-posts';
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fileswift.in';
 
@@ -28,5 +29,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.9,
         }));
 
-    return [...staticPages, ...toolPages];
+    const blogPages = BLOG_POSTS.map((post) => ({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: new Date(post.updatedDate || post.date),
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+    }));
+
+    return [...staticPages, ...toolPages, ...blogPages];
 }
