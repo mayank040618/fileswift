@@ -236,12 +236,12 @@ export default function ToolClient() {
                         processorResult = await resizeImages(files, targetW, targetH, setProcessingProgress);
                     }
                     break;
-                // case 'remove-background': {
-                //     // Dynamic import to avoid bundling 21MB ONNX package on every page
-                //     const { removeBackground } = await import('@/lib/processors/remove-background');
-                //     processorResult = await removeBackground(files[0], setProcessingProgress);
-                //     break;
-                // }
+                case 'remove-background': {
+                    // Dynamic import to avoid bundling 21MB ONNX package on every page
+                    const { removeBackground } = await import('@/lib/processors/remove-background');
+                    processorResult = await removeBackground(files[0], setProcessingProgress);
+                    break;
+                }
                 case 'summarize-pdf':
                     // Special handling for AI summarizer
                     const summaryResult = await summarizePDF(
