@@ -29,7 +29,7 @@ export function ProgressBar({ status, progress, timeRemaining }: ProgressBarProp
         } else {
             setMessageIndex(0);
         }
-    }, [status, processingMessages.length]);
+    }, [status]);
 
     const getStatusText = () => {
         switch (status) {

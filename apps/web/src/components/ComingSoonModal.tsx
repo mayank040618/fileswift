@@ -1,78 +1,27 @@
 'use client';
 
-import { useState, Fragment, useEffect } from 'react';
+import React, { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { trackEvent } from '@/utils/analytics';
 import { Icons } from './Icons';
 
-interface ComingSoonModalProps {
-    isOpen: boolean;
-    setIsOpen: (isOpen: boolean) => void;
-}
-
-export function ComingSoonModal({ isOpen, setIsOpen }: ComingSoonModalProps) {
+export function ComingSoonModal({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (open: boolean) => void }) {
     const [email, setEmail] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
     const [count, setCount] = useState<number | null>(null);
 
-    useEffect(() => {
-        if (isOpen) {
-            trackEvent('coming_soon_open');
-            // Optional: Fetch waitlist count
-            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-            fetch(`${API_BASE}/api/waitlist/count`)
-                .then(res => res.json())
-                .then(data => setCount(data.count))
-                .catch(() => { });
-        }
-    }, [isOpen]);
+    const loading = status === 'loading';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setStatus('loading');
 
-        // Basic Validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            setStatus('error');
-            setMessage('Please enter a valid email address.');
-            return;
-        }
-
-        setLoading(true);
-        setStatus('idle');
-        setMessage('');
-
-        try {
-            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-            const res = await fetch(`${API_BASE}/api/waitlist`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, source: 'homepage_coming_soon' })
-            });
-            const data = await res.json();
-
-            if (!res.ok) {
-                if (res.status === 409) {
-                    setStatus('success');
-                    setMessage("You're already on the list! We'll keep you posted.");
-                    trackEvent('coming_soon_waitlist_signup', { duplicate: true });
-                } else {
-                    throw new Error(data.error || 'Something went wrong');
-                }
-            } else {
-                setStatus('success');
-                setMessage("Thanks — you're on the list. We'll email you early access.");
-                trackEvent('coming_soon_waitlist_signup', { success: true });
-                setEmail('');
-            }
-        } catch (error: any) {
-            setStatus('error');
-            setMessage(error.message);
-        } finally {
-            setLoading(false);
-        }
+        // Simulate API call
+        setTimeout(() => {
+            setStatus('success');
+            setMessage('You have been added to the waitlist!');
+            setCount(1234); // Mock count
+        }, 1000);
     };
 
     return (

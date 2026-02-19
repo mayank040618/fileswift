@@ -13,9 +13,10 @@ export interface SummarizeResult {
  */
 export async function extractTextFromPDF(file: File): Promise<{ success: boolean; text?: string; error?: string }> {
     try {
+        // Dynamic import to avoid SSR issues
         const pdfjsLib = await import('pdfjs-dist');
 
-        // Configure worker for v3.x
+        // Configure worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
         const arrayBuffer = await file.arrayBuffer();
@@ -27,6 +28,7 @@ export async function extractTextFromPDF(file: File): Promise<{ success: boolean
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
             const pageText = textContent.items
+                // @ts-ignore
                 .map((item: any) => item.str)
                 .join(' ');
             fullText += pageText + '\n\n';

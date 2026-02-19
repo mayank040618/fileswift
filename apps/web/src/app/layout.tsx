@@ -1,4 +1,4 @@
-import '../../polyfills/domMatrix';
+import '../polyfills/domMatrix';
 import type { Metadata, Viewport } from "next";
 // import { Inter } from "next/font/google"; // Disabled: network timeout blocks dev server
 import "./globals.css";

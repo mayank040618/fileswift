@@ -1,34 +1,35 @@
+'use client';
+
 import React, { useCallback, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, X, File as FileIcon, Camera, Pencil } from 'lucide-react';
-import Image from 'next/image';
+import { UploadCloud, File as FileIcon, X, Camera, Pencil } from 'lucide-react';
 import { ImageEditorModal } from './ImageEditorModal';
 
 interface BulkUploaderProps {
-    files: File[];
     onFilesChange: (files: File[]) => void;
+    files: File[];
     accept?: Record<string, string[]>;
+    maxSize?: number;
+    allowMultiple?: boolean;
     maxFiles?: number;
-    maxSize?: number; // In bytes
 }
 
-export function BulkUploader({ files, onFilesChange, accept, maxFiles = 100, maxSize }: BulkUploaderProps) {
-    const cameraInputRef = useRef<HTMLInputElement>(null);
-
-    // Editor State
-    const [editingFileIndex, setEditingFileIndex] = useState<number | null>(null);
+export function BulkUploader({ onFilesChange, files, accept, maxSize, allowMultiple = true, maxFiles }: BulkUploaderProps) {
     const [editorOpen, setEditorOpen] = useState(false);
     const [imageSrcForEdit, setImageSrcForEdit] = useState<string | null>(null);
+    const [editingIndex, setEditingIndex] = useState<number | null>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        const newFiles = [...files, ...acceptedFiles];
-        // Enforce max files
-        if (maxFiles && newFiles.length > maxFiles) {
-            alert(`You can only upload up to ${maxFiles} files.`);
-            return;
+        if (allowMultiple) {
+            onFilesChange([...files, ...acceptedFiles]);
+        } else {
+            // Replace existing file if single file mode
+            if (acceptedFiles.length > 0) {
+                onFilesChange([acceptedFiles[0]]);
+            }
         }
-        onFilesChange(newFiles.slice(0, maxFiles));
-    }, [files, maxFiles, onFilesChange]);
+    }, [files, onFilesChange, allowMultiple]);
 
     const removeFile = (index: number) => {
         const newFiles = [...files];
@@ -36,57 +37,39 @@ export function BulkUploader({ files, onFilesChange, accept, maxFiles = 100, max
         onFilesChange(newFiles);
     };
 
-    // Camera Handler
     const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            const newFile = e.target.files[0];
-            onDrop([newFile]);
-        }
-        // Reset input so same file can be selected again if needed
-        if (cameraInputRef.current) {
-            cameraInputRef.current.value = '';
+            const capturedFile = e.target.files[0];
+            onDrop([capturedFile]);
         }
     };
 
-    // Editor Handlers
     const startEditing = (index: number, file: File) => {
-        if (!file.type.startsWith('image/')) return;
-
-        const reader = new FileReader();
-        reader.addEventListener('load', () => {
-            setImageSrcForEdit(reader.result?.toString() || null);
-            setEditingFileIndex(index);
-            setEditorOpen(true);
-        });
-        reader.readAsDataURL(file);
+        const imageUrl = URL.createObjectURL(file);
+        setImageSrcForEdit(imageUrl);
+        setEditingIndex(index);
+        setEditorOpen(true);
     };
 
-    const saveEditedImage = (croppedBlob: Blob) => {
-        if (editingFileIndex === null) return;
+    const saveEditedImage = (blob: Blob) => {
+        if (editingIndex !== null && files[editingIndex]) {
+            const originalFile = files[editingIndex];
+            const newFile = new File([blob], originalFile.name, { type: originalFile.type });
 
-        // Create new File from Blob
-        const originalFile = files[editingFileIndex];
-        const newFile = new File([croppedBlob], originalFile.name, {
-            type: 'image/jpeg',
-            lastModified: Date.now(),
-        });
-
-        // Replace in state
-        const newFiles = [...files];
-        newFiles[editingFileIndex] = newFile;
-        onFilesChange(newFiles);
-
-        // Close Editor
-        setEditorOpen(false);
-        setImageSrcForEdit(null);
-        setEditingFileIndex(null);
+            const newFiles = [...files];
+            newFiles[editingIndex] = newFile;
+            onFilesChange(newFiles);
+            setEditorOpen(false);
+            setImageSrcForEdit(null);
+        }
     };
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept,
-        maxFiles: maxFiles - files.length, // Limit remaining
+        multiple: allowMultiple,
         maxSize,
+        maxFiles,
         onDropRejected: (fileRejections) => {
             const error = fileRejections[0]?.errors[0];
             if (error) {
@@ -179,13 +162,11 @@ export function BulkUploader({ files, onFilesChange, accept, maxFiles = 100, max
                                 {/* Thumbnail */}
                                 <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center text-slate-500 overflow-hidden relative">
                                     {file.type.startsWith('image/') ? (
-                                        <Image
+                                        <img
                                             src={URL.createObjectURL(file)}
                                             alt={file.name}
-                                            fill
-                                            className="object-cover"
+                                            className="w-full h-full object-cover"
                                             onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
-                                            unoptimized // Blob URLs are local
                                         />
                                     ) : (
                                         <FileIcon size={20} />
@@ -240,4 +221,3 @@ export function BulkUploader({ files, onFilesChange, accept, maxFiles = 100, max
         </div>
     );
 }
-

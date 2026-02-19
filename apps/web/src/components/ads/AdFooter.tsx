@@ -4,8 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
 import Link from 'next/link';
 
-export function AdFooter({ dataAdSlot }: { dataAdSlot?: string }) {
+export function AdFooter() {
     const [isVisible, setIsVisible] = useState(true);
+
     const [isDev, setIsDev] = useState(false);
 
     useEffect(() => {
@@ -13,13 +14,12 @@ export function AdFooter({ dataAdSlot }: { dataAdSlot?: string }) {
             setIsDev(true);
             return;
         }
-        if (dataAdSlot) {
-            try {
-                // @ts-ignore
-                (window.adsbygoogle = window.adsbygoogle || []).push({});
-            } catch (e) { }
-        }
-    }, [dataAdSlot]);
+
+        try {
+            // @ts-ignore
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) { }
+    }, []);
 
     if (!isVisible) return null;
 
@@ -36,9 +36,6 @@ export function AdFooter({ dataAdSlot }: { dataAdSlot?: string }) {
             </div>
         );
     }
-
-    // Don't render empty footer when no real slot ID — Auto Ads handles anchor ads
-    if (!dataAdSlot) return null;
 
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center bg-white/95 backdrop-blur border-t border-slate-200 dark:bg-slate-900/95 dark:border-slate-800 py-2">
@@ -64,7 +61,7 @@ export function AdFooter({ dataAdSlot }: { dataAdSlot?: string }) {
                 <ins className="adsbygoogle"
                     style={{ display: 'inline-block', width: '728px', height: '90px' }}
                     data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-5583723279396814"}
-                    data-ad-slot={dataAdSlot}></ins>
+                    data-ad-slot="0000000000"></ins>
             </div>
         </div>
     );

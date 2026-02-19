@@ -1,101 +1,8 @@
 import { PDFDocument } from 'pdf-lib';
 import type { ProcessorResult } from './index';
 
-// Maximum canvas dimension to prevent browser crashes
-const MAX_CANVAS_DIMENSION = 4096;
-
-/**
- * Get MIME type from file extension as fallback
- */
-function getMimeTypeFromExtension(filename: string): string {
-    const ext = filename.toLowerCase().split('.').pop();
-    const mimeMap: Record<string, string> = {
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'gif': 'image/gif',
-        'webp': 'image/webp',
-        'bmp': 'image/bmp',
-        'tiff': 'image/tiff',
-        'tif': 'image/tiff',
-        'heic': 'image/heic',
-        'heif': 'image/heif',
-    };
-    return mimeMap[ext || ''] || 'image/unknown';
-}
-
-/**
- * Load image and optionally resize if too large
- */
-async function loadAndResizeImage(file: File): Promise<{ blob: Blob; width: number; height: number } | null> {
-    return new Promise((resolve) => {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-
-        img.onload = () => {
-            URL.revokeObjectURL(url);
-
-            let { width, height } = img;
-            let needsResize = false;
-
-            // Check if image exceeds max dimensions
-            if (width > MAX_CANVAS_DIMENSION || height > MAX_CANVAS_DIMENSION) {
-                needsResize = true;
-                const scale = Math.min(MAX_CANVAS_DIMENSION / width, MAX_CANVAS_DIMENSION / height);
-                width = Math.floor(width * scale);
-                height = Math.floor(height * scale);
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-                resolve(null);
-                return;
-            }
-
-            // Use high-quality image smoothing for resized images
-            if (needsResize) {
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-            }
-
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // Convert to JPEG for better compatibility and smaller size
-            canvas.toBlob(
-                (blob) => {
-                    if (blob) {
-                        resolve({ blob, width, height });
-                    } else {
-                        // Fallback to PNG if JPEG fails
-                        canvas.toBlob(
-                            (pngBlob) => {
-                                resolve(pngBlob ? { blob: pngBlob, width, height } : null);
-                            },
-                            'image/png'
-                        );
-                    }
-                },
-                'image/jpeg',
-                0.92
-            );
-        };
-
-        img.onerror = () => {
-            URL.revokeObjectURL(url);
-            resolve(null);
-        };
-
-        img.src = url;
-    });
-}
-
 /**
  * Convert images to a single PDF
- * Supports: JPEG, PNG, WebP, GIF, BMP, TIFF, and high-resolution document images
  */
 export async function imagesToPDF(
     files: File[],
@@ -115,71 +22,44 @@ export async function imagesToPDF(
             const file = files[i];
             totalOriginalSize += file.size;
 
-            // Get MIME type - use file.type or fallback to extension
-            let mimeType = file.type.toLowerCase();
-            if (!mimeType || mimeType === 'application/octet-stream') {
-                mimeType = getMimeTypeFromExtension(file.name);
-            }
+            const arrayBuffer = await file.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
 
             let image;
+            const mimeType = file.type.toLowerCase();
 
             try {
-                // Try direct embedding for JPEG and PNG first (most efficient)
                 if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
-                    try {
-                        const arrayBuffer = await file.arrayBuffer();
-                        image = await pdfDoc.embedJpg(new Uint8Array(arrayBuffer));
-                    } catch {
-                        // If direct embed fails, use canvas conversion
-                        const result = await loadAndResizeImage(file);
-                        if (!result) {
-                            return { success: false, error: `Failed to process ${file.name}` };
-                        }
-                        const buffer = await result.blob.arrayBuffer();
-                        image = await pdfDoc.embedJpg(new Uint8Array(buffer));
-                    }
+                    image = await pdfDoc.embedJpg(uint8Array);
                 } else if (mimeType === 'image/png') {
-                    try {
-                        const arrayBuffer = await file.arrayBuffer();
-                        image = await pdfDoc.embedPng(new Uint8Array(arrayBuffer));
-                    } catch {
-                        // If direct embed fails (e.g., too large), use canvas conversion
-                        const result = await loadAndResizeImage(file);
-                        if (!result) {
-                            return { success: false, error: `Failed to process ${file.name}` };
-                        }
-                        const buffer = await result.blob.arrayBuffer();
-                        // Use JPEG for resized images (better compatibility)
-                        if (result.blob.type === 'image/jpeg') {
-                            image = await pdfDoc.embedJpg(new Uint8Array(buffer));
-                        } else {
-                            image = await pdfDoc.embedPng(new Uint8Array(buffer));
-                        }
-                    }
+                    image = await pdfDoc.embedPng(uint8Array);
                 } else {
-                    // For all other formats (WebP, GIF, BMP, TIFF, HEIC, etc.)
-                    // Convert via canvas
-                    const result = await loadAndResizeImage(file);
-                    if (!result) {
-                        return {
-                            success: false,
-                            error: `Failed to convert ${file.name}. The image format may not be supported by your browser.`
+                    // For other formats, convert to PNG via canvas
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+
+                    const pngBlob = await new Promise<Blob | null>((resolve) => {
+                        img.onload = () => {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            ctx?.drawImage(img, 0, 0);
+                            canvas.toBlob(resolve, 'image/png');
                         };
+                        img.onerror = () => resolve(null);
+                        img.src = URL.createObjectURL(file);
+                    });
+
+                    if (!pngBlob) {
+                        return { success: false, error: `Failed to convert ${file.name} to PNG` };
                     }
 
-                    const buffer = await result.blob.arrayBuffer();
-                    if (result.blob.type === 'image/jpeg') {
-                        image = await pdfDoc.embedJpg(new Uint8Array(buffer));
-                    } else {
-                        image = await pdfDoc.embedPng(new Uint8Array(buffer));
-                    }
+                    const pngBuffer = await pngBlob.arrayBuffer();
+                    image = await pdfDoc.embedPng(new Uint8Array(pngBuffer));
                 }
             } catch (embedError: any) {
                 console.error(`Failed to embed ${file.name}:`, embedError);
-                return {
-                    success: false,
-                    error: `Failed to process ${file.name}: ${embedError.message || 'Unknown error'}`
-                };
+                return { success: false, error: `Failed to process ${file.name}: ${embedError.message}` };
             }
 
             // Add page with image dimensions
@@ -204,7 +84,7 @@ export async function imagesToPDF(
         return {
             success: true,
             blob,
-            filename: files.length === 1 ? `${files[0].name.replace(/\.[^/.]+$/, '')}.pdf` : 'images.pdf',
+            filename: 'images.pdf',
             originalSize: totalOriginalSize,
             finalSize: blob.size
         };

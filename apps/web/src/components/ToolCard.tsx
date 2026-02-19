@@ -9,7 +9,8 @@ import { Tool } from '@/config/tools';
 // Helper to get Icon component dynamically
 const getIcon = (iconName: string) => {
     // defaults to Upload icon if not found
-    const IconComponent = (Icons as any)[iconName] || Icons.Upload;
+    // @ts-ignore
+    const IconComponent = Icons[iconName] || Icons.Upload;
     return IconComponent;
 };
 

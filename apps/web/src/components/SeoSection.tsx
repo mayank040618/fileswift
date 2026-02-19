@@ -3,6 +3,49 @@
 import { motion } from 'framer-motion';
 import { Icons } from './Icons';
 
+const features = [
+    {
+        title: '100% Secure & Private',
+        desc: 'All file processing happens securely. Your files are automatically deleted from our servers after 1 hour. We never read or store your sensitive data.',
+        icon: Icons.Lock
+    },
+    {
+        title: 'Lightning Fast AI',
+        desc: 'Powered by advanced compression algorithms and high-speed servers, tasks like PDF compression and format conversion finish in seconds.',
+        icon: Icons.Zap
+    },
+    {
+        title: 'Completely Free',
+        desc: 'No hidden fees, watermarks, or sign-up requirements. Access all our premium PDF and Image tools for free, anytime, anywhere.',
+        icon: Icons.CreditCard
+    }
+];
+
+const faqs = [
+    {
+        q: 'Is FileSwift really free to use?',
+        a: 'Yes! All our tools including PDF Compressor, Image Resizer, and Converters are completely free to use without any limits.'
+    },
+    {
+        q: 'Are my files safe?',
+        a: 'Absolutely. We use strict privacy protocols. Files are transferred via secure SSL connection and are permanently deleted from our servers 1 hour after processing.'
+    },
+    {
+        q: 'Do I need to install any software?',
+        a: 'No. FileSwift is a cloud-based web application. You can use all our tools directly from your browser on any device (Windows, Mac, iPhone, Android).'
+    },
+    {
+        q: 'Can I process multiple files at once?',
+        a: 'Yes, most of our tools notably the Bulk Image Resizer and PDF Compressor support batch processing, allowing you to work with multiple files simultaneously.'
+    }
+];
+
+const keywords = [
+    "Compress PDF", "PDF to Word", "Image Resizer", "Merge PDF", "Rotate PDF",
+    "JPG to PDF", "PDF to JPG", "Word to PDF", "Online PDF Tools", "Free PDF Converter",
+    "Reduce PDF Size", "Compress Images Online", "Bulk Image Resizer"
+];
+
 export function SeoSection() {
     return (
         <section className="py-24 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800">
@@ -92,46 +135,3 @@ export function SeoSection() {
         </section>
     );
 }
-
-const features = [
-    {
-        title: '100% Secure & Private',
-        desc: 'All file processing happens securely. Your files are automatically deleted from our servers after 1 hour. We never read or store your sensitive data.',
-        icon: Icons.Lock
-    },
-    {
-        title: 'Lightning Fast AI',
-        desc: 'Powered by advanced compression algorithms and high-speed servers, tasks like PDF compression and format conversion finish in seconds.',
-        icon: Icons.Zap
-    },
-    {
-        title: 'Completely Free',
-        desc: 'No hidden fees, watermarks, or sign-up requirements. Access all our premium PDF and Image tools for free, anytime, anywhere.',
-        icon: Icons.CreditCard
-    }
-];
-
-const faqs = [
-    {
-        q: 'Is FileSwift really free to use?',
-        a: 'Yes! All our tools including PDF Compressor, Image Resizer, and Converters are completely free to use without any limits.'
-    },
-    {
-        q: 'Are my files safe?',
-        a: 'Absolutely. We use strict privacy protocols. Files are transferred via secure SSL connection and are permanently deleted from our servers 1 hour after processing.'
-    },
-    {
-        q: 'Do I need to install any software?',
-        a: 'No. FileSwift is a cloud-based web application. You can use all our tools directly from your browser on any device (Windows, Mac, iPhone, Android).'
-    },
-    {
-        q: 'Can I process multiple files at once?',
-        a: 'Yes, most of our tools notably the Bulk Image Resizer and PDF Compressor support batch processing, allowing you to work with multiple files simultaneously.'
-    }
-];
-
-const keywords = [
-    "Compress PDF", "PDF to Word", "Image Resizer", "Merge PDF", "Rotate PDF",
-    "JPG to PDF", "PDF to JPG", "Word to PDF", "Online PDF Tools", "Free PDF Converter",
-    "Reduce PDF Size", "Compress Images Online", "Bulk Image Resizer"
-];

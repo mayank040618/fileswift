@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         const prompt = buildPrompt(truncatedText, mode);
 
         const response = await client.chat.completions.create({
-            model: 'grok-3-fast',
+            model: 'grok-beta',
             messages: [
                 { role: 'user', content: prompt }
             ],

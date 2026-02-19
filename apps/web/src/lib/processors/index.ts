@@ -29,19 +29,19 @@ export const CLIENT_SIDE_TOOLS = [
     'merge-pdf',
     'rotate-pdf',
     'split-pdf',
-    // 'image-to-pdf', // Moved to server
+    'image-to-pdf',
     'image-compressor',
-    // 'image-resizer', // Moved to server
+    'image-resizer',
     'summarize-pdf',
-    // 'resize-image-for-youtube-thumbnail', // Moved to server
-    // 'resize-photo-for-resume', // Moved to server
-    // 'resize-image-for-instagram', // Moved to server
-    // 'resize-image-for-linkedin', // Moved to server
-    // 'resize-image-for-facebook', // Moved to server
-    // 'remove-background',
-    // 'jpg-to-png', // Moved to server
-    // 'png-to-jpg', // Moved to server
-    // 'heic-to-jpg', // Moved to server
+    'resize-image-for-youtube-thumbnail',
+    'resize-photo-for-resume',
+    'resize-image-for-instagram',
+    'resize-image-for-linkedin',
+    'resize-image-for-facebook',
+    'remove-background',
+    'jpg-to-png',
+    'png-to-jpg',
+    'heic-to-jpg',
     'ai-chat',
 ] as const;
 
