@@ -88,6 +88,8 @@ import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import { GoogleAnalytics } from '@/components/Analytics';
 import JsonLd from '@/components/JsonLd';
 
+import Script from 'next/script';
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -95,7 +97,14 @@ export default function RootLayout({
 }>): JSX.Element {
     return (
         <html lang="en" suppressHydrationWarning>
-            <head />
+            <head>
+                <Script
+                    async
+                    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5583723279396814"
+                    crossOrigin="anonymous"
+                    strategy="afterInteractive"
+                />
+            </head>
             <body className={inter.className}>
                 <Providers>
                     {children}
