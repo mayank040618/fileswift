@@ -1080,14 +1080,14 @@ export default function ToolClient() {
                 {/* Related Tools & Sidebar Ad */}
                 <div className="mt-20">
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">Related Tools</h2>
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             {TOOLS.filter(t => t.type === tool.type && t.id !== tool.id).slice(0, 4).map(related => (
                                 <ToolCard key={related.id} tool={related} />
                             ))}
                         </div>
-                        <div className="lg:col-span-1 hidden lg:block">
-                            <div className="sticky top-24">
+                        <div className="hidden lg:block">
+                            <div className="sticky top-24 w-[300px] min-h-[250px] bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-center overflow-hidden">
                                 <AdSquare />
                             </div>
                         </div>
