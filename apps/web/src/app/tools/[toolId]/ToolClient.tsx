@@ -10,28 +10,18 @@ import { useInterval } from '@/hooks/useInterval';
 import clsx from 'clsx';
 import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { ToolCard } from '@/components/ToolCard';
-import ReactMarkdown from 'react-markdown';
+import dynamic from 'next/dynamic';
+const ReactMarkdown = dynamic(() => import('react-markdown'), { ssr: false });
 import { downloadNotesAsPdf, downloadTextAsPdf } from '@/lib/generatePdf';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSquare } from '@/components/ads/AdSquare';
 
 // Client-side processors
-import {
-    isClientSideTool,
-    mergePDFs,
-    rotatePDF,
-    splitPDF,
-    imagesToPDF,
-    compressImage,
-    compressImages,
-    resizeImage,
-    resizeImages,
-    summarizePDF,
-    convertImageFormat,
-    type ProcessorResult,
-    type SummaryMode,
-    extractTextFromPDF
+import type {
+    ProcessorResult,
+    SummaryMode
 } from '@/lib/processors';
+import { isClientSideTool } from '@/lib/processors';
 
 export default function ToolClient() {
     const params = useParams();
@@ -164,6 +154,7 @@ export default function ToolClient() {
             // Extract text for chat context
             try {
                 setTimeRemaining('Reading document...');
+                const { extractTextFromPDF } = await import('@/lib/processors/pdf-summarize');
                 const extraction = await extractTextFromPDF(files[0]);
                 if (extraction.success && extraction.text) {
                     setPdfContext(extraction.text);
@@ -195,33 +186,44 @@ export default function ToolClient() {
             const width = wInput?.value ? parseInt(wInput.value) : undefined;
             const height = hInput?.value ? parseInt(hInput.value) : undefined;
 
-            // Route to appropriate processor
+            // Route to appropriate processor using dynamic imports
             switch (tool.id) {
-                case 'merge-pdf':
+                case 'merge-pdf': {
+                    const { mergePDFs } = await import('@/lib/processors/pdf-merge');
                     processorResult = await mergePDFs(files, setProcessingProgress);
                     break;
-                case 'rotate-pdf':
+                }
+                case 'rotate-pdf': {
+                    const { rotatePDF } = await import('@/lib/processors/pdf-rotate');
                     processorResult = await rotatePDF(files[0], angle, setProcessingProgress);
                     break;
-                case 'split-pdf':
+                }
+                case 'split-pdf': {
+                    const { splitPDF } = await import('@/lib/processors/pdf-split');
                     processorResult = await splitPDF(files[0], setProcessingProgress);
                     break;
-                case 'image-to-pdf':
+                }
+                case 'image-to-pdf': {
+                    const { imagesToPDF } = await import('@/lib/processors/image-to-pdf');
                     processorResult = await imagesToPDF(files, setProcessingProgress);
                     break;
-                case 'image-compressor':
+                }
+                case 'image-compressor': {
+                    const { compressImage, compressImages } = await import('@/lib/processors/image-compress');
                     if (files.length === 1) {
                         processorResult = await compressImage(files[0], quality, setProcessingProgress);
                     } else {
                         processorResult = await compressImages(files, quality, setProcessingProgress);
                     }
                     break;
+                }
                 case 'image-resizer':
                 case 'resize-image-for-youtube-thumbnail':
                 case 'resize-photo-for-resume':
                 case 'resize-image-for-instagram':
                 case 'resize-image-for-linkedin':
-                case 'resize-image-for-facebook':
+                case 'resize-image-for-facebook': {
+                    const { resizeImage, resizeImages } = await import('@/lib/processors/image-resize');
                     // Hardcoded dimensions for specialized tools
                     let targetW = width;
                     let targetH = height;
@@ -240,13 +242,15 @@ export default function ToolClient() {
                         processorResult = results[0];
                     }
                     break;
+                }
                 case 'remove-background': {
                     // Dynamic import to avoid bundling 21MB ONNX package on every page
                     const { removeBackground } = await import('@/lib/processors/remove-background');
                     processorResult = await removeBackground(files[0], setProcessingProgress);
                     break;
                 }
-                case 'summarize-pdf':
+                case 'summarize-pdf': {
+                    const { summarizePDF } = await import('@/lib/processors/pdf-summarize');
                     // Special handling for AI summarizer
                     const summaryResult = await summarizePDF(
                         files[0],
@@ -261,16 +265,23 @@ export default function ToolClient() {
                     } else {
                         throw new Error(summaryResult.error || 'Failed to summarize PDF');
                     }
-                    return; // Early return - don't process like other tools
-                case 'jpg-to-png':
+                    return;
+                }
+                case 'jpg-to-png': {
+                    const { convertImageFormat } = await import('@/lib/processors/image-convert');
                     processorResult = await convertImageFormat(files[0], 'png', undefined, setProcessingProgress);
                     break;
-                case 'png-to-jpg':
+                }
+                case 'png-to-jpg': {
+                    const { convertImageFormat } = await import('@/lib/processors/image-convert');
                     processorResult = await convertImageFormat(files[0], 'jpeg', 0.92, setProcessingProgress);
                     break;
-                case 'heic-to-jpg':
+                }
+                case 'heic-to-jpg': {
+                    const { convertImageFormat } = await import('@/lib/processors/image-convert');
                     processorResult = await convertImageFormat(files[0], 'jpeg', 0.95, setProcessingProgress);
                     break;
+                }
                 default:
                     throw new Error('Unknown client-side tool');
             }
@@ -892,8 +903,8 @@ export default function ToolClient() {
 
                                     <div className="flex justify-center gap-4">
                                         <button
-                                            onClick={() => {
-                                                downloadNotesAsPdf(
+                                            onClick={async () => {
+                                                await downloadNotesAsPdf(
                                                     aiResult,
                                                     `${files[0]?.name?.replace('.pdf', '') || 'document'}-notes.pdf`
                                                 );
@@ -937,8 +948,8 @@ export default function ToolClient() {
                                     </div>
                                     <div className="flex justify-center gap-4">
                                         <button
-                                            onClick={() => {
-                                                downloadTextAsPdf(
+                                            onClick={async () => {
+                                                await downloadTextAsPdf(
                                                     aiResult.rewrittenText || '',
                                                     `${files[0]?.name?.replace('.pdf', '') || 'document'}-rewritten.pdf`,
                                                     'Rewritten Document'
@@ -977,8 +988,8 @@ export default function ToolClient() {
                                     </div>
                                     <div className="flex justify-center gap-4">
                                         <button
-                                            onClick={() => {
-                                                downloadTextAsPdf(
+                                            onClick={async () => {
+                                                await downloadTextAsPdf(
                                                     aiResult.translatedText || '',
                                                     `${files[0]?.name?.replace('.pdf', '') || 'document'}-translated.pdf`,
                                                     'Translated Document'

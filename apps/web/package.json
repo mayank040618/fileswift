@@ -39,11 +39,13 @@
         "tailwindcss-animate": "^1.0.7"
     },
     "devDependencies": {
+        "@next/bundle-analyzer": "^16.1.6",
         "@types/inquirer": "^9.0.9",
         "@types/node": "^20.0.0",
         "@types/react": "18.2.79",
         "@types/react-dom": "18.2.25",
         "autoprefixer": "^10.0.1",
+        "cross-env": "^10.1.0",
         "eslint": "^8.0.0",
         "eslint-config-next": "14.1.0",
         "postcss": "^8.0.0",

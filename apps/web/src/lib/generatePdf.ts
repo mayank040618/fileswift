@@ -1,5 +1,3 @@
-import jsPDF from 'jspdf';
-
 interface NotesData {
     title?: string;
     topics?: { heading: string; points: string[] }[];
@@ -8,7 +6,8 @@ interface NotesData {
 /**
  * Generate a beautifully formatted PDF from AI Notes
  */
-export function downloadNotesAsPdf(data: NotesData, filename: string) {
+export async function downloadNotesAsPdf(data: NotesData, filename: string) {
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
@@ -90,7 +89,8 @@ export function downloadNotesAsPdf(data: NotesData, filename: string) {
 /**
  * Generate a PDF from rewritten or translated text
  */
-export function downloadTextAsPdf(text: string, filename: string, label: string) {
+export async function downloadTextAsPdf(text: string, filename: string, label: string) {
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;

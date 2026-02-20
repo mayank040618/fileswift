@@ -31,9 +31,9 @@ export const AdBanner = React.memo(function AdBanner({ dataAdSlot }: { dataAdSlo
     return (
         <div className="mx-auto my-6 flex justify-center overflow-hidden min-h-[90px]">
             <ins className="adsbygoogle"
-                style={{ display: 'block', width: '100%', maxWidth: '728px', height: '90px' }}
-                data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-5583723279396814"}
-                data-ad-slot={dataAdSlot || "0000000000"}
+                style={{ display: 'block', width: '100%', maxWidth: '728px' }}
+                data-ad-client="ca-pub-5583723279396814"
+                data-ad-slot={dataAdSlot || "7942741914"}
                 data-ad-format="auto"
                 data-full-width-responsive="true"></ins>
         </div>
