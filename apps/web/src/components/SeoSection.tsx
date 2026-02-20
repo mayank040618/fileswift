@@ -43,7 +43,8 @@ const faqs = [
 const keywords = [
     "Compress PDF", "PDF to Word", "Image Resizer", "Merge PDF", "Rotate PDF",
     "JPG to PDF", "PDF to JPG", "Word to PDF", "Online PDF Tools", "Free PDF Converter",
-    "Reduce PDF Size", "Compress Images Online", "Bulk Image Resizer"
+    "Reduce PDF Size", "Compress Images Online", "Bulk Image Resizer",
+    "Private PDF Tools", "No Upload Converter", "Secure File Processing"
 ];
 
 export function SeoSection() {

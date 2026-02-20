@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     metadataBase: new URL('https://www.fileswift.in'),
     title: "FileSwift - Free Online PDF Compressor, Converter & Editor",
     description: "FileSwift is a free, privacy-first online platform to compress PDFs, resize images, and convert files securely. No signup required, fast processing.",
-    keywords: ["pdf compressor", "pdf to word", "remove background", "ai file tools", "image to pdf"],
+    keywords: ["pdf compressor", "pdf to word", "remove background", "ai file tools", "image to pdf", "private pdf tools", "client-side file processing", "no upload file tools", "secure online converter"],
     authors: [{ name: "FileSwift" }],
     openGraph: {
         title: "FileSwift - AI Powered File Tools",
