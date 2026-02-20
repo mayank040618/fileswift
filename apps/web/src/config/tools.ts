@@ -95,6 +95,8 @@ We prioritize your privacy. All files are processed securely and deleted automat
         keywords: ['image compressor online', 'compress jpg', 'compress png', 'reduce image size', 'optimize images', 'image optimizer', 'resize image online', 'compress image online free', 'photo compressor', 'compress jpg online free', 'reduce photo size', 'compress png online', 'image size reducer', 'private image compressor', 'instant image optimizer'],
         content: {
             features: [
+                '100% Private: Files are processed locally on your device—never uploaded to our servers.',
+                'Instant Optimization: Quick, browser-based compression with no waiting for uploads.',
                 'Multi-Format Support: Compress JPG, PNG, and WEBP files.',
                 'Bulk Processing: Optimize multiple images at once.',
                 'Lossless Option: Reduce size without visible quality loss.',
@@ -149,6 +151,8 @@ You don't need to be an expert. FileSwift automatically analyzes your image to f
         keywords: ['image to pdf', 'jpg to pdf', 'png to pdf', 'convert photo to pdf', 'combine images to pdf', 'jpeg to pdf', 'pictures to pdf', 'image to pdf converter free', 'photo to pdf online', 'convert multiple images to pdf', 'jpg to pdf converter online free', 'image to pdf online', 'private image to pdf', 'instant pdf converter'],
         content: {
             features: [
+                'Private Conversion: Your images stay on your device—processing happens in your browser.',
+                'Instant PDF: Combine images into a PDF instantly without uploading.',
                 'Combine Images: Merge multiple photos into one PDF file.',
                 'Format Flexibility: Supports both JPG and PNG formats.',
                 'Custom Ordering: Drag and drop to rearrange page order.',
@@ -251,6 +255,8 @@ FileSwift provides a free tool to convert PDF documents into editable Microsoft 
         keywords: ['merge pdf', 'combine pdf', 'join pdf', 'stitch pdf', 'bind pdf', 'merge pdf files online', 'combine multiple pdfs', 'merge pdf online free', 'combine pdf files free', 'join pdf files online', 'pdf merger free', 'private pdf merger', 'instant pdf joiner'],
         content: {
             features: [
+                'Secure & Local: Files are merged on your device; your data never leaves your computer.',
+                'Instant Merging: No server upload means zero waiting time for file transfers.',
                 'Unlimited Merging: Combine as many files as you need.',
                 'Easy Reordering: Drag pages to set the correct sequence.',
                 'Fast Stitching: Merges large files quickly.',
@@ -300,6 +306,8 @@ You can upload files from your computer or mobile device. Rearrange them visuall
         keywords: ['rotate pdf', 'turn pdf', 'change pdf orientation', 'fix upside down pdf', 'rotate pdf pages online', 'save rotated pdf', 'private pdf rotator', 'instant pdf rotation'],
         content: {
             features: [
+                '100% Private: Orientation is fixed locally; your PDF never leaves your browser.',
+                'Instant Rotation: Rotate and save your files immediately without waiting for uploads.',
                 'Permanent Rotation: Saves the new orientation to the file.',
                 'Bulk Action: Rotate all pages at once.',
                 'Preview: See the orientation before saving.',
@@ -342,6 +350,8 @@ FileSwift is a simple tool to fix PDF orientation. If you have scanned a documen
         keywords: ['resize image', 'change image size', 'resize photo', 'scale image', 'resize jpg', 'resize png', 'image dimensions changer', 'private image resizer', 'instant photo resize'],
         content: {
             features: [
+                'Private Resizing: Images are processed in your browser—100% data privacy guaranteed.',
+                'Instant Results: No upload needed; resize multiple images in seconds.',
                 'Pixel Precision: Specify exact width and height.',
                 'Aspect Ratio Lock: Keep images from stretching or distorting.',
                 'Format Support: Resize JPG, PNG, and WEBP.',
@@ -434,6 +444,8 @@ FileSwift allows you to resize multiple images in a single step. Instead of edit
         keywords: ['pdf to image', 'pdf to jpg', 'pdf to png', 'convert pdf pages to images', 'extract images from pdf', 'image to jpg', 'image to png', 'convert image to jpg', 'convert image to png', 'private pdf to image', 'instant pdf extraction'],
         content: {
             features: [
+                'Private Extraction: Every task happens locally; documents are never uploaded.',
+                'Instant Conversion: Turn your PDF pages into images instantly.',
                 'Page Extraction: Converts every page of the PDF into a separate image.',
                 'Format Choice: Save as standard JPG or high-quality PNG.',
                 'Zip Download: Get all pages in one organized folder.',
@@ -647,6 +659,8 @@ Our AI model analyzes your image to identify the main subject—person, product,
         keywords: ['split pdf', 'separate pdf pages', 'extract pdf pages', 'divide pdf', 'pdf splitter', 'split pdf online free', 'extract pages from pdf', 'break pdf into pages', 'private pdf splitter', 'instant pdf split'],
         content: {
             features: [
+                'Private Splitting: Split documents locally on your device for maximum security.',
+                'Instant Split: Extract pages instantly without uploading large files.',
                 'Page Selection: Choose specific pages to extract.',
                 'Split by Range: Extract pages 1-5, 10-15, etc.',
                 'Single Page Export: Save each page as a separate PDF.',
@@ -698,10 +712,12 @@ FileSwift allows you to split PDF documents into individual pages or extract spe
         keywords: ['jpg to png', 'jpeg to png', 'convert jpg to png', 'jpg to png converter online', 'change jpg to png', 'jpeg to png free', 'private jpg to png', 'instant image conversion'],
         content: {
             features: [
+                '100% Private: Conversion happens only in your browser—no file uploads.',
+                'Instant JPG to PNG: Change formats instantly with zero waiting time.',
                 'Lossless Conversion: Preserves full image quality.',
-                'Transparency Ready: PNG format supports transparent backgrounds.',
-                'Batch Processing: Convert multiple JPGs at once.',
-                'Original Resolution: Maintains exact pixel dimensions.'
+                'Transparency Support: Corrects PNG transparency from JPG sources.',
+                'Bulk Conversion: Convert multiple JPGs at once.',
+                'Simple Interface: No complex settings needed.'
             ],
             howTo: [
                 'Upload your JPG or JPEG image.',
@@ -748,10 +764,12 @@ FileSwift converts your JPG images to PNG format instantly. PNG is ideal when yo
         keywords: ['png to jpg', 'png to jpeg', 'convert png to jpg', 'png to jpg converter', 'change png to jpeg', 'png to jpg online free', 'private png to jpg', 'instant image optimization'],
         content: {
             features: [
+                'Secure Conversion: PNGs are processed locally for maximum privacy.',
+                'Instant Results: Convert PNG to JPG in milliseconds without server lags.',
                 'Smaller File Size: JPG compression reduces file size significantly.',
-                'Quality Control: Choose compression level from 1-100.',
-                'Batch Conversion: Process multiple PNGs simultaneously.',
-                'White Background: Replaces transparency with white.'
+                'Adjustable Quality: Choose the level of JPG compression.',
+                'Batch Processing: Convert many PNGs to JPGs simultaneously.',
+                'Universal Support: Created JPGs work on all devices.'
             ],
             howTo: [
                 'Upload your PNG image.',
@@ -798,10 +816,12 @@ FileSwift converts PNG images to JPG format for smaller file sizes. This is perf
         keywords: ['heic to jpg', 'heic to jpeg', 'convert heic to jpg', 'iphone photo converter', 'heic converter', 'heic to jpg online free', 'open heic on windows', 'heic to jpg converter online', 'private heic to jpg', 'instant iphone photo conversion'],
         content: {
             features: [
+                'iPhone Privacy: Your personal photos stay on your device—never uploaded.',
+                'Instant HEIC to JPG: Open and convert HEIC photos instantly.',
                 'iPhone Compatible: Converts HEIC/HEIF photos taken on iPhone.',
-                'High Quality: Preserves original photo quality.',
-                'Batch Conversion: Convert multiple HEIC files at once.',
-                'Works Everywhere: Output JPG works on Windows, Android, and all browsers.'
+                'Universal JPG: Makes photos viewable on Windows, Android, and Web.',
+                'Metadata Preserved: Keeps EXIF data like location and date.',
+                'High Quality: Converts with no loss in visual fidelity.'
             ],
             howTo: [
                 'Upload your HEIC files from iPhone or Mac.',

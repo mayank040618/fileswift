@@ -19,20 +19,6 @@ export function Hero() {
 
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
                 <div className="text-center max-w-3xl mx-auto">
-
-                    <div
-                        className="mb-8 flex items-center justify-center gap-4 animate-in fade-in slide-in-from-top-4 duration-1000"
-                    >
-                        <div className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20">
-                            <span className="mr-1.5 flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                            100% Private (No Upload)
-                        </div>
-                        <div className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/20">
-                            <span className="mr-1.5 flex h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                            Instant Processing
-                        </div>
-                    </div>
-
                     <h1
                         className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-6xl mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300"
                     >
@@ -83,7 +69,7 @@ export function Hero() {
                             <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
-                            100% Private
+                            Mobile ready
                         </div>
                     </div>
                 </div>

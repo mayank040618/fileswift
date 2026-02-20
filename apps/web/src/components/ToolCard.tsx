@@ -42,21 +42,6 @@ function ToolCardComponent({ tool }: { tool: Tool }) {
                 </span>
             )}
 
-            <div className="flex flex-wrap gap-2 mb-3">
-                {tool.privacyMode === 'client' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-100 dark:border-emerald-500/20">
-                        <Icons.Lock className="w-2.5 h-2.5" />
-                        PRIVATE
-                    </span>
-                )}
-                {tool.privacyMode === 'client' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-100 dark:border-amber-500/20">
-                        <Icons.Zap className="w-2.5 h-2.5" />
-                        INSTANT
-                    </span>
-                )}
-            </div>
-
             <div className="flex-grow">
                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                     {tool.comingSoon ? "This advanced AI feature will be available in the upcoming Pro Plan." : tool.description}
