@@ -56,6 +56,9 @@ export async function startBackgroundServices() {
 
     // 2. Heavy IO Services
     console.log('[BOOT] Connecting to Infra...');
+    // Warming up tool check cache so healthcheck is fast
+    import('./utils/cli-checks').then(({ checkTools }) => checkTools());
+
     // connectRedisWithRetry handles its own non-throw loop
     // We await it if we want to ensure Redis is up before Worker starts
     // But since this is post-listen, it's fine.

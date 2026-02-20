@@ -32,66 +32,76 @@ export const checkTools = async (force = false): Promise<ToolStatus> => {
 
     const status: ToolStatus = { ...cachedStatus, checked: true, timestamp: Date.now() };
 
-    // Check Ghostscript
-    try {
-        console.log('[checkTools] Checking gs --version...');
-        const gs = await spawnWithTimeout('gs', ['--version'], {}, 5000); // Increased to 5s
-        console.log(`[checkTools] gs result: code=${gs.code}, stdout=${gs.stdout?.substring(0, 20)}`);
-        if (gs.code === 0) {
-            status.ghostscript = true;
-            status.gsVersion = gs.stdout.trim();
-        } else {
-            status.ghostscript = false;
-            status.gsVersion = null;
-        }
-    } catch (e: any) {
-        console.error('[checkTools] gs check failed', e.message);
-        status.ghostscript = false;
-        status.gsVersion = null;
-    }
-
-    // Check QPDF
-    try {
-        const qpdf = await spawnWithTimeout('qpdf', ['--version'], {}, 2000);
-        if (qpdf.code === 0) {
-            status.qpdf = true;
-            status.qpdfVersion = qpdf.stdout.split('\n')[0].trim();
-        } else {
-            status.qpdf = false;
-            status.qpdfVersion = null;
-        }
-    } catch {
-        status.qpdf = false;
-        status.qpdfVersion = null;
-    }
-
-    // Check LibreOffice
-    try {
-        const loCmd = process.platform === 'darwin' ? '/Applications/LibreOffice.app/Contents/MacOS/soffice' : 'soffice';
-        const lo = await spawnWithTimeout(loCmd, ['--version'], {}, 2000);
-        if (lo.code === 0) {
-            status.libreoffice = true;
-            status.libreofficeVersion = lo.stdout.trim().replace('LibreOffice ', '');
-        } else {
-            status.libreoffice = false;
-            status.libreofficeVersion = null;
-        }
-    } catch {
-        status.libreoffice = false;
-        status.libreofficeVersion = null;
-    }
-
-    // Check SIPS
-    if (process.platform === 'darwin') {
-        try {
-            const sips = await spawnWithTimeout('sips', ['--version'], {}, 2000);
-            if (sips.code === 0 || (sips.stdout && sips.stdout.includes('sips'))) {
-                status.sips = true;
+    await Promise.all([
+        // Check Ghostscript
+        (async () => {
+            try {
+                // console.log('[checkTools] Checking gs --version...');
+                const gs = await spawnWithTimeout('gs', ['--version'], {}, 5000);
+                // console.log(`[checkTools] gs result: code=${gs.code}, stdout=${gs.stdout?.substring(0, 20)}`);
+                if (gs.code === 0) {
+                    status.ghostscript = true;
+                    status.gsVersion = gs.stdout.trim();
+                } else {
+                    status.ghostscript = false;
+                    status.gsVersion = null;
+                }
+            } catch (e: any) {
+                console.error('[checkTools] gs check failed', e.message);
+                status.ghostscript = false;
+                status.gsVersion = null;
             }
-        } catch { status.sips = false; }
-    } else {
-        status.sips = false;
-    }
+        })(),
+
+        // Check QPDF
+        (async () => {
+            try {
+                const qpdf = await spawnWithTimeout('qpdf', ['--version'], {}, 2000);
+                if (qpdf.code === 0) {
+                    status.qpdf = true;
+                    status.qpdfVersion = qpdf.stdout.split('\n')[0].trim();
+                } else {
+                    status.qpdf = false;
+                    status.qpdfVersion = null;
+                }
+            } catch {
+                status.qpdf = false;
+                status.qpdfVersion = null;
+            }
+        })(),
+
+        // Check LibreOffice
+        (async () => {
+            try {
+                const loCmd = process.platform === 'darwin' ? '/Applications/LibreOffice.app/Contents/MacOS/soffice' : 'soffice';
+                const lo = await spawnWithTimeout(loCmd, ['--version'], {}, 2000);
+                if (lo.code === 0) {
+                    status.libreoffice = true;
+                    status.libreofficeVersion = lo.stdout.trim().replace('LibreOffice ', '');
+                } else {
+                    status.libreoffice = false;
+                    status.libreofficeVersion = null;
+                }
+            } catch {
+                status.libreoffice = false;
+                status.libreofficeVersion = null;
+            }
+        })(),
+
+        // Check SIPS
+        (async () => {
+            if (process.platform === 'darwin') {
+                try {
+                    const sips = await spawnWithTimeout('sips', ['--version'], {}, 2000);
+                    if (sips.code === 0 || (sips.stdout && sips.stdout.includes('sips'))) {
+                        status.sips = true;
+                    }
+                } catch { status.sips = false; }
+            } else {
+                status.sips = false;
+            }
+        })()
+    ]);
 
     cachedStatus = status;
     return status;
