@@ -1,5 +1,6 @@
 import { PDFDocument } from 'pdf-lib';
 import type { ProcessorResult } from './index';
+import { convertHeicToJpeg } from '@/utils/heicUtils';
 
 /**
  * Convert images to a single PDF
@@ -19,8 +20,11 @@ export async function imagesToPDF(
         let totalOriginalSize = 0;
 
         for (let i = 0; i < files.length; i++) {
-            const file = files[i];
+            let file = files[i];
             totalOriginalSize += file.size;
+
+            // Intercept HEIC and convert to JPEG
+            file = await convertHeicToJpeg(file);
 
             const arrayBuffer = await file.arrayBuffer();
             const uint8Array = new Uint8Array(arrayBuffer);
