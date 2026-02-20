@@ -1,11 +1,11 @@
 import '../polyfills/domMatrix';
 import type { Metadata, Viewport } from "next";
-// import { Inter } from "next/font/google"; // Disabled: network timeout blocks dev server
+import { Inter } from "next/font/google"; // Disabled: network timeout blocks dev server
 import "./globals.css";
 
 // Using system font stack instead of Google Fonts for dev
 // Revert to `next/font/google` Inter before deploying to production
-const inter = { className: 'font-sans' };
+const inter = Inter({ subsets: ["latin"] });
 
 
 export const metadata: Metadata = {
@@ -102,7 +102,7 @@ export default function RootLayout({
                     async
                     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5583723279396814"
                     crossOrigin="anonymous"
-                    strategy="afterInteractive"
+                    strategy="lazyOnload"
                 />
             </head>
             <body className={inter.className}>
