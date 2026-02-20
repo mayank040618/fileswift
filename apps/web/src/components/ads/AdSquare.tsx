@@ -28,8 +28,7 @@ export const AdSquare = React.memo(function AdSquare({ dataAdSlot }: { dataAdSlo
 
     return (
         <div className="mx-auto my-6 flex justify-center overflow-hidden min-h-[250px]">
-            <ins className="adsbygoogle"
-                style={{ display: 'block' }}
+            <ins className="adsbygoogle block"
                 data-ad-client="ca-pub-5583723279396814"
                 data-ad-slot={dataAdSlot || "3961875123"}
                 data-ad-format="auto"

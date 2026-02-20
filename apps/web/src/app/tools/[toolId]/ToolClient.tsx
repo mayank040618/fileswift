@@ -574,11 +574,11 @@ export default function ToolClient() {
                                             <h3 className="font-semibold mb-3 dark:text-white">Resize Options</h3>
                                             <div className="flex gap-4">
                                                 <div>
-                                                    <label className="text-xs text-slate-500 block mb-1">Width (px)</label>
+                                                    <label htmlFor="resize-w" className="text-xs text-slate-500 block mb-1">Width (px)</label>
                                                     <input type="number" placeholder="Auto" id="resize-w" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs text-slate-500 block mb-1">Height (px)</label>
+                                                    <label htmlFor="resize-h" className="text-xs text-slate-500 block mb-1">Height (px)</label>
                                                     <input type="number" placeholder="Auto" id="resize-h" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm" />
                                                 </div>
                                             </div>
@@ -600,6 +600,7 @@ export default function ToolClient() {
                                                 value={compressionQuality}
                                                 onChange={(e) => setCompressionQuality(parseInt(e.target.value))}
                                                 id="compress-q"
+                                                aria-label="Compression Quality"
                                                 className="w-full accent-blue-600"
                                             />
                                             <div className="flex justify-between text-xs text-slate-500 mt-1">
@@ -612,7 +613,7 @@ export default function ToolClient() {
                                     {tool.id === 'rotate-pdf' && (
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                                             <h3 className="font-semibold mb-3 dark:text-white">Rotation</h3>
-                                            <select id="rotate-angle" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
+                                            <select id="rotate-angle" aria-label="Rotate Angle" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
                                                 <option value="90">90° Clockwise</option>
                                                 <option value="180">180°</option>
                                                 <option value="270">90° Counter-Clockwise</option>
@@ -623,7 +624,7 @@ export default function ToolClient() {
                                     {tool.id === 'pdf-to-image' && (
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                                             <h3 className="font-semibold mb-3 dark:text-white">Output Format</h3>
-                                            <select id="output-format" title="Select output image format" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
+                                            <select id="output-format" aria-label="Select output image format" title="Select output image format" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
                                                 <option value="png">PNG — Lossless, best quality</option>
                                                 <option value="jpg">JPG — Smaller file size</option>
                                             </select>
@@ -663,7 +664,7 @@ export default function ToolClient() {
                                     {tool.id === 'ai-translate' && (
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                                             <h3 className="font-semibold mb-3 dark:text-white">Target Language</h3>
-                                            <select id="target-language" title="Select target language" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
+                                            <select id="target-language" aria-label="Select target language" title="Select target language" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
                                                 <option value="hindi">Hindi (हिंदी)</option>
                                                 <option value="marathi">Marathi (मराठी)</option>
                                                 <option value="tamil">Tamil (தமிழ்)</option>
@@ -681,7 +682,7 @@ export default function ToolClient() {
                                     {tool.id === 'ai-rewrite' && (
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                                             <h3 className="font-semibold mb-3 dark:text-white">Desired Tone</h3>
-                                            <select id="rewrite-tone" title="Select desired tone" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
+                                            <select id="rewrite-tone" aria-label="Select desired tone" title="Select desired tone" className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm">
                                                 <option value="professional">Professional & Polished</option>
                                                 <option value="casual">Casual & Friendly</option>
                                                 <option value="formal">Academic & Formal</option>
@@ -781,12 +782,14 @@ export default function ToolClient() {
                                     </div>
                                     <form onSubmit={handleChatSubmit} className="flex gap-2">
                                         <input
+                                            id="chat-input"
+                                            aria-label="Chat Input"
                                             value={chatInput}
                                             onChange={e => setChatInput(e.target.value)}
                                             placeholder="Ask something about the document..."
                                             className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
                                         />
-                                        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition-colors">
+                                        <button type="submit" aria-label="Send Message" className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition-colors">
                                             <Icons.ArrowRight className="w-5 h-5" />
                                         </button>
                                     </form>
