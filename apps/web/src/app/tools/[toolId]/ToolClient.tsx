@@ -529,6 +529,27 @@ export default function ToolClient() {
         }
     };
 
+    const handleDownload = () => {
+        if (!result?.downloadUrl) return;
+
+        // Anchor tag approach is required to force download of object URLs (Blobs)
+        const a = document.createElement('a');
+        a.href = result.downloadUrl;
+
+        if (result.filename) {
+            a.download = result.filename;
+        } else if (result.isClientSide) {
+            a.download = `fileswift-result`; // Fallback for blobs
+        } else {
+            // For server-side URLs without a specific filename, default target _blank helps
+            a.target = '_blank';
+        }
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
     const maxFiles = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_FILES || '100');
 
     return (
@@ -1073,7 +1094,7 @@ export default function ToolClient() {
                                     )}
 
                                     <div className="flex justify-center gap-4">
-                                        <button onClick={() => window.open(result?.downloadUrl || '#', '_blank')} className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transform hover:-translate-y-0.5">
+                                        <button onClick={handleDownload} className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transform hover:-translate-y-0.5">
                                             <Icons.Download className="w-5 h-5" />
                                             Download Result
                                         </button>
