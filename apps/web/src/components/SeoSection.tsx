@@ -6,7 +6,7 @@ import { Icons } from './Icons';
 const features = [
     {
         title: '100% Secure & Private',
-        desc: 'All file processing happens securely. Your files are automatically deleted from our servers after 1 hour. We never read or store your sensitive data.',
+        desc: 'Most of our tools use client-side processing, meaning your files never leave your device. For server-side tasks, data is encrypted and deleted immediately after use.',
         icon: Icons.Lock
     },
     {
@@ -28,7 +28,7 @@ const faqs = [
     },
     {
         q: 'Are my files safe?',
-        a: 'Absolutely. We use strict privacy protocols. Files are transferred via secure SSL connection and are permanently deleted from our servers 1 hour after processing.'
+        a: "Your privacy is our priority. Most conversions happen entirely in your browser (client-side), so your files aren't even uploaded. For cloud tasks, we use SSL encryption and delete files immediately."
     },
     {
         q: 'Do I need to install any software?',
@@ -127,7 +127,7 @@ export function SeoSection() {
                     <p className="mt-8 text-sm text-slate-400 max-w-2xl mx-auto">
                         FileSwift is your all-in-one PDF and Image solution.
                         Whether you need to <strong>Compress PDF</strong>, <strong>Convert PDF to Word</strong>, or <strong>Resize Images</strong>,
-                        our tools are free, fast, and secure. We respect your privacy—all files are deleted from our servers automatically after 1 hour.
+                        our tools are free, fast, and secure. We respect your privacy—most processing happens right on your device, and cloud files are deleted immediately.
                     </p>
                 </div>
 
