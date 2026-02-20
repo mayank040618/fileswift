@@ -9,9 +9,10 @@ import { Icons } from '@/components/Icons';
 import { useInterval } from '@/hooks/useInterval';
 import clsx from 'clsx';
 import { FeedbackWidget } from '@/components/FeedbackWidget';
-import { ToolCard } from '@/components/ToolCard';
 import ReactMarkdown from 'react-markdown';
 import { downloadNotesAsPdf, downloadTextAsPdf } from '@/lib/generatePdf';
+import { AdBanner } from '@/components/ads/AdBanner';
+import { AdSquare } from '@/components/ads/AdSquare';
 
 // Client-side processors
 import {
@@ -529,6 +530,9 @@ export default function ToolClient() {
                     </h1>
                     <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">{tool.description}</p>
                 </div>
+
+                {/* Top Banner Ad */}
+                <AdBanner />
 
                 {/* Main Content */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl dark:shadow-blue-900/10 p-8 border border-slate-100 dark:border-slate-800 min-h-[400px]">
@@ -1072,108 +1076,104 @@ export default function ToolClient() {
                     <FeedbackWidget toolId={tool.id} />
                 </div>
 
-                {/* Related Tools */}
-                <div className="mt-20">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">Related Tools</h2>
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {TOOLS.filter(t => t.type === tool.type && t.id !== tool.id).slice(0, 3).map(related => (
-                            <ToolCard key={related.id} tool={related} />
-                        ))}
+                <div className="lg:col-span-1 hidden lg:block">
+                    <div className="sticky top-24">
+                        <AdSquare />
                     </div>
                 </div>
+            </div>
 
-                {/* SEO Content */}
-                {tool.content && (
-                    <div className="mt-20 space-y-20">
-                        {/* Long Description (Rich SEO Content) */}
-                        {tool.longDescription && (
-                            <article className="prose prose-lg dark:prose-invert max-w-4xl mx-auto
+            {/* SEO Content */}
+            {tool.content && (
+                <div className="mt-20 space-y-20">
+                    {/* Long Description (Rich SEO Content) */}
+                    {tool.longDescription && (
+                        <article className="prose prose-lg dark:prose-invert max-w-4xl mx-auto
                                 prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white
                                 prose-p:text-slate-600 dark:prose-p:text-slate-400
                                 prose-strong:text-slate-900 dark:prose-strong:text-white
                                 prose-li:text-slate-600 dark:prose-li:text-slate-400">
-                                <ReactMarkdown>{tool.longDescription}</ReactMarkdown>
-                            </article>
-                        )}
+                            <ReactMarkdown>{tool.longDescription}</ReactMarkdown>
+                        </article>
+                    )}
 
-                        {/* Features */}
-                        <section>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">
-                                Why use our {tool.title}?
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {tool.content.features.map((feature, idx) => {
-                                    const [title, desc] = feature.split(': ');
-                                    return (
-                                        <div key={idx} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                                            <div className="flex items-start gap-4">
-                                                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
-                                                    <Icons.CheckCircle className="w-6 h-6" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-semibold text-slate-900 dark:text-white mb-2">{title}</h3>
-                                                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{desc || feature}</p>
-                                                </div>
+                    {/* Features */}
+                    <section>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">
+                            Why use our {tool.title}?
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {tool.content.features?.map((feature, idx) => {
+                                const [title, desc] = feature.split(': ');
+                                return (
+                                    <div key={idx} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                                        <div className="flex items-start gap-4">
+                                            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
+                                                <Icons.CheckCircle className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">{title}</h3>
+                                                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{desc || feature}</p>
                                             </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </section>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
 
-                        {/* How To */}
-                        <section className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm">
+                    {/* How To */}
+                    <section className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">
+                            How to {tool.title}
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {tool.content.howTo?.map((step, idx) => (
+                                <div key={idx} className="relative">
+                                    <div className="text-5xl font-bold text-slate-100 dark:text-slate-800 absolute -top-4 -left-2 -z-10 select-none">
+                                        {idx + 1}
+                                    </div>
+                                    <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Step {idx + 1}</h3>
+                                    <p className="text-slate-600 dark:text-slate-400 text-sm">{step}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* FAQ */}
+                    {tool.content.faq && tool.content.faq.length > 0 && (
+                        <section className="max-w-3xl mx-auto">
                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">
-                                How to {tool.title}
+                                Frequently Asked Questions
                             </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {tool.content.howTo.map((step, idx) => (
-                                    <div key={idx} className="relative">
-                                        <div className="text-5xl font-bold text-slate-100 dark:text-slate-800 absolute -top-4 -left-2 -z-10 select-none">
-                                            {idx + 1}
+                            <div className="space-y-4">
+                                {tool.content.faq.map((item, idx) => (
+                                    <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                                        <div className="p-6">
+                                            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">{item.question}</h3>
+                                            <p className="text-slate-600 dark:text-slate-400 text-sm">{item.answer}</p>
                                         </div>
-                                        <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Step {idx + 1}</h3>
-                                        <p className="text-slate-600 dark:text-slate-400 text-sm">{step}</p>
                                     </div>
                                 ))}
                             </div>
                         </section>
+                    )}
 
-                        {/* FAQ */}
-                        {tool.content.faq && tool.content.faq.length > 0 && (
-                            <section className="max-w-3xl mx-auto">
-                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">
-                                    Frequently Asked Questions
-                                </h2>
-                                <div className="space-y-4">
-                                    {tool.content.faq.map((item, idx) => (
-                                        <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-                                            <div className="p-6">
-                                                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">{item.question}</h3>
-                                                <p className="text-slate-600 dark:text-slate-400 text-sm">{item.answer}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Benefits Text Block */}
-                        <section className="text-center max-w-2xl mx-auto">
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
-                                Benefits of using FileSwift
-                            </h2>
-                            <div className="flex flex-wrap justify-center gap-3">
-                                {tool.content.benefits.map((benefit, idx) => (
-                                    <span key={idx} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-sm font-medium">
-                                        {benefit}
-                                    </span>
-                                ))}
-                            </div>
-                        </section>
-                    </div>
-                )}
-            </div>
+                    {/* Benefits Text Block */}
+                    <section className="text-center max-w-2xl mx-auto">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+                            Benefits of using FileSwift
+                        </h2>
+                        <div className="flex flex-wrap justify-center gap-3">
+                            {tool.content.benefits?.map((benefit, idx) => (
+                                <span key={idx} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-sm font-medium">
+                                    {benefit}
+                                </span>
+                            ))}
+                        </div>
+                    </section>
+                </div>
+            )}
         </div>
     );
 }
