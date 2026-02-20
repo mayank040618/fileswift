@@ -569,6 +569,28 @@ export default function ToolClient() {
 
                 {/* Main Content */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl dark:shadow-blue-900/10 p-8 border border-slate-100 dark:border-slate-800 min-h-[400px]">
+                    {/* Privacy & Speed Badges */}
+                    <div className="flex flex-wrap items-center justify-center gap-2 mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+                        {tool.privacyMode === 'client' && (
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold rounded-full border border-emerald-100 dark:border-emerald-900/50">
+                                <Icons.Lock className="w-3.5 h-3.5" />
+                                100% Private - No Upload
+                            </div>
+                        )}
+                        {tool.privacyMode === 'server' && (
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-full border border-blue-100 dark:border-blue-900/50">
+                                <Icons.ShieldCheck className="w-3.5 h-3.5" />
+                                Secure & Cloud Processed
+                            </div>
+                        )}
+                        {isClientSideTool(tool.id) && (
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-xs font-semibold rounded-full border border-amber-100 dark:border-amber-900/50">
+                                <Icons.Zap className="w-3.5 h-3.5" />
+                                Instant Conversion
+                            </div>
+                        )}
+                    </div>
+
                     {status === 'idle' ? (
                         <>
                             <BulkUploader

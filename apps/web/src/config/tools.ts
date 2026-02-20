@@ -18,6 +18,7 @@ export interface Tool {
     };
     longDescription?: string;
     comingSoon?: boolean;
+    privacyMode?: 'client' | 'server';
 }
 
 export const TOOLS: Tool[] = [
@@ -30,7 +31,8 @@ export const TOOLS: Tool[] = [
         color: 'bg-red-500',
         slug: '/tools/compress-pdf',
         type: 'file',
-        keywords: ['compress pdf', 'reduce pdf size', 'compress small pdf', 'pdf compressor free', 'shrink pdf', 'optimize pdf', 'compress pdf file', 'reduce pdf file size', 'pdf compressor online free', 'compress pdf online free', 'reduce pdf size online', 'shrink pdf free', 'make pdf smaller', 'pdf size reducer'],
+        privacyMode: 'server',
+        keywords: ['compress pdf', 'reduce pdf size', 'compress small pdf', 'pdf compressor free', 'shrink pdf', 'optimize pdf', 'compress pdf file', 'reduce pdf file size', 'pdf compressor online free', 'compress pdf online free', 'reduce pdf size online', 'shrink pdf free', 'make pdf smaller', 'pdf size reducer', 'secure pdf compressor', 'encrypted pdf compression'],
         content: {
             features: [
                 'Smart Compression: Significantly reduces file size while keeping text and images sharp.',
@@ -89,7 +91,8 @@ We prioritize your privacy. All files are processed securely and deleted automat
         color: 'bg-pink-500',
         slug: '/tools/image-compressor',
         type: 'image',
-        keywords: ['image compressor online', 'compress jpg', 'compress png', 'reduce image size', 'optimize images', 'image optimizer', 'resize image online', 'compress image online free', 'photo compressor', 'compress jpg online free', 'reduce photo size', 'compress png online', 'image size reducer'],
+        privacyMode: 'client',
+        keywords: ['image compressor online', 'compress jpg', 'compress png', 'reduce image size', 'optimize images', 'image optimizer', 'resize image online', 'compress image online free', 'photo compressor', 'compress jpg online free', 'reduce photo size', 'compress png online', 'image size reducer', 'private image compressor', 'instant image optimizer'],
         content: {
             features: [
                 'Multi-Format Support: Compress JPG, PNG, and WEBP files.',
@@ -142,7 +145,8 @@ You don't need to be an expert. FileSwift automatically analyzes your image to f
         color: 'bg-teal-500',
         slug: '/tools/image-to-pdf',
         type: 'image',
-        keywords: ['image to pdf', 'jpg to pdf', 'png to pdf', 'convert photo to pdf', 'combine images to pdf', 'jpeg to pdf', 'pictures to pdf', 'image to pdf converter free', 'photo to pdf online', 'convert multiple images to pdf', 'jpg to pdf converter online free', 'image to pdf online'],
+        privacyMode: 'client',
+        keywords: ['image to pdf', 'jpg to pdf', 'png to pdf', 'convert photo to pdf', 'combine images to pdf', 'jpeg to pdf', 'pictures to pdf', 'image to pdf converter free', 'photo to pdf online', 'convert multiple images to pdf', 'jpg to pdf converter online free', 'image to pdf online', 'private image to pdf', 'instant pdf converter'],
         content: {
             features: [
                 'Combine Images: Merge multiple photos into one PDF file.',
@@ -192,7 +196,8 @@ FileSwift allows users to convert image files (JPG, PNG) into a standard PDF doc
         color: 'bg-blue-600',
         slug: '/tools/pdf-to-word',
         type: 'file',
-        keywords: ['pdf to word', 'pdf to docx', 'convert pdf to word editable', 'pdf to text', 'pdf converter to word', 'edit pdf in word'],
+        privacyMode: 'server',
+        keywords: ['pdf to word', 'pdf to docx', 'convert pdf to word editable', 'pdf to text', 'pdf converter to word', 'edit pdf in word', 'secure pdf to word', 'online pdf to docx'],
         content: {
             features: [
                 'Accurate Conversion: Retains formatting, tables, and fonts.',
@@ -242,7 +247,8 @@ FileSwift provides a free tool to convert PDF documents into editable Microsoft 
         color: 'bg-orange-500',
         slug: '/tools/merge-pdf',
         type: 'file',
-        keywords: ['merge pdf', 'combine pdf', 'join pdf', 'stitch pdf', 'bind pdf', 'merge pdf files online', 'combine multiple pdfs', 'merge pdf online free', 'combine pdf files free', 'join pdf files online', 'pdf merger free'],
+        privacyMode: 'client',
+        keywords: ['merge pdf', 'combine pdf', 'join pdf', 'stitch pdf', 'bind pdf', 'merge pdf files online', 'combine multiple pdfs', 'merge pdf online free', 'combine pdf files free', 'join pdf files online', 'pdf merger free', 'private pdf merger', 'instant pdf joiner'],
         content: {
             features: [
                 'Unlimited Merging: Combine as many files as you need.',
@@ -290,7 +296,8 @@ You can upload files from your computer or mobile device. Rearrange them visuall
         color: 'bg-lime-600',
         slug: '/tools/rotate-pdf',
         type: 'file',
-        keywords: ['rotate pdf', 'turn pdf', 'change pdf orientation', 'fix upside down pdf', 'rotate pdf pages online', 'save rotated pdf'],
+        privacyMode: 'client',
+        keywords: ['rotate pdf', 'turn pdf', 'change pdf orientation', 'fix upside down pdf', 'rotate pdf pages online', 'save rotated pdf', 'private pdf rotator', 'instant pdf rotation'],
         content: {
             features: [
                 'Permanent Rotation: Saves the new orientation to the file.',
@@ -331,7 +338,8 @@ FileSwift is a simple tool to fix PDF orientation. If you have scanned a documen
         color: 'bg-purple-500',
         slug: '/tools/image-resizer',
         type: 'image',
-        keywords: ['resize image', 'change image size', 'resize photo', 'scale image', 'resize jpg', 'resize png', 'image dimensions changer'],
+        privacyMode: 'client',
+        keywords: ['resize image', 'change image size', 'resize photo', 'scale image', 'resize jpg', 'resize png', 'image dimensions changer', 'private image resizer', 'instant photo resize'],
         content: {
             features: [
                 'Pixel Precision: Specify exact width and height.',
@@ -380,6 +388,7 @@ FileSwift helps users change the dimensions (width and height) of their images. 
         color: 'bg-indigo-500',
         slug: '/tools/bulk-image-resizer',
         type: 'image',
+        privacyMode: 'client',
         keywords: ['bulk resize images', 'batch image resizer', 'resize multiple photos', 'mass image resizer', 'batch photo editor'],
         content: {
             features: [
@@ -421,7 +430,8 @@ FileSwift allows you to resize multiple images in a single step. Instead of edit
         color: 'bg-cyan-500',
         slug: '/tools/pdf-to-image',
         type: 'file',
-        keywords: ['pdf to image', 'pdf to jpg', 'pdf to png', 'convert pdf pages to images', 'extract images from pdf', 'image to jpg', 'image to png', 'convert image to jpg', 'convert image to png'],
+        privacyMode: 'client',
+        keywords: ['pdf to image', 'pdf to jpg', 'pdf to png', 'convert pdf pages to images', 'extract images from pdf', 'image to jpg', 'image to png', 'convert image to jpg', 'convert image to png', 'private pdf to image', 'instant pdf extraction'],
         content: {
             features: [
                 'Page Extraction: Converts every page of the PDF into a separate image.',
@@ -466,7 +476,8 @@ FileSwift is a free tool to transform PDF documents into image files. This is us
         color: 'bg-indigo-600',
         slug: '/tools/doc-to-pdf',
         type: 'file',
-        keywords: ['word to pdf', 'docx to pdf', 'doc to pdf', 'convert word to pdf', 'ms word to pdf', 'save docx as pdf'],
+        privacyMode: 'server',
+        keywords: ['word to pdf', 'docx to pdf', 'doc to pdf', 'convert word to pdf', 'ms word to pdf', 'save docx as pdf', 'secure word to pdf', 'online doc to pdf converter'],
         content: {
             features: [
                 'Universal Standard: Converts Word docs to ISO-standard PDF.',
@@ -574,7 +585,8 @@ FileSwift allows users to convert Microsoft Word documents into PDF files. Conve
         slug: '/tools/remove-background',
         type: 'image',
         ai: true,
-        keywords: ['remove background', 'bg remover', 'background eraser', 'transparent png', 'remove bg from photo', 'background remover online free', 'cut out image background', 'make image transparent'],
+        privacyMode: 'client',
+        keywords: ['remove background', 'bg remover', 'background eraser', 'transparent png', 'remove bg from photo', 'background remover online free', 'cut out image background', 'make image transparent', 'ai', 'fast', 'speedy', 'private', 'secure'],
         content: {
             features: [
                 'AI-Powered: Uses advanced machine learning to detect and remove backgrounds automatically.',
@@ -631,7 +643,8 @@ Our AI model analyzes your image to identify the main subject—person, product,
         color: 'bg-amber-500',
         slug: '/tools/split-pdf',
         type: 'file',
-        keywords: ['split pdf', 'separate pdf pages', 'extract pdf pages', 'divide pdf', 'pdf splitter', 'split pdf online free', 'extract pages from pdf', 'break pdf into pages'],
+        privacyMode: 'client',
+        keywords: ['split pdf', 'separate pdf pages', 'extract pdf pages', 'divide pdf', 'pdf splitter', 'split pdf online free', 'extract pages from pdf', 'break pdf into pages', 'private pdf splitter', 'instant pdf split'],
         content: {
             features: [
                 'Page Selection: Choose specific pages to extract.',
@@ -681,7 +694,8 @@ FileSwift allows you to split PDF documents into individual pages or extract spe
         color: 'bg-sky-500',
         slug: '/tools/jpg-to-png',
         type: 'image',
-        keywords: ['jpg to png', 'jpeg to png', 'convert jpg to png', 'jpg to png converter online', 'change jpg to png', 'jpeg to png free'],
+        privacyMode: 'client',
+        keywords: ['jpg to png', 'jpeg to png', 'convert jpg to png', 'jpg to png converter online', 'change jpg to png', 'jpeg to png free', 'private jpg to png', 'instant image conversion'],
         content: {
             features: [
                 'Lossless Conversion: Preserves full image quality.',
@@ -730,7 +744,8 @@ FileSwift converts your JPG images to PNG format instantly. PNG is ideal when yo
         color: 'bg-emerald-500',
         slug: '/tools/png-to-jpg',
         type: 'image',
-        keywords: ['png to jpg', 'png to jpeg', 'convert png to jpg', 'png to jpg converter', 'change png to jpeg', 'png to jpg online free'],
+        privacyMode: 'client',
+        keywords: ['png to jpg', 'png to jpeg', 'convert png to jpg', 'png to jpg converter', 'change png to jpeg', 'png to jpg online free', 'private png to jpg', 'instant image optimization'],
         content: {
             features: [
                 'Smaller File Size: JPG compression reduces file size significantly.',
@@ -779,7 +794,8 @@ FileSwift converts PNG images to JPG format for smaller file sizes. This is perf
         color: 'bg-blue-500',
         slug: '/tools/heic-to-jpg',
         type: 'image',
-        keywords: ['heic to jpg', 'heic to jpeg', 'convert heic to jpg', 'iphone photo converter', 'heic converter', 'heic to jpg online free', 'open heic on windows', 'heic to jpg converter online'],
+        privacyMode: 'client',
+        keywords: ['heic to jpg', 'heic to jpeg', 'convert heic to jpg', 'iphone photo converter', 'heic converter', 'heic to jpg online free', 'open heic on windows', 'heic to jpg converter online', 'private heic to jpg', 'instant iphone photo conversion'],
         content: {
             features: [
                 'iPhone Compatible: Converts HEIC/HEIF photos taken on iPhone.',
@@ -836,6 +852,7 @@ Upload your HEIC files here and get standard JPG files that work everywhere.
         color: 'bg-green-600',
         slug: '/tools/pdf-to-excel',
         type: 'file',
+        privacyMode: 'server',
         keywords: ['pdf to excel', 'pdf to xlsx', 'convert pdf to excel', 'extract table from pdf', 'pdf to spreadsheet', 'pdf to excel converter free', 'convert pdf table to excel'],
         content: {
             features: [
@@ -1015,6 +1032,7 @@ FileSwift extracts tables from PDF documents and converts them to editable Excel
         color: 'bg-red-600',
         slug: '/tools/resize-image-for-youtube-thumbnail',
         type: 'image',
+        privacyMode: 'client',
         keywords: ['youtube thumbnail resizer', '1280x720 resizer', 'youtube size converter'],
         content: {
             features: [
@@ -1054,7 +1072,8 @@ FileSwift helps creators optimize their videos by providing an instant 1280x720 
         color: 'bg-emerald-600',
         slug: '/tools/compress-pdf-for-bank-statement',
         type: 'file',
-        keywords: ['compress bank statement', 'secure pdf compression', 'bank pdf reducer'],
+        privacyMode: 'server',
+        keywords: ['compress bank statement', 'secure pdf compression', 'bank pdf reducer', 'private bank statement compressor', 'no upload bank statement tool'],
         content: {
             features: [
                 'Privacy First: Processing happens securely on your device.',
@@ -1093,6 +1112,7 @@ FileSwift's specialized compressor ensures your sensitive financial documents ar
         color: 'bg-blue-400',
         slug: '/tools/resize-photo-for-resume',
         type: 'image',
+        privacyMode: 'client',
         keywords: ['resume photo resizer', 'cv photo size', 'professional headshot resizer'],
         content: {
             features: [

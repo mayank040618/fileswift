@@ -3,7 +3,7 @@ import {
     ImageMinus, Scaling, Wand2, Palette, Minimize2, FileType2,
     Combine, RotateCw, Upload, Sun, Moon, File as LucideFile, Loader2, ArrowRight, Download, Check, X,
     CheckCircle, FileSymlink, Image as LucideImage, Images, Lock, Zap, CreditCard, Copy, Sparkles,
-    Eraser, Scissors, ArrowRightLeft, Smartphone, Table, Video, UserCircle
+    Eraser, Scissors, ArrowRightLeft, Smartphone, Table, Video, UserCircle, ShieldCheck
 } from 'lucide-react';
 
 export const Icons = {
@@ -46,6 +46,7 @@ export const Icons = {
     Table,
     Video,
     UserCircle,
+    ShieldCheck,
     // Aliases for legacy support if needed
     Compress: Minimize2,
     PdfToWord: FileType2,

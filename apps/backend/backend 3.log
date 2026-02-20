@@ -1,0 +1,10 @@
+
+> backend@0.0.0 dev /Users/mayankraj/Desktop/fileswift/apps/backend
+> tsx watch src/index.ts
+
+[Polyfill] DOMMatrix defined globally.
+[Polyfill] DOMPoint defined globally.
+[Config] Loaded environment variables. USE_MOCK_QUEUE: true
+✅ DOMMatrix Polyfill Loaded
+Worker skipped (Mock Queue enabled)
+{"level":50,"time":1765698284442,"pid":69451,"hostname":"Mayanks-MacBook-Air.local","err":{"type":"FastifyError","message":"fastify-plugin: @fastify/helmet - expected '5.x' fastify version, '4.29.1' is installed","stack":"FastifyError: fastify-plugin: @fastify/helmet - expected '5.x' fastify version, '4.29.1' is installed\n    at Object.checkVersion (/Users/mayankraj/Desktop/fileswift/node_modules/.pnpm/fastify@4.29.1/node_modules/fastify/lib/pluginUtils.js:125:11)\n    at Object.registerPlugin (/Users/mayankraj/Desktop/fileswift/node_modules/.pnpm/fastify@4.29.1/node_modules/fastify/lib/pluginUtils.js:148:16)\n    at Boot.override (/Users/mayankraj/Desktop/fileswift/node_modules/.pnpm/fastify@4.29.1/node_modules/fastify/lib/pluginOverride.js:28:57)\n    at Boot._loadPlugin (/Users/mayankraj/Desktop/fileswift/node_modules/.pnpm/avvio@8.4.0/node_modules/avvio/boot.js:425:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)","code":"FST_ERR_PLUGIN_VERSION_MISMATCH","name":"FastifyError","statusCode":500},"msg":"fastify-plugin: @fastify/helmet - expected '5.x' fastify version, '4.29.1' is installed"}
