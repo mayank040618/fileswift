@@ -1418,6 +1418,180 @@ FileSwift uses **Client-Side AI**. The background removal model runs right in yo
             'ISO-standard PDF output',
             'Universal device compatibility'
         ]
+    },
+    // ===== PHASE 3: US-FOCUSED SEO =====
+    {
+        slug: 'us-passport-photo-size-guide-2x2-online',
+        title: 'US Passport Photo Size Guide: How to Get a 2x2 Inch Headshot Online',
+        metaTitle: 'US Passport Photo Resizer – Get Perfect 2x2 Inch Photos | FileSwift',
+        description: 'Need a 2x2 photo for your US Passport? Learn the official requirements and how to resize and crop your headshot instantly online.',
+        keywords: ['us passport photo size', '2x2 photo online', 'passport photo resizer', 'us passport requirements', 'print passport photos online'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 6,
+        primaryToolId: 'resize-photo-for-resume',
+        relatedToolIds: ['image-resizer', 'remove-background'],
+        relatedSlugs: ['the-perfect-resume-photo-crop-resize', 'how-to-remove-background-from-image-online'],
+        sections: [
+            {
+                heading: 'Official US Passport Photo Requirements',
+                content: `The US Department of State has strict rules for passport photos. Most importantly, the photo must be exactly **2 x 2 inches (51 x 51 mm)**. The head must be between 1 -1 3/8 inches from the bottom of the chin to the top of the head. Using an automated resizer ensures you hit these measurements every time.`
+            },
+            {
+                heading: 'Tips for a Successful Application',
+                content: `* **Background**: Use a plain white or off-white background.
+* **Expression**: Maintain a neutral facial expression or a natural smile.
+* **Attire**: Wear normal street clothes; uniforms or camouflage are generally not allowed.
+* **Glasses**: Remove your glasses for the photo unless you have a signed medical statement.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Can I take my own passport photo?',
+                answer: 'Yes! You can take a photo at home with your phone, use FileSwift to crop and resize it to the 2x2 inch standard, and then print it at a local drugstore or order prints online.'
+            }
+        ],
+        whyFileswift: [
+            'Precise 2x2 inch (51x51mm) crop',
+            'Perfect centering for US standards',
+            'High-resolution output for printing'
+        ]
+    },
+    {
+        slug: 'irs-tax-prep-compress-merge-pdf-documents',
+        title: 'E-Filing with the IRS: How to Compress and Merge Your PDF Tax Documents',
+        metaTitle: 'IRS Tax Prep: Compress & Merge PDFs for E-Filing | FileSwift',
+        description: 'Tax season can be stressful. Learn how to meet IRS e-filing size limits by compressing and merging your tax documents securely.',
+        keywords: ['irs pdf size limit', 'compress tax return', 'merge tax documents', 'irs e-filing help', 'tax document management'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 7,
+        primaryToolId: 'compress-pdf',
+        relatedToolIds: ['merge-pdf', 'compress-pdf-for-bank-statement'],
+        relatedSlugs: ['how-to-securely-compress-bank-statements', 'is-online-pdf-compression-safe'],
+        sections: [
+            {
+                heading: 'Navigating IRS E-Filing Limits',
+                content: `The IRS and tax software like TurboTax or H&R Block often have file size limits for attachments. If your scanned receipts and forms are too large, you may face rejection. Compressing your PDFs can reduce file size by up to 90% while keeping every number legible.`
+            },
+            {
+                heading: 'Organization is Key',
+                content: `Don\'t send 20 separate files. Merge your W-2s, 1099s, and receipts into a single, organized PDF. This makes it easier for you (and the IRS) to keep track of your submission.`
+            }
+        ],
+        faq: [
+            {
+                question: 'What is the file size limit for IRS e-file?',
+                answer: 'While specifics vary by software, a general rule is to keep each attachment under 5MB and the total submission under 20-60MB. FileSwift helps you hit these targets easily.'
+            }
+        ],
+        whyFileswift: [
+            'Privacy-first: Sensitive data is handled securely',
+            'Significant size reduction for e-filing',
+            'Merge multi-page forms into one file'
+        ]
+    },
+    {
+        slug: 'preparing-for-uscis-application-document-standards',
+        title: 'Preparing for Your USCIS Application: How to Convert and Standardize Your Documents',
+        metaTitle: 'USCIS Document Help: Convert & Standardize PDFs | FileSwift',
+        description: 'Applying for a green card or visa? Learn how to standardize your phone scans and photos into professional PDFs for USCIS.',
+        keywords: ['uscis pdf requirements', 'uscis online filing', 'convert photos for uscis', 'standardize immigration docs'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 6,
+        primaryToolId: 'image-to-pdf',
+        relatedToolIds: ['pdf-to-word', 'compress-pdf'],
+        relatedSlugs: ['how-to-securely-compress-bank-statements', 'why-you-should-always-save-docs-as-pdf'],
+        sections: [
+            {
+                heading: 'USCIS Online Filing Requirements',
+                content: `USCIS online filing systems prefer PDF, JPG, or PNG formats. However, combining multiple images (like a multi-page birth certificate or marriage license) into a single PDF is highly recommended to prevent missing pages and ensure a smooth review process.`
+            },
+            {
+                heading: 'Converting Phone Scans',
+                content: `Many applicants use their phones to "scan" documents. These often result in large HEIC or JPG files. Use our "Image to PDF" tool to convert these photos into a single, professional PDF that meets all government standards.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Can I upload photos to USCIS?',
+                answer: 'Yes, but for multi-page documents, it is better to combine them into one PDF. This ensures the officer sees all pages in the correct order.'
+            }
+        ],
+        whyFileswift: [
+            'Free and easy image-to-PDF conversion',
+            'Secure handling of sensitive personal data',
+            'Standardized formats for government portals'
+        ]
+    },
+    {
+        slug: 'us-ecommerce-ai-background-remover-amazon-shopify',
+        title: 'Scaling Your US Business: Use AI to Remove Backgrounds for Amazon & Shopify',
+        metaTitle: 'Amazon & Shopify Product Photo Editor – AI Background Remover | FileSwift',
+        description: 'Boost your US e-commerce sales with professional product photos. Learn how to use AI to get clean, white backgrounds for Amazon and Shopify.',
+        keywords: ['amazon product photo requirements', 'shopify background remover', 'white background ai', 'ecommerce photo editing'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 5,
+        primaryToolId: 'remove-background',
+        relatedToolIds: ['image-compressor', 'bulk-image-resizer'],
+        relatedSlugs: ['youtube-thumbnail-size-guide-2026', 'how-to-remove-background-from-image-online'],
+        sections: [
+            {
+                heading: 'The "Pure White" Requirement',
+                content: `Amazon requires the main product image to have a "pure white" background (RGB 255, 255, 255). Shopify and eBay also favor clean, distraction-free images. Our AI Background Remover automates this process, saving you hundreds of dollars in professional editing fees.`
+            },
+            {
+                heading: 'Boosting Conversion Rates',
+                content: `Consistent, high-quality product photography is one of the fastest ways to build trust with US consumers. By removing cluttered backgrounds, you put 100% of the focus on what you're selling.`
+            }
+        ],
+        faq: [
+            {
+                question: 'How do I get a white background for Amazon?',
+                answer: 'Upload your photo to FileSwift\'s Background Remover. Once the background is removed, you can download the transparent PNG or use our tool (coming soon) to add a pure white background layer.'
+            }
+        ],
+        whyFileswift: [
+            'Free AI-powered precision',
+            'Save time on batch product editing',
+            'High-res output perfect for e-commerce'
+        ]
+    },
+    {
+        slug: 'american-remote-work-guide-pdf-professionalism',
+        title: 'The American Remote Work Guide: Why You Should Always Use PDF for Business',
+        metaTitle: 'Remote Work Documentation Guide – Professional PDF Workflows | FileSwift',
+        description: 'Working for a US company? Professionalism is in the details. Learn why PDF is the standard for proposals, invoices, and reports.',
+        keywords: ['remote work productivity', 'professional pdf invoices', 'us business standards', 'freelance document security'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 5,
+        primaryToolId: 'doc-to-pdf',
+        relatedToolIds: ['pdf-to-word', 'merge-pdf'],
+        relatedSlugs: ['why-you-should-always-save-docs-as-pdf', 'speed-benefits-of-local-file-tools'],
+        sections: [
+            {
+                heading: 'Matching US Business Standards',
+                content: `In the US corporate and freelance world, sending a .docx file is often seen as "draft" work. Sending a PDF signals that the document is finalized, secure, and ready for review. It ensures your client sees exactly what you intended, regardless of their device.`
+            },
+            {
+                heading: 'Organizing Freelance Invoices',
+                content: `Don\'t reach for expensive software just to merge monthly receipts or invoices. Use our web-based tools to combine your billables into one professional packet for your accounting department.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Why not just send Word files?',
+                answer: 'Word files can have font issues, alignment shifts on mobile, and are easily edited by mistake. PDFs are the "gold standard" for finalized business communication.'
+            }
+        ],
+        whyFileswift: [
+            'Total formatting preservation',
+            'Professional ISO-standard PDFs',
+            'Free tool for freelancers and remote workers'
+        ]
     }
 ];
 
