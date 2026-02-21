@@ -78,12 +78,14 @@ export const viewport: Viewport = {
 
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Toaster } from "sonner";
 
 import { Providers } from './providers';
 import { Footer } from '@/components/Footer';
 import { ConsentBanner } from '@/components/ConsentBanner';
 import { SplashScreen } from '@/components/SplashScreen';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
+import { AnnouncementToast } from '@/components/AnnouncementToast';
 
 import { GoogleAnalytics } from '@/components/Analytics';
 import JsonLd from '@/components/JsonLd';
@@ -121,7 +123,8 @@ export default function RootLayout({
                 {/* JSON-LD Structured Data for SEO */}
                 <JsonLd />
 
-
+                <Toaster position="bottom-right" richColors />
+                <AnnouncementToast />
 
             </body>
         </html>

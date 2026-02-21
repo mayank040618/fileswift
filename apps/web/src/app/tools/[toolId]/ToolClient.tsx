@@ -15,6 +15,7 @@ const ReactMarkdown = dynamic(() => import('react-markdown'), { ssr: false });
 import { downloadNotesAsPdf, downloadTextAsPdf } from '@/lib/generatePdf';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSquare } from '@/components/ads/AdSquare';
+import { toast } from 'sonner';
 
 // Client-side processors
 import type {
@@ -73,6 +74,7 @@ export default function ToolClient() {
                     if (data.status === 'completed') {
                         setStatus('completed');
                         setResult(data);
+                        toast.success(tool.id.includes('compress') ? 'Compressed Successfully!' : 'Processed Successfully!');
 
                         // Auto-fetch JSON for AI tools and display inline
                         const aiTools = ['ai-notes', 'ai-rewrite', 'ai-translate'];
@@ -308,6 +310,7 @@ export default function ToolClient() {
                     }
                 });
                 setStatus('completed');
+                toast.success(tool.id.includes('compress') ? 'Compressed Successfully!' : 'Processed Successfully!');
             }
             // Handle multiple file results
             else if (processorResult.blobs && processorResult.blobs.length > 0) {
@@ -332,6 +335,7 @@ export default function ToolClient() {
                     allFilenames: processorResult.filenames
                 });
                 setStatus('completed');
+                toast.success(tool.id.includes('compress') ? 'Compressed Successfully!' : 'Processed Successfully!');
             }
             else {
                 throw new Error('No output generated');
@@ -486,7 +490,7 @@ export default function ToolClient() {
             } else {
                 console.error("Upload failed: No jobId received", responseData);
                 setStatus('failed');
-                alert(responseData.error || "Upload failed");
+                toast.error(responseData.error || "Upload failed");
             }
         } catch (e: any) {
             console.error("Upload error", e);

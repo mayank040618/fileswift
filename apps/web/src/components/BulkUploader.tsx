@@ -4,6 +4,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, File as FileIcon, X, Camera, Pencil } from 'lucide-react';
 import { ImageEditorModal } from './ImageEditorModal';
+import { toast } from 'sonner';
 
 interface BulkUploaderProps {
     onFilesChange: (files: File[]) => void;
@@ -76,9 +77,9 @@ export function BulkUploader({ onFilesChange, files, accept, maxSize, allowMulti
                 if (error.code === 'file-too-large') {
                     // Convert bytes to MB for message
                     const maxMB = maxSize ? maxSize / (1024 * 1024) : 100;
-                    alert(`File is too large using BulkUploader. Max ${maxMB}MB.`);
+                    toast.error(`File is too large. Max ${maxMB}MB.`);
                 } else {
-                    alert(error.message);
+                    toast.error(error.message);
                 }
             }
         }
