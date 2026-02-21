@@ -552,6 +552,7 @@ export default function ToolClient() {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        toast.success('Downloaded Successfully!');
     };
 
     const maxFiles = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_FILES || '100');
@@ -862,6 +863,7 @@ export default function ToolClient() {
                                                 a.download = `${files[0]?.name?.replace('.pdf', '') || 'document'}-summary.txt`;
                                                 a.click();
                                                 URL.revokeObjectURL(url);
+                                                toast.success('Downloaded Successfully!');
                                             }}
                                             className="flex items-center gap-2 bg-violet-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-violet-700 transition-all shadow-lg shadow-violet-500/25"
                                         >
@@ -936,6 +938,7 @@ export default function ToolClient() {
                                                     aiResult,
                                                     `${files[0]?.name?.replace('.pdf', '') || 'document'}-notes.pdf`
                                                 );
+                                                toast.success('Downloaded Successfully!');
                                             }}
                                             className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/25"
                                         >
@@ -982,6 +985,7 @@ export default function ToolClient() {
                                                     `${files[0]?.name?.replace('.pdf', '') || 'document'}-rewritten.pdf`,
                                                     'Rewritten Document'
                                                 );
+                                                toast.success('Downloaded Successfully!');
                                             }}
                                             className="flex items-center gap-2 bg-amber-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-amber-700 transition-all shadow-lg shadow-amber-500/25"
                                         >
@@ -1022,6 +1026,7 @@ export default function ToolClient() {
                                                     `${files[0]?.name?.replace('.pdf', '') || 'document'}-translated.pdf`,
                                                     'Translated Document'
                                                 );
+                                                toast.success('Downloaded Successfully!');
                                             }}
                                             className="flex items-center gap-2 bg-sky-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/25"
                                         >
