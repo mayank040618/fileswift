@@ -11,6 +11,7 @@ import { ResultsSection } from '@/components/ResultsSection';
 import { Features } from '@/components/Features';
 import { FAQ } from '@/components/FAQ';
 import { Footer } from '@/components/Footer';
+import { AdsterraSocialBar } from '@/components/AdsterraSocialBar';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<TabType>('instagram');
@@ -82,6 +83,9 @@ export default function HomePage() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Monetization */}
+      <AdsterraSocialBar />
     </main>
   );
 }
