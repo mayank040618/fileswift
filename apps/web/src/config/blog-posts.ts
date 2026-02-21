@@ -1221,6 +1221,203 @@ FileSwift uses **Client-Side AI**. The background removal model runs right in yo
             'OCR support for scanned documents',
             'Clean, editable DOCX output'
         ]
+    },
+    // ===== PHASE 2: SPECIALIZED TOOLS =====
+    {
+        slug: 'how-to-convert-heic-to-jpg',
+        title: 'How to Convert HEIC to JPG (iPhone Photos to Windows/Android)',
+        metaTitle: 'Convert HEIC to JPG Online FREE – iPhone Photos Everywhere | FileSwift',
+        description: 'Take photos on iPhone but can\'t open them on Windows? Learn how to convert HEIC to JPG instantly and privately in your browser.',
+        keywords: ['heic to jpg', 'iphone photo converter', 'open heic on windows', 'heic converter free', 'heic to jpeg'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 5,
+        primaryToolId: 'heic-to-jpg',
+        relatedToolIds: ['image-compressor', 'jpg-to-png'],
+        relatedSlugs: ['heic-vs-jpg-vs-png-guide', 'speed-benefits-of-local-file-tools'],
+        sections: [
+            {
+                heading: 'The Apple HEIC Problem',
+                content: `If you use an iPhone, you\'ve probably noticed that your photos are saved as ".HEIC" files. While this format is great for saving space, it is a nightmare for compatibility. Most Windows PCs, Android phones, and even some websites won\'t let you open or upload them.`
+            },
+            {
+                heading: 'Instant, Private Conversion',
+                content: `Don\'t upload your private photos to a random server. FileSwift\'s HEIC converter runs **entirely in your browser**. Your personal memories stay on your device while we transform them into standard JPGs that work everywhere.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Why does my iPhone take HEIC photos?',
+                answer: 'Apple uses HEIC (High Efficiency Image Container) because it provides better quality than JPG at half the file size. However, it isn\'t universally supported yet.'
+            }
+        ],
+        whyFileswift: [
+            '100% Private: Photos never leave your phone/PC',
+            'Preserves photo metadata (EXIF data)',
+            'Instant, high-quality JPG output'
+        ]
+    },
+    {
+        slug: 'extracting-tables-how-to-convert-pdf-to-excel-online',
+        title: 'Extracting Tables: How to Convert PDF to Excel Online',
+        metaTitle: 'PDF to Excel Converter – Extract Tables Online | FileSwift',
+        description: 'Stop retyping data! Learn how to extract structured tables from PDF reports and convert them into editable Excel spreadsheets.',
+        keywords: ['pdf to excel', 'extract tables from pdf', 'pdf to xlsx converter', 'pdf table extraction'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 6,
+        primaryToolId: 'pdf-to-excel',
+        relatedToolIds: ['pdf-to-word', 'merge-pdf'],
+        relatedSlugs: ['how-to-compress-pdf-without-losing-quality', 'mastering-pdf-management-split-merge-rotate'],
+        sections: [
+            {
+                heading: 'Data Entry vs. Automation',
+                content: `Retyping numbers from a PDF invoice or financial report into Excel is slow and prone to errors. A professional PDF to Excel converter identifies rows and columns automatically, preserving your cell formatting and numerical data.`
+            },
+            {
+                heading: 'Perfect for Finance and Research',
+                content: `Whether you are analyzing a bank statement or extracting data from a scientific paper, moving that data into a spreadsheet is the first step toward real analysis. FileSwift makes this transition seamless.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Will the cell formatting be preserved?',
+                answer: 'Our engine attempts to reconstruct the table structure exactly as it appears in the PDF, mapping rows and columns to the Excel grid.'
+            }
+        ],
+        whyFileswift: [
+            'Smart table detection technology',
+            'Accurate numerical extraction',
+            'Secure document handling'
+        ]
+    },
+    {
+        slug: 'youtube-thumbnail-size-guide-2026',
+        title: 'YouTube Thumbnail Size Guide 2026: Perfect 1280x720 Images',
+        metaTitle: 'YouTube Thumbnail Size Guide – Get More Clicks | FileSwift',
+        description: 'Optimize your channel with the perfect thumbnail size. Learn why 1280x720 is the magic number and how to resize images instantly.',
+        keywords: ['youtube thumbnail size', '1280x720 resizer', 'youtube thumbnail aspect ratio', 'ctr optimization'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 5,
+        primaryToolId: 'resize-image-for-youtube-thumbnail',
+        relatedToolIds: ['image-compressor', 'bulk-image-resizer'],
+        relatedSlugs: ['bulk-resizing-images-for-social-media', 'how-to-remove-background-from-image-online'],
+        sections: [
+            {
+                heading: 'Why 1280x720 Matters',
+                content: `YouTube thumbnails require a 16:9 aspect ratio. If your image is too small, it will look blurry; if it\'s the wrong shape, YouTube will add ugly black bars. 1280x720 is the "sweet spot" that looks sharp on 4K TVs and crisp on mobile phones.`
+            },
+            {
+                heading: 'Optimizing for Clicks (CTR)',
+                content: `A great thumbnail isn\'t just about size—it\'s about clarity. Use our resizer to ensure your high-res graphics aren\'t squashed, then run them through our compressor to stay under the 2MB upload limit.`
+            }
+        ],
+        faq: [
+            {
+                question: 'What is the maximum file size for a YouTube thumbnail?',
+                answer: 'YouTube has a 2MB limit for thumbnails. If your 1280x720 image is too large, use FileSwift Image Compressor to shrink it without losing quality.'
+            }
+        ],
+        whyFileswift: [
+            'Instant 1280x720 resizing',
+            'Perfect 16:9 aspect ratio lock',
+            'Higher CTR with sharp graphics'
+        ]
+    },
+    {
+        slug: 'how-to-securely-compress-bank-statements',
+        title: 'How to Securely Compress Bank Statements for Visa and Loans',
+        metaTitle: 'Compress Bank Statements Securely – Under 1MB/2MB | FileSwift',
+        description: 'Need to upload financial docs but the file is too large? Learn how to safely shrink bank statements while keeping every transaction readable.',
+        keywords: ['compress bank statement', 'secure pdf compression', 'visa application pdf size', 'mortgage docs compression'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 6,
+        primaryToolId: 'compress-pdf-for-bank-statement',
+        relatedToolIds: ['compress-pdf', 'merge-pdf'],
+        relatedSlugs: ['benefits-of-client-side-file-processing', 'is-online-pdf-compression-safe'],
+        sections: [
+            {
+                heading: 'The "Financial Privacy" Priority',
+                content: `Bank statements contain your most sensitive data. You should never upload them to unsecured cloud servers. FileSwift uses specialized local compression that focuses on making the file small enough for portal limits (like 2MB) while ensuring every number remains razor-sharp.`
+            },
+            {
+                heading: 'Meeting Official Requirements',
+                content: `Portals for visas (like VFS), home loans, and bank applications often have strict 1MB or 2MB limits. Our tool is optimized to hit these targets without the document looking "pixelated" or unprofessional.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Will the bank or embassy accept compressed PDFs?',
+                answer: 'Yes, as long as the text is legible. Our "Standard" compression level is specifically tuned to keep financial tables clean and readable.'
+            }
+        ],
+        whyFileswift: [
+            'Maximum privacy for financial data',
+            'Optimized for 1MB/2MB portal limits',
+            'Crystal clear numerical readability'
+        ]
+    },
+    {
+        slug: 'the-perfect-resume-photo-crop-resize',
+        title: 'The Perfect Resume Photo: How to Crop and Resize Headshots',
+        metaTitle: 'Professional Resume Photo Resizer – Look Sharp | FileSwift',
+        description: 'First impressions count. Learn how to crop your headshot for a professional CV, standard passport sizes, and digital resumes.',
+        keywords: ['resume photo resizer', 'cv headshot size', 'professional photo crop', '2x2 photo resizer'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 5,
+        primaryToolId: 'resize-photo-for-resume',
+        relatedToolIds: ['remove-background', 'image-compressor'],
+        relatedSlugs: ['how-to-remove-background-from-image-online', 'bulk-resizing-images-for-social-media'],
+        sections: [
+            {
+                heading: 'Dress Code for Your Digital Persona',
+                content: `A blurry or badly cropped photo can make a great resume look sloppy. Most modern CVs use a 3.5cm x 4.5cm or a 1:1 square ratio. Our tool lets you center your face perfectly, crop out distractions, and export at the exact resolution recruiters expect.`
+            }
+        ],
+        faq: [
+            {
+                question: 'What is the standard CV photo size?',
+                answer: 'In Europe and Asia, 3.5x4.5cm is standard. In the US, resumes rarely use photos, but LinkedIn thrives on a 400x400 pixel square.'
+            }
+        ],
+        whyFileswift: [
+            'Pro-grade face centering and cropping',
+            'Standard CV and Passport presets',
+            'High-res professional output'
+        ]
+    },
+    {
+        slug: 'why-you-should-always-save-docs-as-pdf',
+        title: 'Why You Should Always Save Your Documents as PDF',
+        metaTitle: 'Word vs. PDF: Why PDF is the Professional Choice | FileSwift',
+        description: 'Stop sending Word docs. Learn why PDF is the superior format for resumes, contracts, and reports, and how to convert instantly.',
+        keywords: ['word to pdf', 'why use pdf', 'professional document sharing', 'format preservation'],
+        date: '2026-02-21',
+        updatedDate: '2026-02-21',
+        readingTime: 5,
+        primaryToolId: 'doc-to-pdf',
+        relatedToolIds: ['pdf-to-word', 'merge-pdf'],
+        relatedSlugs: ['is-online-pdf-compression-safe', 'mastering-pdf-management-split-merge-rotate'],
+        sections: [
+            {
+                heading: 'The "Layout Disaster" Avoidance',
+                content: `A Microsoft Word document looks different depending on the device, version, and installed fonts. A PDF, however, is a "digital print"—it looks identical on an iPhone, a Mac, and a Windows PC. This is critical for contracts and job applications.`
+            }
+        ],
+        faq: [
+            {
+                question: 'Can I convert back to Word later?',
+                answer: 'Yes! While PDF locks your formatting for sharing, you can always use our PDF to Word tool to make the content editable again if needed.'
+            }
+        ],
+        whyFileswift: [
+            'Total layout preservation',
+            'ISO-standard PDF output',
+            'Universal device compatibility'
+        ]
     }
 ];
 
