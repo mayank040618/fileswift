@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { BLOG_POSTS } from '@/config/blog-posts';
 import { TOOLS } from '@/config/tools';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Props {
     params: {
@@ -97,6 +98,7 @@ export default function BlogPostPage({ params }: Props) {
                             </h2>
                             <div className="text-slate-700 dark:text-slate-300 leading-relaxed space-y-4 text-lg">
                                 <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
                                     components={{
                                         p: ({ children }) => <p className="mb-4">{children}</p>,
                                         ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>,
