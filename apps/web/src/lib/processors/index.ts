@@ -43,6 +43,8 @@ export const CLIENT_SIDE_TOOLS = [
     'png-to-jpg',
     'heic-to-jpg',
     'ai-chat',
+    'watermark-pdf',
+    'protect-pdf',
 ] as const;
 
 export type ClientSideTool = typeof CLIENT_SIDE_TOOLS[number];

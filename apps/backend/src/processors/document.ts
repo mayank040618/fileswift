@@ -479,6 +479,46 @@ export const docToPdfProcessor: ToolProcessor = {
     }
 };
 
+export const unlockPdfProcessor: ToolProcessor = {
+    id: 'unlock-pdf',
+    process: async ({ job, localPath, outputDir }) => {
+        const { password = '' } = job.data.data || {};
+        const outputFilename = `unlocked-${job.id}.pdf`;
+        const outputPath = path.join(outputDir, outputFilename);
+
+        const command = 'qpdf';
+        try {
+            const hasBinary = async (cmd: string) => {
+                try { await spawnWithTimeout('which', [cmd], {}, 2000); return true; } catch { return false; }
+            };
+            if (!await hasBinary(command)) throw new Error("QPDF binary not found on server");
+
+            const result = await spawnWithTimeout(
+                command,
+                ['--decrypt', `--password=${password}`, localPath, outputPath],
+                {},
+                60000 // 60s timeout
+            );
+
+            if (result.code !== 0) {
+                if (result.stderr.toLowerCase().includes('invalid password') || result.stderr.toLowerCase().includes('password')) {
+                    throw new Error("Invalid password provided for this PDF.");
+                }
+                throw new Error(`QPDF decryption failed: ${result.stderr || result.stdout}`);
+            }
+
+            if (!await fs.pathExists(outputPath)) {
+                throw new Error("PDF file was not created by QPDF");
+            }
+        } catch (e: any) {
+            console.error(`[unlock-pdf] Failed: ${e.message}`);
+            throw new Error(e.message);
+        }
+
+        return { resultKey: outputFilename, metadata: { type: 'pdf' } };
+    }
+};
+
 export const documentProcessors = [
     rotatePdfProcessor,
     mergePdfProcessor,
@@ -487,5 +527,6 @@ export const documentProcessors = [
     notesProcessor,
     rewriteProcessor,
     translateProcessor,
-    docToPdfProcessor
+    docToPdfProcessor,
+    unlockPdfProcessor
 ];

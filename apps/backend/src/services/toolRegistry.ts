@@ -4,7 +4,8 @@ import {
     notesProcessor,
     rewriteProcessor,
     translateProcessor,
-    docToPdfProcessor
+    docToPdfProcessor,
+    unlockPdfProcessor
 } from '../processors/document';
 import {
     imageResizerProcessor,
@@ -33,6 +34,7 @@ export const TOOL_PROCESSORS: Record<string, ToolProcessor> = {
     'split-pdf': splitPdfProcessor,
     'pdf-to-image': pdfToImageProcessor,
     'doc-to-pdf': docToPdfProcessor,
+    'unlock-pdf': unlockPdfProcessor,
 
     // Image Tools
     'image-compressor': imageCompressorProcessor,

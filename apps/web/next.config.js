@@ -19,16 +19,17 @@ const nextConfig = {
 
         // Force usage of the browser bundle to avoid Node.js specific code (createRequire)
         try {
-            const onnxPath = require.resolve('onnxruntime-web');
-            // onnxPath is likely .../dist/ort.node.min.js
+            const path = require('path');
+            const onnxPath = require.resolve('onnxruntime-web/package.json');
+            const onnxDir = path.dirname(onnxPath);
 
             // Root alias (exact match)
-            config.resolve.alias['onnxruntime-web$'] = onnxPath.replace('ort.node.min.js', 'ort.min.js');
+            config.resolve.alias['onnxruntime-web$'] = path.join(onnxDir, 'dist/ort.min.js');
 
             // Subpath aliases
-            config.resolve.alias['onnxruntime-web/webgpu'] = onnxPath.replace('ort.node.min.js', 'ort.webgpu.min.js');
-            config.resolve.alias['onnxruntime-web/wasm'] = onnxPath.replace('ort.node.min.js', 'ort.wasm.min.js');
-            config.resolve.alias['onnxruntime-web/all'] = onnxPath.replace('ort.node.min.js', 'ort.all.min.js');
+            config.resolve.alias['onnxruntime-web/webgpu'] = path.join(onnxDir, 'dist/ort.webgpu.min.js');
+            config.resolve.alias['onnxruntime-web/wasm'] = path.join(onnxDir, 'dist/ort.wasm.min.js');
+            config.resolve.alias['onnxruntime-web/all'] = path.join(onnxDir, 'dist/ort.all.min.js');
 
         } catch (e) {
             console.warn('Could not resolve onnxruntime-web path, build might fail:', e);

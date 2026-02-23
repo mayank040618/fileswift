@@ -54,6 +54,10 @@ export default function ToolClient() {
     // AI Tools Result State
     const [aiResult, setAiResult] = useState<any>(null); // eslint-disable-line
 
+    // Password visibility state
+    const [showProtectPassword, setShowProtectPassword] = useState(false);
+    const [showUnlockPassword, setShowUnlockPassword] = useState(false);
+
     // Debugging: Log errors to console (also ensures variable is 'used' for linter)
     useEffect(() => {
         if (errorMessage) console.error('[ToolClient] Error:', errorMessage);
@@ -147,6 +151,27 @@ export default function ToolClient() {
     // Client-side processing for applicable tools
     const handleClientSideProcess = async () => {
         if (files.length === 0) return;
+
+        // --- GATHER INPUTS FIRST ---
+        // Grab values from DOM before setting React state to prevent elements from unmounting
+        const angleInput = document.getElementById('rotate-angle') as HTMLSelectElement;
+        const angle = angleInput?.value ? parseInt(angleInput.value) as 90 | 180 | 270 : 90;
+
+        const qInput = document.getElementById('compress-q') as HTMLInputElement;
+        const quality = qInput?.value ? parseInt(qInput.value) : compressionQuality;
+
+        const wInput = document.getElementById('resize-w') as HTMLInputElement;
+        const hInput = document.getElementById('resize-h') as HTMLInputElement;
+        const width = wInput?.value ? parseInt(wInput.value) : undefined;
+        const height = hInput?.value ? parseInt(hInput.value) : undefined;
+
+        const watermarkTextInput = document.getElementById('watermark-text') as HTMLInputElement;
+        const watermarkText = watermarkTextInput?.value || 'CONFIDENTIAL';
+
+        const protectPasswordInput = document.getElementById('protect-password') as HTMLInputElement;
+        const protectPassword = protectPasswordInput?.value;
+        // --- END GATHER INPUTS ---
+
         setStatus('processing');
         setProcessingStartTime(Date.now());
         setProcessingProgress(0);
@@ -175,18 +200,6 @@ export default function ToolClient() {
 
         try {
             let processorResult: ProcessorResult | null = null;
-
-            // Get options from form
-            const angleInput = document.getElementById('rotate-angle') as HTMLSelectElement;
-            const angle = angleInput?.value ? parseInt(angleInput.value) as 90 | 180 | 270 : 90;
-
-            const qInput = document.getElementById('compress-q') as HTMLInputElement;
-            const quality = qInput?.value ? parseInt(qInput.value) : compressionQuality;
-
-            const wInput = document.getElementById('resize-w') as HTMLInputElement;
-            const hInput = document.getElementById('resize-h') as HTMLInputElement;
-            const width = wInput?.value ? parseInt(wInput.value) : undefined;
-            const height = hInput?.value ? parseInt(hInput.value) : undefined;
 
             // Route to appropriate processor using dynamic imports
             switch (tool.id) {
@@ -284,6 +297,17 @@ export default function ToolClient() {
                     processorResult = await convertImageFormat(files[0], 'jpeg', 0.95, setProcessingProgress);
                     break;
                 }
+                case 'watermark-pdf': {
+                    const { watermarkPDF } = await import('@/lib/processors/watermark-pdf');
+                    processorResult = await watermarkPDF(files, watermarkText, setProcessingProgress);
+                    break;
+                }
+                case 'protect-pdf': {
+                    const { protectPDF } = await import('@/lib/processors/protect-pdf');
+                    if (!protectPassword) throw new Error("A password is required to encrypt the PDF.");
+                    processorResult = await protectPDF(files, protectPassword, setProcessingProgress);
+                    break;
+                }
                 default:
                     throw new Error('Unknown client-side tool');
             }
@@ -359,9 +383,6 @@ export default function ToolClient() {
 
     const handleUpload = async () => {
         if (files.length === 0) return;
-        setStatus('uploading');
-        setTimeRemaining('Calculating...');
-        const startTime = Date.now();
 
         const formData = new FormData();
         formData.append('toolId', tool.id);
@@ -406,8 +427,21 @@ export default function ToolClient() {
         const formatInput = document.getElementById('output-format') as HTMLSelectElement;
         if (tool.id === 'pdf-to-image') data.format = formatInput?.value || 'png';
         if (tool.id === 'image-to-pdf') data.format = 'pdf';
+        if (tool.id === 'unlock-pdf') {
+            const pwdInput = document.getElementById('unlock-password') as HTMLInputElement;
+            data.password = pwdInput?.value || '';
+            if (!data.password) {
+                toast.error("A password is required to decrypt the PDF.");
+                setStatus('idle');
+                return;
+            }
+        }
 
         formData.append('data', JSON.stringify(data));
+
+        setStatus('uploading');
+        setTimeRemaining('Calculating...');
+        const startTime = Date.now();
 
         try {
             // 1. Upload
@@ -715,6 +749,74 @@ export default function ToolClient() {
                                                 <option value="creative">Creative & Engaging</option>
                                                 <option value="simple">Simple & Easy to Read</option>
                                             </select>
+                                        </div>
+                                    )}
+
+                                    {tool.id === 'watermark-pdf' && (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                            <h3 className="font-semibold mb-3 dark:text-white">Watermark Text</h3>
+                                            <input
+                                                type="text"
+                                                id="watermark-text"
+                                                placeholder="e.g., CONFIDENTIAL, DRAFT, DO NOT COPY"
+                                                defaultValue="CONFIDENTIAL"
+                                                className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 text-sm"
+                                            />
+                                            <p className="text-xs text-slate-500 mt-2">Text will be placed diagonally across all pages.</p>
+                                        </div>
+                                    )}
+
+                                    {tool.id === 'protect-pdf' && (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                            <h3 className="font-semibold mb-3 dark:text-white">Set Password</h3>
+                                            <div className="relative">
+                                                <input
+                                                    type={showProtectPassword ? "text" : "password"}
+                                                    id="protect-password"
+                                                    placeholder="Enter a strong password"
+                                                    className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowProtectPassword(!showProtectPassword)}
+                                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+                                                    aria-label={showProtectPassword ? "Hide password" : "Show password"}
+                                                >
+                                                    {showProtectPassword ? (
+                                                        <Icons.EyeOff className="h-4 w-4" />
+                                                    ) : (
+                                                        <Icons.Eye className="h-4 w-4" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-2">This password will be required to open the PDF.</p>
+                                        </div>
+                                    )}
+
+                                    {tool.id === 'unlock-pdf' && (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                            <h3 className="font-semibold mb-3 dark:text-white">Current Password</h3>
+                                            <div className="relative">
+                                                <input
+                                                    type={showUnlockPassword ? "text" : "password"}
+                                                    id="unlock-password"
+                                                    placeholder="Enter the PDF password"
+                                                    className="w-full rounded-md border-slate-300 dark:bg-slate-900 dark:border-slate-600 px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowUnlockPassword(!showUnlockPassword)}
+                                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+                                                    aria-label={showUnlockPassword ? "Hide password" : "Show password"}
+                                                >
+                                                    {showUnlockPassword ? (
+                                                        <Icons.EyeOff className="h-4 w-4" />
+                                                    ) : (
+                                                        <Icons.Eye className="h-4 w-4" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-2">Required to decrypt and remove the password constraint.</p>
                                         </div>
                                     )}
 

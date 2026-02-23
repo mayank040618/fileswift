@@ -253,6 +253,12 @@ importers:
       '@imgly/background-removal':
         specifier: ^1.7.0
         version: 1.7.0(onnxruntime-web@1.21.0)
+      '@jspawn/qpdf-wasm':
+        specifier: ^0.0.2
+        version: 0.0.2
+      '@neslinesli93/qpdf-wasm':
+        specifier: ^0.3.0
+        version: 0.3.0
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@3.4.19(tsx@4.21.0)(yaml@2.8.2))
@@ -301,6 +307,9 @@ importers:
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
+      pdf-lib-plus-encrypt:
+        specifier: ^1.1.0
+        version: 1.1.0
       pdfjs-dist:
         specifier: ^3.11.174
         version: 3.11.174
@@ -2109,6 +2118,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@jspawn/qpdf-wasm@0.0.2':
+    resolution: {integrity: sha512-yPFv/0o5fvVEkJjEoXf393hfpZYUZfrRY8DaLq4AVw+KWZK0GiTVAecpYdxxVACbVKMHvBa+uHxtWlilYRiLzA==}
+
   '@lukeed/ms@2.0.2':
     resolution: {integrity: sha512-9I2Zn6+NJLfaGoz9jN3lpwDgAYvfGeNYdbAIjJOqzs4Tpc+VU3Jqq4IofSUBKajiDS8k9fZIg18/z13mpk1bsA==}
     engines: {node: '>=8'}
@@ -2117,8 +2129,8 @@ packages:
     resolution: {integrity: sha512-Yhlar6v9WQgUp/He7BdgzOz8lqMQ8sU+jkCq7Wx8Myc5YFJLbEe7lgui/V7G1qB1DJykHSGwreceSaD60Y0PUQ==}
     hasBin: true
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.1.20260219':
-    resolution: {integrity: sha512-HMPkQ519f4BUcShN36CAET4IVQavZPzR+TxnnXymJzJxgDJLrmoLl17/SCFVixWI50IKamtAGesIMVcriMYGuQ==}
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.1.20260223':
+    resolution: {integrity: sha512-Ni1SYkiPekmS7toKV7CADBGIt7ZmkViOq8rHucw743Jr3i1hP6SWZJYAM7M7w634vJI8PsLUJ/g+ZTga12j46A==}
 
   '@maxim_mazurok/gapi.client.discovery-v1@0.4.20200806':
     resolution: {integrity: sha512-Jeo/KZqK39DI6ExXHcJ4lqnn1O/wEqboQ6eQ8WnNpu5eJ7wUnX/C5KazOgs1aRhnIB/dVzDe8wm62nmtkMIoaw==}
@@ -2289,6 +2301,9 @@ packages:
 
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
+
+  '@neslinesli93/qpdf-wasm@0.3.0':
+    resolution: {integrity: sha512-ObyTmabopTMwN6AGwrEkmDbdmM5wnwlRdn9jnJYQ2KbBUPdPDcfNf1QkcWFOVD+qIgSqILz9nK51e22T+x+gkQ==}
 
   '@next/bundle-analyzer@16.1.6':
     resolution: {integrity: sha512-ee2kagdTaeEWPlotgdTOqFHYcD3e2m2bbE3I9Rq2i6ABYi5OgopmtEUe8NM23viaYxLV2tDH/2nd5+qKoEr6cw==}
@@ -6932,6 +6947,9 @@ packages:
     resolution: {integrity: sha512-ad/3bsalbbWhmBo0D6FZ4RNMwsLsPpL6gnvhuSaU5Vm7b06Kr5ubSltQQ0T7YKsiJQO+g22zJ4dJKNTXIyOXtA==}
     engines: {node: '>=8'}
 
+  pdf-lib-plus-encrypt@1.1.0:
+    resolution: {integrity: sha512-ktiVSQfl9KuSOfqstRIF6T39vV+duc1W0dGPTa7ZJHT/0S2Mrwo01oWNhuOWtouSwGqWfpDp53XSryvE65gkjg==}
+
   pdf-lib@1.17.1:
     resolution: {integrity: sha512-V/mpyJAoTsN4cnP31vc0wfNA1+p20evqqnap0KLoRUN0Yk/p3wN52DOEsL4oBFcLdb76hlpKPtzJIgo67j/XLw==}
 
@@ -11117,6 +11135,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@jspawn/qpdf-wasm@0.0.2': {}
+
   '@lukeed/ms@2.0.2': {}
 
   '@mapbox/node-pre-gyp@1.0.11':
@@ -11135,7 +11155,7 @@ snapshots:
       - supports-color
     optional: true
 
-  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.1.20260219':
+  '@maxim_mazurok/gapi.client.androidpublisher-v3@0.1.20260223':
     dependencies:
       '@types/gapi.client': 1.0.8
       '@types/gapi.client.discovery-v1': 0.0.4
@@ -11260,6 +11280,8 @@ snapshots:
       '@emnapi/runtime': 1.8.1
       '@tybys/wasm-util': 0.10.1
     optional: true
+
+  '@neslinesli93/qpdf-wasm@0.3.0': {}
 
   '@next/bundle-analyzer@16.1.6':
     dependencies:
@@ -12435,7 +12457,7 @@ snapshots:
 
   '@types/gapi.client.androidpublisher@3.0.2':
     dependencies:
-      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.1.20260219
+      '@maxim_mazurok/gapi.client.androidpublisher-v3': 0.1.20260223
 
   '@types/gapi.client.discovery-v1@0.0.4':
     dependencies:
@@ -17099,6 +17121,13 @@ snapshots:
 
   path2d-polyfill@2.0.1:
     optional: true
+
+  pdf-lib-plus-encrypt@1.1.0:
+    dependencies:
+      '@pdf-lib/standard-fonts': 1.0.0
+      '@pdf-lib/upng': 1.0.1
+      pako: 1.0.11
+      tslib: 1.14.1
 
   pdf-lib@1.17.1:
     dependencies:
