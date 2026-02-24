@@ -25,7 +25,7 @@ export async function unlockPDF(
         // Load the document using the provided password
         let pdfDoc;
         try {
-            pdfDoc = await PDFDocument.load(arrayBuffer, { password: password });
+            pdfDoc = await PDFDocument.load(arrayBuffer, { password: password } as any);
         } catch (error: any) { // eslint-disable-line
             console.error("PDF load error:", error);
             // pdf-lib throws an error when the password is not provided or incorrect.

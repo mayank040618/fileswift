@@ -7,6 +7,10 @@ export async function removeBackground(
 ): Promise<ProcessorResult> {
     try {
         // Dynamic import to avoid SSR issues
+        // Dynamic import to avoid SSR issues
+        if (typeof window === 'undefined') {
+            throw new Error('Background removal can only be run in the browser.');
+        }
         const imgly = await import('@imgly/background-removal');
 
         // Configuration to force download of assets if needed or use public path

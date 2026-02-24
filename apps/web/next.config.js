@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    experimental: {
+        serverComponentsExternalPackages: ['onnxruntime-web', 'onnxruntime-node', '@imgly/background-removal'],
+    },
     webpack: (config, { isServer, dev }) => {
         // pdfjs-dist optionally imports 'canvas' (Node.js native module)
         // which isn't available in the browser. Mark it as external.
@@ -17,23 +20,17 @@ const nextConfig = {
             };
         }
 
-        // Force usage of the browser bundle to avoid Node.js specific code (createRequire)
-        try {
-            const path = require('path');
-            const onnxPath = require.resolve('onnxruntime-web/package.json');
-            const onnxDir = path.dirname(onnxPath);
+        // Ignore onnxruntime-node because we are in the browser
+        config.resolve.alias['onnxruntime-node$'] = false;
 
-            // Root alias (exact match)
-            config.resolve.alias['onnxruntime-web$'] = path.join(onnxDir, 'dist/ort.min.js');
-
-            // Subpath aliases
-            config.resolve.alias['onnxruntime-web/webgpu'] = path.join(onnxDir, 'dist/ort.webgpu.min.js');
-            config.resolve.alias['onnxruntime-web/wasm'] = path.join(onnxDir, 'dist/ort.wasm.min.js');
-            config.resolve.alias['onnxruntime-web/all'] = path.join(onnxDir, 'dist/ort.all.min.js');
-
-        } catch (e) {
-            console.warn('Could not resolve onnxruntime-web path, build might fail:', e);
-        }
+        // Fix ONNX Runtime Web "import.meta" ES Module errors by forcing Webpack to parse .mjs fully
+        config.module.rules.push({
+            test: /\.m?js$/,
+            type: 'javascript/auto',
+            resolve: {
+                fullySpecified: false,
+            },
+        });
 
         return config;
     },
