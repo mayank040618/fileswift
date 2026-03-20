@@ -17,6 +17,7 @@ web-build
 .DS_Store
 
 # Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -25,6 +26,13 @@ pnpm-debug.log*
 # Editor
 .vscode
 .idea
+
+# macOS duplicates (Finder "copy" artifacts)
+* 2
+* 2.*
+* 3
+* 3.*
+
 # Test Assets
 scripts/test-assets
 scripts/stress-assets
@@ -33,9 +41,19 @@ debug-assets/
 dummy.pdf
 test-assets/
 stress-assets/
+test_*.pdf
+valid*.pdf
+forensic.pdf
+manual_test.pdf
+*.patch
+
+# Stale directories
+node_modules_old/
+.trash/
+.trash_temp/
+
+# Backend logs & uploads
 apps/backend/backend.log
 apps/backend/logs/
-
-# Uploads
 apps/backend/uploads
 uploads
