@@ -167,6 +167,7 @@ export function BulkUploader({ onFilesChange, files, accept, maxSize, allowMulti
                                 {/* Thumbnail */}
                                 <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center text-slate-500 overflow-hidden relative">
                                     {file.type.startsWith('image/') ? (
+                                        /* eslint-disable-next-line @next/next/no-img-element */
                                         <img
                                             src={URL.createObjectURL(file)}
                                             alt={file.name}

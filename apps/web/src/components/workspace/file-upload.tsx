@@ -21,7 +21,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
         setIsDragging(false);
     }, []);
 
-    const handleFile = async (file: File) => {
+    const handleFile = useCallback(async (file: File) => {
         setIsUploading(true);
         try {
             const payloads = await filesToPayload([file]);
@@ -33,7 +33,7 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
         } finally {
             setIsUploading(false);
         }
-    };
+    }, [onUploadComplete]);
 
     const onDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();

@@ -68,6 +68,7 @@ export function DocumentViewer({ fileName, fileUrl, totalPages = 1 }: DocumentVi
                 <div className="w-full h-full flex items-center justify-center p-4 relative z-10">
                     {isImage ? (
                         <div className="max-w-full max-h-full overflow-auto flex items-center justify-center p-4">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
                                 src={fileUrl} 
                                 alt={fileName} 
@@ -94,7 +95,7 @@ export function DocumentViewer({ fileName, fileUrl, totalPages = 1 }: DocumentVi
                             <div className="space-y-1">
                                 <h3 className="font-semibold text-slate-900 dark:text-white">Preview unavailable</h3>
                                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                                    We can't preview this file type directly, but our AI can still analyze it.
+                                    We can&apos;t preview this file type directly, but our AI can still analyze it.
                                 </p>
                             </div>
                             <a 
