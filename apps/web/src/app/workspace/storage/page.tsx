@@ -333,7 +333,7 @@ export default function StoragePage() {
                 
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Delete this file?</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 px-2 leading-snug">
-                  "{fileToDelete.name}" will be permanently removed from your cloud storage.
+                  &quot;{fileToDelete.name}&quot; will be permanently removed from your cloud storage.
                 </p>
                 
                 <div className="flex flex-col gap-2 w-full">

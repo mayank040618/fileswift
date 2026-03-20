@@ -30,7 +30,7 @@ export default function UseCases() {
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">FileSwift for Students</h2>
                     </div>
                     <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-                        Managing assignments and research papers shouldn't be hard. FileSwift helps students submit work on time and in the correct format without needing expensive software.
+                        Managing assignments and research papers shouldn&apos;t be hard. FileSwift helps students submit work on time and in the correct format without needing expensive software.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Link href="/tools/compress-pdf" className="group flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
@@ -159,7 +159,7 @@ export default function UseCases() {
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">FileSwift for Remote Teams</h2>
                     </div>
                     <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
-                        Collaborate better without the hassle. FileSwift provides instant, installation-free tools that work on every team member's device.
+                        Collaborate better without the hassle. FileSwift provides instant, installation-free tools that work on every team member&apos;s device.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Link href="/tools/compress-pdf" className="group flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">

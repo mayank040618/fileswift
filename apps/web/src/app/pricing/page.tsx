@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 export default function PricingPage() {
     const [currency, setCurrency] = useState<'INR' | 'USD'>('INR');
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-    const { isSignedIn } = useUser();
+    const { isSignedIn, user } = useUser();
     const { userId } = useAuth();
     const router = useRouter();
 
@@ -65,8 +65,8 @@ export default function PricingPage() {
                         setTimeout(() => router.push('/workspace'), 2000);
                     },
                     prefill: {
-                        name: useUser().user?.fullName || "",
-                        email: useUser().user?.primaryEmailAddress?.emailAddress || "",
+                        name: user?.fullName || "",
+                        email: user?.primaryEmailAddress?.emailAddress || "",
                     },
                     theme: {
                         color: "#2563eb",
