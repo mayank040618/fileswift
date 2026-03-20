@@ -13,11 +13,14 @@ export function Header() {
                             <FileText className="text-white w-5 h-5" strokeWidth={2.5} />
                         </div>
                         <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                            File<span className="text-blue-600 dark:text-blue-400">Swift</span>
+                            FileSwift<span className="text-blue-600 dark:text-blue-400">AI</span>
                         </span>
                     </Link>
                 </div>
                 <nav className="flex items-center space-x-6">
+                    <Link href="/pricing" className="text-sm font-medium text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">
+                        Pricing
+                    </Link>
                     <Link href="/#tools" className="text-sm font-medium text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">
                         Tools
                     </Link>

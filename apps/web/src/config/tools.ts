@@ -659,52 +659,109 @@ FileSwift allows users to convert Microsoft Word documents into PDF files. Conve
 -   **Free**: Convert documents without any cost or subscription.
 `,
   },
-  /*
-        // 11. AI PDF Summarizer (NEW)
+  // 11. Pages to PDF
+  {
+    id: "pages-to-pdf",
+    title: "Pages to PDF Converter",
+    description: "Convert Apple Pages documents to PDF format.",
+    icon: "FileText",
+    color: "bg-orange-500",
+    slug: "/tools/pages-to-pdf",
+    type: "file",
+    privacyMode: "server",
+    keywords: [
+      "pages to pdf",
+      "apple pages to pdf",
+      "convert pages to pdf",
+      "mac pages to pdf",
+      "save pages as pdf",
+      "pages file converter",
+      "online pages to pdf",
+      "convert .pages to pdf"
+    ],
+    content: {
+      features: [
+        "Apple Pages Support: Easily convert documents created on Mac or iPad.",
+        "Accurate Conversion: Maintains layout, fonts, and images from the original file.",
+        "Universal Format: Turns Apple-exclusive files into standard PDFs readable on Windows & Android.",
+        "Fast & Secure: Convert your files in seconds securely."
+      ],
+      howTo: [
+        "Upload your Apple Pages (.pages) file.",
+        "The tool automatically processes and converts it to PDF.",
+        "Download your converted PDF document."
+      ],
+      benefits: [
+        "Share Mac documents with Windows users seamlessly.",
+        "Submit resumes or assignments in universally accepted PDF format.",
+        "Open .pages files on non-Apple devices without needing iCloud."
+      ],
+      faq: [
         {
-            id: 'summarize-pdf',
-            title: 'AI PDF Summarizer',
-            description: 'Get instant AI-powered summaries of any PDF document.',
-            icon: 'Sparkles',
-            color: 'bg-violet-500',
-            slug: '/tools/summarize-pdf',
-            type: 'file',
-            ai: true,
-            keywords: ['summarize pdf', 'pdf summary', 'ai pdf summarizer', 'extract key points', 'document summary', 'pdf to text summary', 'ai document reader'],
-            content: {
-                features: [
-                    'AI-Powered: Uses advanced language models to understand context and meaning.',
-                    'Multiple Modes: Choose brief, detailed, or bullet-point summaries.',
-                    'Fast Processing: Get summaries in seconds, not minutes.',
-                    'Secure: Your documents are processed privately and deleted after use.'
-                ],
-                howTo: [
-                    'Upload your PDF document.',
-                    'Select summary mode (Brief, Detailed, or Bullet Points).',
-                    'Click "Summarize" to generate your AI summary.',
-                    'Copy or download your summary.'
-                ],
-                benefits: [
-                    'Save hours of reading time on long documents.',
-                    'Quickly understand contracts, research papers, or reports.',
-                    'Extract key points for meetings or presentations.'
-                ],
-                faq: [
-                    {
-                        question: 'How does the AI summarizer work?',
-                        answer: 'FileSwift uses advanced AI models to read and understand your PDF content. It identifies the most important information and generates a coherent summary that captures the key points.'
-                    },
-                    {
-                        question: 'Is my document data kept private?',
-                        answer: 'Yes. Your PDF content is processed securely and is not stored or used for training. The document text is deleted immediately after generating the summary.'
-                    },
-                    {
-                        question: 'What types of PDFs can be summarized?',
-                        answer: 'Any PDF with selectable text can be summarized. This includes contracts, research papers, reports, articles, and ebooks. Scanned image-only PDFs may not work unless they have OCR text.'
-                    }
-                ]
-            },
-            longDescription: `
+          question: "Can I open Apple Pages files on Windows?",
+          answer: "By default, Windows cannot open .pages files. Using FileSwift to convert them to PDF is the best way to view and share these documents on a Windows PC."
+        },
+        {
+          question: "Does it preserve formatting?",
+          answer: "Yes, our converter is designed to keep the text, images, and layout as accurate to the original Apple Pages document as possible."
+        }
+      ]
+    },
+    longDescription: `
+## Convert Apple Pages to PDF Online
+
+FileSwift offers a simple solution to convert Apple Pages (.pages) documents into PDF format. Apple Pages is a great word processor for Mac, but its file formatting isn't supported natively on Windows or Android devices.
+
+### Bridge the Gap Between Devices
+By converting your \`.pages\` file to PDF, you guarantee that whoever you send it to can open it and see the exact formatting you intended, regardless of the device or operating system they are using. This is essential for resumes, business reports, and school assignments.
+`
+  },
+
+  // 11. AI PDF Summarizer (NEW)
+  {
+    id: 'summarize-pdf',
+    title: 'AI PDF Summarizer',
+    description: 'Get instant AI-powered summaries of any PDF document.',
+    icon: 'Sparkles',
+    color: 'bg-violet-500',
+    slug: '/tools/summarize-pdf',
+    type: 'file',
+    ai: true,
+    keywords: ['summarize pdf', 'pdf summary', 'ai pdf summarizer', 'extract key points', 'document summary', 'pdf to text summary', 'ai document reader'],
+    content: {
+      features: [
+        'AI-Powered: Uses advanced language models to understand context and meaning.',
+        'Multiple Modes: Choose brief, detailed, or bullet-point summaries.',
+        'Fast Processing: Get summaries in seconds, not minutes.',
+        'Secure: Your documents are processed privately and deleted after use.'
+      ],
+      howTo: [
+        'Upload your PDF document.',
+        'Select summary mode (Brief, Detailed, or Bullet Points).',
+        'Click "Summarize" to generate your AI summary.',
+        'Copy or download your summary.'
+      ],
+      benefits: [
+        'Save hours of reading time on long documents.',
+        'Quickly understand contracts, research papers, or reports.',
+        'Extract key points for meetings or presentations.'
+      ],
+      faq: [
+        {
+          question: 'How does the AI summarizer work?',
+          answer: 'FileSwift uses advanced AI models to read and understand your PDF content. It identifies the most important information and generates a coherent summary that captures the key points.'
+        },
+        {
+          question: 'Is my document data kept private?',
+          answer: 'Yes. Your PDF content is processed securely and is not stored or used for training. The document text is deleted immediately after generating the summary.'
+        },
+        {
+          question: 'What types of PDFs can be summarized?',
+          answer: 'Any PDF with selectable text can be summarized. This includes contracts, research papers, reports, articles, and ebooks. Scanned image-only PDFs may not work unless they have OCR text.'
+        }
+      ]
+    },
+    longDescription: `
     ## AI PDF Summarizer
     
     FileSwift's AI PDF Summarizer helps you quickly understand the content of any document. Whether you're dealing with a 50-page research paper or a lengthy contract, our AI extracts the key information and presents it in an easy-to-read format.
@@ -719,8 +776,8 @@ FileSwift allows users to convert Microsoft Word documents into PDF files. Conve
     -   Professionals reviewing contracts
     -   Anyone who wants to save time reading long documents
     `
-        },
-    */
+  },
+
   // 12. Remove Background (AI)
   {
     id: "remove-background",
@@ -1297,134 +1354,134 @@ FileSwift extracts tables from PDF documents and converts them to editable Excel
                 `,
     comingSoon: true,
   },
-  /*
-        // 18. AI Notes Generator
+
+  // 18. AI Notes Generator
+  {
+    id: 'ai-notes',
+    title: 'AI Notes Generator',
+    description: 'Transform any PDF document into structured, easy-to-read study notes.',
+    icon: 'FileText',
+    color: 'bg-indigo-500',
+    slug: '/tools/ai-notes',
+    type: 'file',
+    ai: true,
+    keywords: ['ai notes', 'pdf to notes', 'structured notes generator', 'study notes ai', 'meeting notes from pdf'],
+    content: {
+      features: [
+        'Structured Output: Automatically organizes notes into topics and bullet points.',
+        'Key Takeaways: Highlights the most important information first.',
+        'Multilingual Support: Works with documents in major Indian and global languages.',
+        'Downloadable: Export your notes to multiple formats.'
+      ],
+      howTo: [
+        'Upload your PDF document.',
+        'The AI analyzes and structures the content.',
+        'Review the generated notes on screen.',
+        'Download or copy for your study/meetings.'
+      ],
+      benefits: [
+        'Focus on learning instead of manual note-taking.',
+        'Quickly review long documents before exams or meetings.',
+        'Standardize notes across different document types.'
+      ],
+      faq: [
         {
-            id: 'ai-notes',
-            title: 'AI Notes Generator',
-            description: 'Transform any PDF document into structured, easy-to-read study notes.',
-            icon: 'FileText',
-            color: 'bg-indigo-500',
-            slug: '/tools/ai-notes',
-            type: 'file',
-            ai: true,
-            keywords: ['ai notes', 'pdf to notes', 'structured notes generator', 'study notes ai', 'meeting notes from pdf'],
-            content: {
-                features: [
-                    'Structured Output: Automatically organizes notes into topics and bullet points.',
-                    'Key Takeaways: Highlights the most important information first.',
-                    'Multilingual Support: Works with documents in major Indian and global languages.',
-                    'Downloadable: Export your notes to multiple formats.'
-                ],
-                howTo: [
-                    'Upload your PDF document.',
-                    'The AI analyzes and structures the content.',
-                    'Review the generated notes on screen.',
-                    'Download or copy for your study/meetings.'
-                ],
-                benefits: [
-                    'Focus on learning instead of manual note-taking.',
-                    'Quickly review long documents before exams or meetings.',
-                    'Standardize notes across different document types.'
-                ],
-                faq: [
-                    {
-                        question: 'Can I generate notes from handwritten PDFs?',
-                        answer: 'The tool works best on typed, digital PDFs. Scanned documents with clear text also work well via our integrated OCR logic.'
-                    }
-                ]
-            },
-            longDescription: `
+          question: 'Can I generate notes from handwritten PDFs?',
+          answer: 'The tool works best on typed, digital PDFs. Scanned documents with clear text also work well via our integrated OCR logic.'
+        }
+      ]
+    },
+    longDescription: `
     ## AI Notes Generator
     Generate professional, structured notes from any PDF document instantly.Our AI reads through the entire file and organizes information into logical topics, headings, and bullet points.
      
     ### Why use AI for notes ?
         Manually taking notes from a 20 - page document can take hours.FileSwift does it in seconds, ensuring you don't miss any critical details while providing a clear structure for review.
             `
-        },
-        // 19. AI Document Rewriter
+  },
+  // 19. AI Document Rewriter
+  {
+    id: 'ai-rewrite',
+    title: 'AI Document Rewriter',
+    description: 'Rewrite and improve the tone of your documents while preserving the meaning.',
+    icon: 'PencilLine',
+    color: 'bg-orange-600',
+    slug: '/tools/ai-rewrite',
+    type: 'file',
+    ai: true,
+    keywords: ['ai rewriter', 'improve text', 'change tone of document', 'rewrite pdf', 'professional text rewriter'],
+    content: {
+      features: [
+        'Tone Selection: Choose between Professional, Casual, Formal, or Creative tones.',
+        'Grammar Fix: Automatically corrects errors while rewriting.',
+        'Meaning Preservation: Changes the words, but keeps your original message intact.',
+        'Instant Preview: See the original and rewritten text side-by-side.'
+      ],
+      howTo: [
+        'Upload the PDF you want to rewrite.',
+        'Select your desired tone and style.',
+        'Click "Rewrite" to process with AI.',
+        'Download the improved document.'
+      ],
+      benefits: [
+        'Make your emails and reports sound more professional.',
+        'Improve the flow and readability of your writing.',
+        'Save time on manual editing and proofreading.'
+      ],
+      faq: [
         {
-            id: 'ai-rewrite',
-            title: 'AI Document Rewriter',
-            description: 'Rewrite and improve the tone of your documents while preserving the meaning.',
-            icon: 'PencilLine',
-            color: 'bg-orange-600',
-            slug: '/tools/ai-rewrite',
-            type: 'file',
-            ai: true,
-            keywords: ['ai rewriter', 'improve text', 'change tone of document', 'rewrite pdf', 'professional text rewriter'],
-            content: {
-                features: [
-                    'Tone Selection: Choose between Professional, Casual, Formal, or Creative tones.',
-                    'Grammar Fix: Automatically corrects errors while rewriting.',
-                    'Meaning Preservation: Changes the words, but keeps your original message intact.',
-                    'Instant Preview: See the original and rewritten text side-by-side.'
-                ],
-                howTo: [
-                    'Upload the PDF you want to rewrite.',
-                    'Select your desired tone and style.',
-                    'Click "Rewrite" to process with AI.',
-                    'Download the improved document.'
-                ],
-                benefits: [
-                    'Make your emails and reports sound more professional.',
-                    'Improve the flow and readability of your writing.',
-                    'Save time on manual editing and proofreading.'
-                ],
-                faq: [
-                    {
-                        question: 'Will it change the meaning of my document?',
-                        answer: 'No. The AI is instructed to preserve the core facts and meaning while only optimizing the expression and tone.'
-                    }
-                ]
-            },
-            longDescription: `
+          question: 'Will it change the meaning of my document?',
+          answer: 'No. The AI is instructed to preserve the core facts and meaning while only optimizing the expression and tone.'
+        }
+      ]
+    },
+    longDescription: `
     ## AI Document Rewriter
     FileSwift's AI Rewriter helps you polish your documents. Whether you need to make a casual draft sound professional or simplify a complex report, our AI-powered tool provides high-quality rewrites in seconds.
         `
-        },
-        // 20. AI PDF Translator
+  },
+  // 20. AI PDF Translator
+  {
+    id: 'ai-translate',
+    title: 'AI PDF Translator',
+    description: 'Translate PDF documents into over 50 languages with context-aware AI.',
+    icon: 'Languages',
+    color: 'bg-blue-500',
+    slug: '/tools/ai-translate',
+    type: 'file',
+    ai: true,
+    keywords: ['translate pdf', 'hi-tech pdf translator', 'multilingual pdf', 'contextual translation', 'ai translator'],
+    content: {
+      features: [
+        'Contextual Accuracy: Understands idioms and technical terms.',
+        'Global Language Support: Supports 50+ languages including Hindi, Spanish, French, etc.',
+        'Layout Preservation: Translates text while keeping the layout.',
+        'Fast & Secure: Professional quality translation in seconds.'
+      ],
+      howTo: [
+        'Upload your PDF document.',
+        'Select the target language.',
+        'Click "Translate".',
+        'Download your translated text/document.'
+      ],
+      benefits: [
+        'Read documents in your native language.',
+        'Expand your reach by translating marketing materials.',
+        'Understand legal and technical papers from abroad.'
+      ],
+      faq: [
         {
-            id: 'ai-translate',
-            title: 'AI PDF Translator',
-            description: 'Translate PDF documents into over 50 languages with context-aware AI.',
-            icon: 'Languages',
-            color: 'bg-blue-500',
-            slug: '/tools/ai-translate',
-            type: 'file',
-            ai: true,
-            keywords: ['translate pdf', 'hi-tech pdf translator', 'multilingual pdf', 'contextual translation', 'ai translator'],
-            content: {
-                features: [
-                    'Contextual Accuracy: Understands idioms and technical terms.',
-                    'Global Language Support: Supports 50+ languages including Hindi, Spanish, French, etc.',
-                    'Layout Preservation: Translates text while keeping the layout.',
-                    'Fast & Secure: Professional quality translation in seconds.'
-                ],
-                howTo: [
-                    'Upload your PDF document.',
-                    'Select the target language.',
-                    'Click "Translate".',
-                    'Download your translated text/document.'
-                ],
-                benefits: [
-                    'Read documents in your native language.',
-                    'Expand your reach by translating marketing materials.',
-                    'Understand legal and technical papers from abroad.'
-                ],
-                faq: [
-                    {
-                        question: 'How accurate is the AI translation?',
-                        answer: 'Our translation uses Sarvam-M and GPT-4o models, which provide much higher accuracy and better flow than traditional word-for-word translators.'
-                    }
-                ]
-            },
-            longDescription: `
+          question: 'How accurate is the AI translation?',
+          answer: 'Our translation uses Sarvam-M and GPT-4o models, which provide much higher accuracy and better flow than traditional word-for-word translators.'
+        }
+      ]
+    },
+    longDescription: `
     ## AI PDF Translator
     Break language barriers with FileSwift's AI-powered translator. We use state-of-the-art multilingual models like Sarvam-M to provide translations that are not just accurate, but sound natural in the target language.
         `
-        },
-    */
+  },
+
   // 21. YouTube Thumbnail Resizer (SEO Specialized)
   {
     id: "resize-image-for-youtube-thumbnail",
@@ -1566,44 +1623,44 @@ FileSwift's specialized compressor ensures your sensitive financial documents ar
 A badly sized photo can make a great resume look unprofessional.FileSwift helps you get the perfect crop and resolution for your headshot in seconds.
 `,
   },
-  /*
-    // 24. Chat with PDF
-    {
-        id: 'ai-chat',
-        title: 'Chat with PDF',
-        description: 'Upload a PDF and ask questions about its content using AI.',
-        icon: 'MessageSquare',
-        color: 'bg-indigo-600',
-        slug: '/tools/ai-chat',
-        type: 'file',
-        ai: true,
-        keywords: ['chat with pdf', 'ai pdf chat', 'ask pdf questions', 'analyze pdf with ai', 'pdf gpt'],
-        content: {
-            features: [
-                'Instant Answers: Ask anything about your document.',
-                'AI Analysis: Powered by advanced language models.',
-                'Secure: Your document is analyzed in-memory and not stored.',
-                'Free: Unlimited questions for your documents.'
-            ],
-            howTo: [
-                'Upload your PDF document.',
-                'Wait for the AI to read the file.',
-                'Type your question in the chat box.',
-                'Get instant answers based on the document content.'
-            ],
-            benefits: [
-                'Quickly find information in long reports.',
-                'Summarize specific sections on demand.',
-                'Clarify complex concepts within the document.'
-            ],
-            faq: [
-                {
-                    question: 'Is the chat private?',
-                    answer: 'Yes. We process the document text securely and do not store your files or conversations.'
-                }
-            ]
-        },
-        longDescription: `
+
+  // 24. Chat with PDF
+  {
+    id: 'ai-chat',
+    title: 'Chat with PDF',
+    description: 'Upload a PDF and ask questions about its content using AI.',
+    icon: 'MessageSquare',
+    color: 'bg-indigo-600',
+    slug: '/tools/ai-chat',
+    type: 'file',
+    ai: true,
+    keywords: ['chat with pdf', 'ai pdf chat', 'ask pdf questions', 'analyze pdf with ai', 'pdf gpt'],
+    content: {
+      features: [
+        'Instant Answers: Ask anything about your document.',
+        'AI Analysis: Powered by advanced language models.',
+        'Secure: Your document is analyzed in-memory and not stored.',
+        'Free: Unlimited questions for your documents.'
+      ],
+      howTo: [
+        'Upload your PDF document.',
+        'Wait for the AI to read the file.',
+        'Type your question in the chat box.',
+        'Get instant answers based on the document content.'
+      ],
+      benefits: [
+        'Quickly find information in long reports.',
+        'Summarize specific sections on demand.',
+        'Clarify complex concepts within the document.'
+      ],
+      faq: [
+        {
+          question: 'Is the chat private?',
+          answer: 'Yes. We process the document text securely and do not store your files or conversations.'
+        }
+      ]
+    },
+    longDescription: `
 ## Chat with PDF Online
 
 FileSwift's AI Chat allows you to have a conversation with your PDF documents. Instead of reading through pages of text, simply ask a question and get an instant answer based on the file's content.
@@ -1613,6 +1670,6 @@ FileSwift's AI Chat allows you to have a conversation with your PDF documents. I
 2. ** Read **: Our AI extracts the text from your document.
 3. ** Chat **: You ask questions, and the AI answers using the document as knowledge.
 `
-    }
-    */
+  }
+
 ];

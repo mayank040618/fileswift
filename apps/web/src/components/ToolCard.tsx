@@ -19,11 +19,11 @@ function ToolCardComponent({ tool }: { tool: Tool }) {
 
     const content = (
         <motion.div
-            whileHover={!tool.comingSoon ? { y: -5, scale: 1.01 } : {}}
-            transition={{ duration: 0.2 }}
+            whileHover={!tool.comingSoon ? { y: -4, scale: 1.02 } : {}}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
             className={`group relative flex flex-col h-full p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all overflow-hidden ${tool.comingSoon
                 ? 'bg-slate-50 dark:bg-slate-900 opacity-75 cursor-not-allowed grayscale-[0.5]'
-                : 'bg-white dark:bg-slate-850 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/30 dark:hover:border-blue-500/20 cursor-pointer'
+                : 'bg-white dark:bg-[#111] hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/30 dark:hover:border-blue-500/20 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-white/[0.02]'
                 }`}
         >
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-50 to-transparent dark:from-blue-900/10 dark:to-transparent rounded-bl-[50px] -z-0 opacity-0 group-hover:opacity-100 transition-opacity"></div>

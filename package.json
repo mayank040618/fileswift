@@ -32,12 +32,21 @@
       "@parcel/watcher",
       "unrs-resolver"
     ],
+    "supportedArchitectures": {
+      "os": [
+        "darwin"
+      ],
+      "cpu": [
+        "arm64"
+      ]
+    },
     "overrides": {
       "@types/react": "18.2.79",
       "@types/react-dom": "18.2.25"
     }
   },
   "dependencies": {
+    "lie": "^3.3.0",
     "pnpm": "^10.25.0"
   }
 }

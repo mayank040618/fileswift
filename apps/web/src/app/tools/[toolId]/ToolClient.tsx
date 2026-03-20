@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { BulkUploader } from '@/components/BulkUploader';
 import { ProgressBar } from '@/components/ProgressBar';
 import { TOOLS } from '@/config/tools';
 import { Icons } from '@/components/Icons';
 import { useInterval } from '@/hooks/useInterval';
 import clsx from 'clsx';
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { FeedbackWidget } from '@/components/FeedbackWidget';
 import { ToolCard } from '@/components/ToolCard';
 import dynamic from 'next/dynamic';
@@ -26,8 +27,14 @@ import { isClientSideTool } from '@/lib/processors';
 
 export default function ToolClient() {
     const params = useParams();
+    const searchParams = useSearchParams();
     const toolId = params.toolId as string;
     const tool = TOOLS.find(t => t.id === toolId);
+    const initialQuery = searchParams.get('q');
+    const [autoStart, setAutoStart] = useState(false);
+
+    const workspaceFiles = useWorkspaceStore((state) => state.files);
+    const clearWorkspaceFiles = useWorkspaceStore((state) => state.clearFiles);
 
     const [files, setFiles] = useState<File[]>([]);
     const [jobId, setJobId] = useState<string | null>(null);
@@ -62,6 +69,27 @@ export default function ToolClient() {
     useEffect(() => {
         if (errorMessage) console.error('[ToolClient] Error:', errorMessage);
     }, [errorMessage]);
+
+    // Load files from global workspace store on mount
+    useEffect(() => {
+        if (workspaceFiles.length > 0 && files.length === 0) {
+            setFiles([...workspaceFiles]);
+            clearWorkspaceFiles();
+            setAutoStart(true);
+        }
+    }, [workspaceFiles, files.length, clearWorkspaceFiles]);
+
+    // Auto-trigger processing if files were loaded from workspace
+    useEffect(() => {
+        if (autoStart && files.length > 0 && status === 'idle') {
+            setAutoStart(false);
+            // Slight delay to ensure UI elements are mounted (e.g. for options)
+            setTimeout(() => {
+                const btn = document.getElementById('process-trigger-btn');
+                if (btn) btn.click();
+            }, 100);
+        }
+    }, [autoStart, files.length, status]);
 
     useInterval(async () => {
         // Only run if processing and check internal conditions
@@ -185,7 +213,35 @@ export default function ToolClient() {
                 const extraction = await extractTextFromPDF(files[0]);
                 if (extraction.success && extraction.text) {
                     setPdfContext(extraction.text);
-                    setChatMessages([{ role: 'ai', content: `I've read **${files[0].name}**. Ask me anything about it!` }]);
+
+                    const initialMessages: { role: 'user' | 'ai', content: string }[] = [
+                        { role: 'ai', content: `I've read **${files[0].name}**. Ask me anything about it!` }
+                    ];
+
+                    if (initialQuery) {
+                        initialMessages.push({ role: 'user', content: initialQuery });
+                    }
+
+                    setChatMessages(initialMessages);
+                    setStatus('completed');
+                    setResult({ isChat: true });
+
+                    // Auto-submit the incoming query
+                    if (initialQuery) {
+                        setTimeout(async () => {
+                            try {
+                                const res = await fetch('/api/ai/chat-message', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ message: initialQuery, context: extraction.text })
+                                });
+                                const data = await res.json();
+                                setChatMessages(prev => [...prev, { role: 'ai', content: data.response }]);
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }, 500); // Slight delay for smoother UI transition
+                    }
                     setStatus('completed');
                     setResult({ isChat: true });
                 } else {
@@ -821,6 +877,7 @@ export default function ToolClient() {
                                     )}
 
                                     <button
+                                        id="process-trigger-btn"
                                         onClick={handleProcess}
                                         className="w-full mt-6 bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
                                     >

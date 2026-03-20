@@ -32,6 +32,46 @@ export default function JsonLd() {
                     "target": "https://www.fileswift.in/tools?q={search_term_string}",
                     "query-input": "required name=search_term_string"
                 }
+            },
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": "https://www.fileswift.in"
+                    }
+                ]
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "Is FileSwift really free to use?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes! All our tools including PDF Compressor, Image Resizer, and Converters are completely free to use without any limits."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Are my files safe?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Your privacy is our priority. Most conversions happen entirely in your browser (client-side), so your files aren't even uploaded. For cloud tasks, we use SSL encryption and delete files immediately."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Do I need to install any software?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "No. FileSwift is a cloud-based web application. You can use all our tools directly from your browser on any device (Windows, Mac, iPhone, Android)."
+                        }
+                    }
+                ]
             }
         ]
     };

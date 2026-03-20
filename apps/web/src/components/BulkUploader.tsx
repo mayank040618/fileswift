@@ -3,6 +3,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, File as FileIcon, X, Camera, Pencil } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { ImageEditorModal } from './ImageEditorModal';
 import { toast } from 'sonner';
 
@@ -92,10 +93,13 @@ export function BulkUploader({ onFilesChange, files, accept, maxSize, allowMulti
             {/* Action Buttons Area */}
             <div className="flex gap-4 flex-col sm:flex-row">
                 {/* Standard Dropzone */}
-                <div
+                <motion.div
                     {...getRootProps()}
+                    initial={false}
+                    animate={isDragActive ? { scale: 1.03 } : { scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     className={`flex-1 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors relative
-            ${isDragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-300 dark:border-slate-700 hover:border-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800'}
+            ${isDragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-glow' : 'border-slate-300 dark:border-slate-700 hover:border-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800'}
           `}
                 >
                     <input {...getInputProps()} />
@@ -112,7 +116,7 @@ export function BulkUploader({ onFilesChange, files, accept, maxSize, allowMulti
                             </p>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Camera Button (Only for Image Modes) */}
                 {isImageMode && (

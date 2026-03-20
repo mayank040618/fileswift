@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { getCroppedImg } from '@/utils/canvasUtils';
+import { getCroppedImg } from '../utils/canvasUtils';
 import { X, Check, RotateCw } from 'lucide-react';
 
 interface ImageEditorModalProps {

@@ -3,24 +3,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
 // Keys
+const AZURE_AI_ENDPOINT = process.env.AZURE_AI_ENDPOINT || '';
+const AZURE_AI_KEY = process.env.AZURE_AI_KEY || '';
+const AZURE_AI_MODEL = process.env.AZURE_AI_MODEL || 'Phi-4-mini-instruct';
 const SARVAM_API_KEY = process.env.SARVAM_API_KEY || '';
 const XAI_API_KEY = process.env.XAI_API_KEY || '';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 
-// Determine config based on available keys
+// Determine config based on available keys (Azure > Sarvam > xAI > OpenAI)
 let apiKey = OPENAI_API_KEY;
 let baseURL: string | undefined = undefined;
 let model = 'gpt-3.5-turbo'; // Default fallback
+let providerName = OPENAI_API_KEY ? 'OpenAI' : 'Mock';
 
-if (SARVAM_API_KEY) {
+if (AZURE_AI_KEY && AZURE_AI_ENDPOINT) {
+    apiKey = AZURE_AI_KEY;
+    baseURL = AZURE_AI_ENDPOINT;
+    model = AZURE_AI_MODEL;
+    providerName = 'Azure AI';
+} else if (SARVAM_API_KEY) {
     apiKey = SARVAM_API_KEY;
     baseURL = 'https://api.sarvam.ai/v1';
     model = 'sarvam-m';
+    providerName = 'Sarvam';
 } else if (XAI_API_KEY) {
     apiKey = XAI_API_KEY;
     baseURL = 'https://api.x.ai/v1';
     model = 'grok-3-fast';
+    providerName = 'xAI/Grok';
 }
+
+console.log(`[AI Chat] Using provider: ${providerName}`);
 
 const client = new OpenAI({
     apiKey: apiKey || 'dummy', // Prevent crash if no key, handle in handler

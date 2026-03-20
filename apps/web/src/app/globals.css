@@ -8,10 +8,10 @@
 }
 
 .dark {
-    --background: #0f172a;
-    /* Slate 950 */
-    --foreground: #e2e8f0;
-    /* Slate 200 */
+    --background: #0b0e13;
+    /* Deep Charcoal */
+    --foreground: #ffffff;
+    /* Pure White */
 }
 
 body {}

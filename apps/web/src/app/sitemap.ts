@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { TOOLS } from '@/config/tools';
 import { BLOG_POSTS } from '@/config/blog-posts';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fileswift.in';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fileswift.in';
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const staticPages = [

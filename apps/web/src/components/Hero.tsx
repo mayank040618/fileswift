@@ -25,8 +25,8 @@ export function Hero() {
                         Master Your Files with <br className="hidden sm:block" />
                         <span className="text-blue-600 dark:text-blue-500 relative inline-block">
                             Super Speed
-                            <svg className="absolute w-full h-3 -bottom-1 left-0 text-blue-200 dark:text-blue-900 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
-                                <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
+                            <svg className="absolute w-full h-2 -bottom-1.5 left-0 text-blue-400/50 dark:text-blue-500/30 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
+                                <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="2" fill="none" />
                             </svg>
                         </span>
                     </h1>
@@ -34,43 +34,27 @@ export function Hero() {
                     <p
                         className="text-lg leading-8 text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto"
                     >
-                        Compress, merge, and convert PDFs securely in your browser.
-                        Free online tools for all your document needs.
+                        Proactive intelligence for your documents. Summarize, extract insights, and converse with your files securely.
                     </p>
 
                     <div
-                        className="flex items-center justify-center gap-x-6"
+                        className="flex items-center justify-center gap-4 flex-col sm:flex-row"
                     >
                         <Link
-                            href="#tools"
-                            className="rounded-xl bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:shadow-blue-500/50 hover:-translate-y-1 transition-all duration-300"
+                            href="/pricing"
+                            className="rounded-xl bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:shadow-blue-500/50 hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto text-center"
                         >
-                            Get Started for Free
+                            View Plans & Pricing
                         </Link>
-
-                    </div>
-
-                    <div
-                        className="mt-10 flex items-center justify-center gap-6 text-sm text-slate-500 dark:text-slate-400"
-                    >
-                        <div className="flex items-center gap-2">
-                            <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        <Link
+                            href="/workspace"
+                            className="rounded-xl bg-slate-900 dark:bg-black px-8 py-3.5 text-sm font-semibold text-yellow-500 border border-yellow-500/30 shadow-lg shadow-yellow-500/10 hover:bg-slate-800 hover:border-yellow-500/50 hover:shadow-yellow-500/30 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 w-full sm:w-auto"
+                        >
+                            <svg className="size-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09l2.846.813-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
                             </svg>
-                            Free forever
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            No signup
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            Private
-                        </div>
+                            Explore FileSwiftAI Pro
+                        </Link>
                     </div>
                 </div>
             </div>
