@@ -2,7 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { initializeLemonSqueezy } from "@/lib/lemonsqueezy";
-import { getCustomer } from "@lemonsqueezy/lemonsqueezy.js";
+
 import { db } from "@/lib/db";
 
 const settingsUrl = process.env.NEXT_PUBLIC_APP_URL + "/workspace";
