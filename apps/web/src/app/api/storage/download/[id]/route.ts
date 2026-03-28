@@ -5,7 +5,7 @@ import { storageService } from "@/lib/storage-service";
 import fs from "fs/promises";
 
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
