@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
     try {
         const user = await currentUser();
         if (!user) {
