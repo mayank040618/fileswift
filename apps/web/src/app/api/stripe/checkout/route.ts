@@ -14,7 +14,7 @@ export async function POST(req: Request) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
-        const { planId, currency = 'usd' } = await req.json();
+        const { planId, _currency = 'usd' } = await req.json();
 
         if (!planId) {
             return new NextResponse("Plan ID is required", { status: 400 });
