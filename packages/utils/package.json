@@ -1,15 +1,17 @@
 {
-    "name": "@fileswift/utils",
-    "version": "0.0.0",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "scripts": {
-        "build": "tsc",
-        "lint": "eslint .",
-        "type-check": "tsc --noEmit"
-    },
-    "devDependencies": {
-        "typescript": "^5.0.0",
-        "eslint": "^8.0.0"
-    }
+  "name": "@fileswift/utils",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
 }
