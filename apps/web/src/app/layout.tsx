@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { AdSenseLoader } from "@/components/AdSense/AdSenseLoader";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,6 +34,7 @@ export default function RootLayout({
                     </ThemeProvider>
                     <Analytics />
                     <SpeedInsights />
+                    <AdSenseLoader />
                 </body>
             </html>
         </ClerkProvider>
