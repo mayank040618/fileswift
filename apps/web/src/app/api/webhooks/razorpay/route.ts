@@ -1,4 +1,4 @@
-import { NextResponse } from "next/headers";
+import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 
