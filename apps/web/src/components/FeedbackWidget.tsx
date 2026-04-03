@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import axios from 'axios';
+import { buildBackendUrl } from '@/lib/backend-url';
 
 interface FeedbackProps {
     toolId: string;
@@ -11,7 +12,7 @@ export function FeedbackWidget({ toolId }: FeedbackProps) {
 
     const sendFeedback = async (helpful: boolean) => {
         try {
-            await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080'}/api/feedback`, {
+            await axios.post(buildBackendUrl('/api/feedback'), {
                 toolId,
                 helpful
             });

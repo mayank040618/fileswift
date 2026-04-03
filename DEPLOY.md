@@ -57,8 +57,11 @@ Deploy the Next.js app (`apps/web`) to Vercel/Netlify.
 ### Environment Variables
 ```env
 # Point to your deployed Backend URL (e.g., Render service URL)
-# Example: https://fileswift-backend-xyz.onrender.com (No trailing slash)
+# Example: https://fileswift-backend-xyz.onrender.com
+# Rules: no trailing slash, and do not include /api.
 NEXT_PUBLIC_BACKEND_URL=https://your-real-backend-url.onrender.com 
+# Optional legacy fallback (still supported by web app):
+# NEXT_PUBLIC_API_URL=https://your-real-backend-url.onrender.com/api
 ```
 
 ---

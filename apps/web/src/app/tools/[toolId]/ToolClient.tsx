@@ -17,6 +17,7 @@ import { downloadNotesAsPdf, downloadTextAsPdf } from '@/lib/generatePdf';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { AdSquare } from '@/components/ads/AdSquare';
 import { toast } from 'sonner';
+import { buildBackendUrl } from '@/lib/backend-url';
 
 // Client-side processors
 import type {
@@ -24,6 +25,46 @@ import type {
     SummaryMode
 } from '@/lib/processors';
 import { isClientSideTool } from '@/lib/processors';
+
+type BackendErrorPayload = {
+    error?: string;
+    code?: string;
+    message?: string;
+    statusCode?: number;
+};
+
+type RequestError = Error & {
+    status?: number;
+    code?: string;
+    endpoint?: string;
+    routeNotFound?: boolean;
+};
+
+const parseBackendErrorPayload = (raw: string): BackendErrorPayload | null => {
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw) as BackendErrorPayload;
+        if (parsed && typeof parsed === 'object') return parsed;
+        return null;
+    } catch {
+        return null;
+    }
+};
+
+const isRouteNotFoundPayload = (payload: BackendErrorPayload | null): boolean => {
+    if (!payload) return false;
+    if (payload.error !== 'Not Found') return false;
+    return typeof payload.message === 'string' && /route .* not found/i.test(payload.message);
+};
+
+const createRequestError = (
+    message: string,
+    meta: Partial<Pick<RequestError, 'status' | 'code' | 'endpoint' | 'routeNotFound'>> = {}
+): RequestError => {
+    const error = new Error(message) as RequestError;
+    Object.assign(error, meta);
+    return error;
+};
 
 export default function ToolClient() {
     const params = useParams();
@@ -98,12 +139,12 @@ export default function ToolClient() {
         // Polling logic
         if (jobId && tool.id !== 'ai-chat') {
             try {
-                const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-                const res = await fetch(`${API_BASE}/api/jobs/${jobId}/status`);
-                const data = await res.json();
+                const statusUrl = buildBackendUrl(`/api/jobs/${jobId}/status`);
+                const res = await fetch(statusUrl);
+                const data = await res.json().catch(() => null);
 
                 if (res.status === 200) {
-                    if (data.status === 'completed') {
+                    if (data?.status === 'completed') {
                         setStatus('completed');
                         setResult(data);
                         toast.success(tool.id.includes('compress') ? 'Compressed Successfully!' : 'Processed Successfully!');
@@ -119,19 +160,25 @@ export default function ToolClient() {
                                 console.error('[AI] Failed to fetch result JSON:', fetchErr);
                             }
                         }
-                    } else if (data.status === 'failed') {
+                    } else if (data?.status === 'failed') {
                         setStatus('failed');
                         setErrorMessage(data.error);
                         // alert(data.error || "Job failed"); // Removed alert to use inline UI
                     }
                 } else if (res.status === 404) {
-                    // Job lost (server restart?)
                     setStatus('failed');
-                    setErrorMessage("Job not found (Server might have restarted)");
+                    if (isRouteNotFoundPayload(data)) {
+                        setErrorMessage(`Backend endpoint returned 404. Check NEXT_PUBLIC_BACKEND_URL (no trailing slash, no /api). Tried: ${statusUrl}`);
+                    } else {
+                        setErrorMessage(data?.error || "Job not found (Server might have restarted)");
+                    }
                 } else if (res.status === 429) {
                     // Rate limit hit - stop polling to be safe
                     setStatus('failed');
                     setErrorMessage("Rate limit exceeded. Please try again.");
+                } else if (!res.ok) {
+                    setStatus('failed');
+                    setErrorMessage(data?.error || data?.message || `Polling failed with status ${res.status}`);
                 }
             } catch (e) {
                 console.error("Polling error", e);
@@ -498,11 +545,10 @@ export default function ToolClient() {
         setStatus('uploading');
         setTimeRemaining('Calculating...');
         const startTime = Date.now();
+        const endpoint = buildBackendUrl('/api/upload');
 
         try {
             // 1. Upload
-            const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-            const endpoint = `${API_BASE}/api/upload`;
             console.log(`[Upload] Endpoint: ${endpoint}`);
 
             const responseData = await new Promise<any>((resolve, reject) => {
@@ -540,12 +586,20 @@ export default function ToolClient() {
                     if (xhr.status >= 200 && xhr.status < 300) {
                         try {
                             resolve(JSON.parse(xhr.responseText));
-                        } catch (e) {
+                        } catch {
                             // If JSON parse fails, implies bad response
-                            reject(new Error("Invalid server response"));
+                            reject(createRequestError('Invalid server response', { status: xhr.status, endpoint }));
                         }
                     } else {
-                        reject(new Error(xhr.responseText || `Upload failed with status ${xhr.status}`));
+                        const payload = parseBackendErrorPayload(xhr.responseText);
+                        const baseMessage = payload?.error || payload?.message || xhr.responseText || `Upload failed with status ${xhr.status}`;
+                        const message = payload?.code ? `${baseMessage} (Code: ${payload.code})` : baseMessage;
+                        reject(createRequestError(message, {
+                            status: xhr.status,
+                            code: payload?.code,
+                            endpoint,
+                            routeNotFound: xhr.status === 404 && isRouteNotFoundPayload(payload)
+                        }));
                     }
                 };
 
@@ -558,7 +612,7 @@ export default function ToolClient() {
                     console.error('[Upload] Status:', xhr.status);
                     console.error('[Upload] ReadyState:', xhr.readyState);
                     console.error('[Upload] ResponseText:', xhr.responseText);
-                    reject(new Error('Network Error (Check connection)'));
+                    reject(createRequestError('Network Error (Check connection)', { status: xhr.status, endpoint }));
                 };
 
                 console.log('[Upload] Sending XHR with formData, files count:', files.length);
@@ -580,19 +634,21 @@ export default function ToolClient() {
             } else {
                 console.error("Upload failed: No jobId received", responseData);
                 setStatus('failed');
-                toast.error(responseData.error || "Upload failed");
+                const message = responseData?.code
+                    ? `${responseData.error || 'Upload failed'} (Code: ${responseData.code})`
+                    : (responseData?.error || 'Upload failed');
+                setErrorMessage(message);
+                toast.error(message);
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error("Upload error", e);
             setStatus('failed');
 
-            let displayMsg = e.message;
-            try {
-                // Try to parse JSON error from backend if possible
-                const errorData = JSON.parse(e.message);
-                displayMsg = errorData.error || e.message;
-            } catch {
-                // Raw message
+            const requestError = e as RequestError;
+            let displayMsg = requestError?.message || 'Upload failed';
+
+            if (requestError?.status === 404 && requestError.routeNotFound) {
+                displayMsg = `Upload endpoint returned 404. Check NEXT_PUBLIC_BACKEND_URL (no trailing slash, no /api). Tried: ${requestError.endpoint || endpoint}`;
             }
 
             setErrorMessage(displayMsg); // Show in the Red Box
