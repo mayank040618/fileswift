@@ -25,7 +25,7 @@ const MODE_INSTRUCTIONS: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
     try {
-        const { text, mode = 'brief', plan = 'pro' }: SummarizeRequest = await request.json();
+        const { text, mode = 'brief', plan = 'pro_active' }: SummarizeRequest = await request.json();
 
         if (!text || text.trim().length === 0) {
             return NextResponse.json(
